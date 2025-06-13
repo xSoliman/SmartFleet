@@ -28,6 +28,8 @@ body {
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
+    height: calc(100vh - 200px); /* Adjust height to leave space for info panel */
 }
 
 #sidebar {
@@ -133,16 +135,23 @@ body {
 #map {
     flex: 1;
     position: relative;
-    height: auto;
+    height: 100%;
 }
 
 #info-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     background: var(--background-color);
     padding: 20px;
     display: flex;
     justify-content: center;
     gap: 20px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    height: 200px; /* Fixed height for info panel */
+    overflow-y: auto;
 }
 
 .info-section {
@@ -340,3 +349,5 @@ body {
 .search-form button:hover {
     background-color: #179b92;
 }
+
+

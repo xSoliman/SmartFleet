@@ -171,17 +171,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.filterVehicles = function () {
         const input = document.querySelector('.search-bar');
-        const filter = input.value.toLowerCase();
+        const filter = input.value.toLowerCase().trim();
         const rows = document.querySelectorAll('#vehicleTable tbody tr');
+        let hasVisibleRows = false;
+
         rows.forEach(row => {
             const vehicleName = row.querySelector('td').textContent.toLowerCase();
-            if (vehicleName.includes(filter) && filter !== "") {
-                row.classList.add('vehicle-highlight');
+            const speed = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const status = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            
+            const matchesSearch = 
+                vehicleName.includes(filter) || 
+                speed.includes(filter) || 
+                status.includes(filter);
+
+            if (matchesSearch) {
                 row.style.display = '';
+                hasVisibleRows = true;
+                if (filter !== '') {
+                    row.classList.add('vehicle-highlight');
+                } else {
+                    row.classList.remove('vehicle-highlight');
+                }
             } else {
+                row.style.display = 'none';
                 row.classList.remove('vehicle-highlight');
-                row.style.display = '';
             }
         });
+
+        // Show/hide "no results" message
+        let noResultsMsg = document.querySelector('.no-results-message');
+        if (!hasVisibleRows && filter !== '') {
+            if (!noResultsMsg) {
+                noResultsMsg = document.createElement('tr');
+                noResultsMsg.className = 'no-results-message';
+                noResultsMsg.innerHTML = `
+                    <td colspan="3" style="text-align: center; padding: 20px;">
+                        No vehicles found matching "${filter}"
+                    </td>
+                `;
+                document.querySelector('#vehicleTable tbody').appendChild(noResultsMsg);
+            }
+        } else if (noResultsMsg) {
+            noResultsMsg.remove();
+        }
     };
+
+    // Add event listeners for search
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.querySelector('.search-form');
+        const searchInput = document.querySelector('.search-bar');
+        
+        if (searchForm && searchInput) {
+            // Handle form submission (search button click)
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                filterVehicles();
+            });
+
+            // Handle ESC key to clear search
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterVehicles();
+                }
+            });
+        }
+    });
 });
