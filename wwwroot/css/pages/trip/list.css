@@ -1,0 +1,81 @@
+#trips-table {
+    border-radius: 15px;
+    width: 80%;
+    padding: 20px;
+    background-color: white;
+    margin: auto;
+}
+
+    #trips-table th,
+    #trips-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 5px;
+        color: rgb(128, 126, 126);
+        font-weight: bold;
+    }
+
+    #trips-table th {
+        font-size: 1.2rem;
+        color: black;
+        background-color: white;
+    }
+
+.btn-trip {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-edit {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+    .btn-edit:hover {
+        text-decoration: underline;
+        color: #218838;
+    }
+
+.btn-details {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+    .btn-details:hover {
+        text-decoration: underline;
+        color: #218838;
+    }
+
+.btn-delete {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+.deleted-icon {
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+}
+
+.edit-icon {
+    margin-right: 5px;
+    color: black;
+}
+
+.btn-add-trip {
+    color: white;
+    background-color: #16b416;
+    text-align: center;
+}
+
+    .btn-add-trip:hover {
+        color: white;
+        background-color: #16b416;
+    }
+
+.add-trip {
+    text-align: center;
+}

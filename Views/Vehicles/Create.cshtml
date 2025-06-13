@@ -1,0 +1,86 @@
+﻿@model SmartFleet.Models.Vehicle
+@{
+    ViewData["Title"] = "Create Vehicle";
+}
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/create.css">
+    
+</head>
+<div class="create-layout-container">
+    <div class="create-form-wrapper">
+        <div class="create-navigation">
+            <a href="javascript:history.back()" class="create-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        <h1 class="create-heading">Create Vehicle</h1>
+        <form asp-action="Create" class="create-custom-form" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="create-validation-message"></div>
+            <div class="create-input-group">
+                <label asp-for="Model" class="create-input-label"></label>
+                <input asp-for="Model" class="create-input-field" />
+                <span asp-validation-for="Model" class="create-validation-message"></span>
+            </div>
+            <div class="create-input-row">
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="Type" class="create-input-label"></label>
+                        <select asp-for="Type" class="create-dropdown">
+                            <option>Car</option>
+                        </select>
+                        <span asp-validation-for="Type" class="create-validation-message"></span>
+                    </div>
+                </div>
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="Capacity" class="create-input-label"></label>
+                        <input asp-for="Capacity" class="create-input-field" />
+                        <span asp-validation-for="Capacity" class="create-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="create-input-row">
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="LicensePlate" class="create-input-label"></label>
+                        <input asp-for="LicensePlate" class="create-input-field" />
+                        <span asp-validation-for="LicensePlate" class="create-validation-message"></span>
+                    </div>
+                </div>
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="Status" class="create-input-label"></label>
+                        <select asp-for="Status" class="create-dropdown">
+                            <option>Available</option>
+                        </select>
+                        <span asp-validation-for="Status" class="create-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="create-input-group">
+                <label asp-for="Distance" class="create-input-label"></label>
+                <input asp-for="Distance" class="create-input-field" />
+                <span asp-validation-for="Distance" class="create-validation-message"></span>
+            </div>
+            <div class="create-input-group">
+                <label asp-for="VehicleImageUrl" class="create-input-label"></label>
+                <input type="file" asp-for="VehicleImageUrl" name="imageFile" class="create-input-field" accept="image/*" onchange="previewImage(event)" />
+                <span asp-validation-for="VehicleImageUrl" class="create-validation-message"></span>
+                <div class="image-preview-container">
+                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+                </div>
+            </div>
+            <div class="create-button-group">
+                <button type="submit" class="create-primary-button">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/vehicle/create.js"></script>
+}

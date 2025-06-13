@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+	  
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="wwwroot\lib\animate\**" />
+    <Compile Remove="wwwroot\lib\bootstrap\dist\**" />
+    <Compile Remove="wwwroot\lib\scss\**" />
+    <Content Remove="wwwroot\lib\animate\**" />
+    <Content Remove="wwwroot\lib\bootstrap\dist\**" />
+    <Content Remove="wwwroot\lib\scss\**" />
+    <EmbeddedResource Remove="wwwroot\lib\animate\**" />
+    <EmbeddedResource Remove="wwwroot\lib\bootstrap\dist\**" />
+    <EmbeddedResource Remove="wwwroot\lib\scss\**" />
+    <None Remove="wwwroot\lib\animate\**" />
+    <None Remove="wwwroot\lib\bootstrap\dist\**" />
+    <None Remove="wwwroot\lib\scss\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\css\pages\tracking\tracking.css" />
+    <Content Remove="wwwroot\js\tracking.js" />
+    <Content Remove="wwwroot\lib\bootstrap\LICENSE" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Views\Shared\_Layout.cshtml.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Role\" />
+    <Folder Include="wwwroot\assets\images\icons\" />
+    <Folder Include="wwwroot\assets\images\profiles\" />
+    <Folder Include="wwwroot\assets\videos\" />
+    <Folder Include="wwwroot\assets\DriversImages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\css\pages\tracking\tracking.css" />
+    <None Include="wwwroot\js\tracking.js" />
+  </ItemGroup>
+
+</Project>

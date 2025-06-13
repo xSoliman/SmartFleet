@@ -1,0 +1,103 @@
+.create-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.create-layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.create-form-wrapper {
+    width: 60%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 20px;
+}
+
+.create-input-group {
+    margin-bottom: 15px;
+}
+
+.create-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.create-input-field, .create-dropdown {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.create-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.create-button-group {
+    text-align: center;
+}
+
+.create-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .create-primary-button:hover {
+        background: #004d40;
+    }
+
+.create-navigation {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.create-back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+    .create-back-link:hover {
+        background: #004d40;
+    }
+
+.create-input-row {
+    display: flex;
+    gap: 15px;
+}
+
+.create-input-col {
+    flex: 1;
+}
+
+.image-preview-container {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.image-preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 4px;
+    display: none;
+    margin-top: 10px;
+}

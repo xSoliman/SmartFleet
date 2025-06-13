@@ -1,0 +1,87 @@
+﻿@model SmartFleet.ViewModel.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}   
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/account/EditProfile.css">
+    
+</head>
+
+
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <div class="edit-navigation">
+            <a asp-action="MyAccount" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back 
+            </a>
+        </div>
+
+        <h1 class="edit-heading">Edit Account</h1>
+
+        <!-- Validation Summary -->
+        <div asp-validation-summary="All" class="edit-validation-summary"></div>
+
+        <form asp-action="EditProfile" method="post" class="edit-custom-form" enctype="multipart/form-data">
+            
+            <div class="profile-container text-center">
+                <img id="imagePreview" src="@Model.ImageUrl" class="img-fluid rounded-circle" alt="Profile Picture" 
+                    style="width: 150px; height: 150px; object-fit: cover;">
+                
+                <label class="camera-icon" for="fileUpload">
+                    <i class="fa fa-camera"></i>
+                </label>
+                
+                <input type="file" id="fileUpload" name="ImageFile" class="d-none" accept="image/*" onchange="previewImage(event)">
+            </div>
+
+            <div class="edit-input-group">
+                <label asp-for="UserName" class="edit-input-label"></label>
+                <input asp-for="UserName" class="edit-input-field" />
+                <span asp-validation-for="UserName" class="edit-validation-message"></span>
+            </div>
+
+            <div class="edit-input-group">
+                <label asp-for="Email" class="edit-input-label"></label>
+                <input asp-for="Email" class="edit-input-field" readonly />
+                <span asp-validation-for="Email" class="edit-validation-message"></span>
+            </div>
+
+            <div class="edit-input-group">
+                <label asp-for="PhoneNumber" class="edit-input-label"></label>
+                <input asp-for="PhoneNumber" class="edit-input-field" />
+                <span asp-validation-for="PhoneNumber" class="edit-validation-message"></span>
+            </div>
+
+            <div class="edit-input-group">
+                <label asp-for="ImageFile" class="edit-input-label"></label>
+                <input type="file" name="ImageFile" class="edit-input-field" accept="image/*" onchange="previewImage(event)">
+                <span asp-validation-for="ImageFile" class="edit-validation-message"></span>
+
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="image-preview-container">
+                        <img src="@Model.ImageUrl" id="imagePreview" class="image-preview img-thumbnail" width="150" />
+                        <br />
+                        <input type="checkbox" name="RemoveImage" value="true" /> Remove current image
+                    </div>
+                }
+            </div>
+
+            <div class="edit-button-group">
+                <input type="submit" value="Save" class="edit-primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+<br/>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/account/EditProfile.js"></script>
+}
+

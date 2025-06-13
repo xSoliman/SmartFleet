@@ -1,0 +1,89 @@
+﻿@model IEnumerable<SmartFleet.Models.Order>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.User)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.VehicleType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PassengerCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TripStartLocation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TripEndLocation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TripStartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TripEndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Reason)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreatedAt)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.VehicleType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PassengerCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TripStartLocation)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TripEndLocation)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TripStartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TripEndDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Reason)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

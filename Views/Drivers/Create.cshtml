@@ -1,0 +1,95 @@
+﻿@model SmartFleet.ViewModel.DriverViewModel
+
+@{
+    ViewData["Title"] = "Create Driver";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/driver/create.css">
+    
+</head>
+
+<div class="create-layout-container">
+    <div class="create-form-wrapper">
+        <div class="create-navigation">
+            <a href="javascript:history.back()" class="create-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <h1 class="create-heading">Create Driver</h1>
+
+        <form asp-action="Create" class="create-custom-form" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="create-validation-message"></div>
+
+            <div class="create-input-group">
+                <label asp-for="UserName" class="create-input-label"></label>
+                <input asp-for="UserName" class="create-input-field" />
+                <span asp-validation-for="UserName" class="create-validation-message"></span>
+            </div>
+
+            <div class="create-input-row">
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="Email" class="create-input-label"></label>
+                        <input asp-for="Email" class="create-input-field" />
+                        <span asp-validation-for="Email" class="create-validation-message"></span>
+                    </div>
+                </div>
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="Password" class="create-input-label"></label>
+                        <input asp-for="Password" class="create-input-field" type="password" />
+                        <span asp-validation-for="Password" class="create-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-input-row">
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="LicenseNumber" class="create-input-label"></label>
+                        <input asp-for="LicenseNumber" class="create-input-field" />
+                        <span asp-validation-for="LicenseNumber" class="create-validation-message"></span>
+                    </div>
+                </div>
+                <div class="create-input-col">
+                    <div class="create-input-group">
+                        <label asp-for="LicenseExpiryDate" class="create-input-label"></label>
+                        <input asp-for="LicenseExpiryDate" class="create-input-field" type="date" />
+                        <span asp-validation-for="LicenseExpiryDate" class="create-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-input-group">
+                <label asp-for="DriverStatus" class="create-input-label"></label>
+                <select asp-for="DriverStatus" class="create-dropdown" asp-items="Html.GetEnumSelectList<SmartFleet.Models.DriverState>()"></select>
+                <span asp-validation-for="DriverStatus" class="create-validation-message"></span>
+            </div>
+
+            <div class="create-input-group">
+                <label asp-for="ProfileImageFile" class="create-input-label"></label>
+                <input asp-for="ProfileImageFile" class="create-input-field" type="file" accept="image/*" onchange="previewImage(event)" />
+                <span asp-validation-for="ProfileImageFile" class="create-validation-message"></span>
+                <div class="image-preview-container">
+                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+                </div>
+            </div>
+
+            <div class="create-button-group">
+                <button type="submit" class="create-primary-button">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/driver/create.js"></script>
+}

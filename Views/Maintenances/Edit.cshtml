@@ -1,0 +1,109 @@
+﻿@model SmartFleet.Models.Maintenance
+
+@using SmartFleet.Models
+@{
+    ViewData["Title"] = "Edit Maintenance";
+
+    var repairStatusList = Html.GetEnumSelectList<RepairState>();
+    var priorityList = Html.GetEnumSelectList<PriorityDegree>();
+}
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/maintenance/edit.css">
+    
+</head>
+
+
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <div class="edit-navigation">
+            <a asp-action="Index" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <h1 class="edit-heading">Edit Maintenance</h1>
+
+        <form asp-action="Edit" class="edit-custom-form">
+            <div asp-validation-summary="ModelOnly" class="edit-validation-message"></div>
+            <input type="hidden" asp-for="Id" />
+
+            
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="VehicleId" class="edit-input-label"></label>
+                        <select asp-for="VehicleId" class="edit-dropdown" asp-items="ViewBag.VehicleId"></select>
+                        <span asp-validation-for="VehicleId" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="ReportedBy" class="edit-input-label"></label>
+                        <select asp-for="ReportedBy" class="edit-dropdown" asp-items="ViewBag.ReportedBy"></select>
+                        <span asp-validation-for="ReportedBy" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="RepairStatus" class="edit-input-label"></label>
+                        <select asp-for="RepairStatus" class="edit-dropdown" asp-items="repairStatusList"></select>
+                        <span asp-validation-for="RepairStatus" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Priority" class="edit-input-label"></label>
+                        <select asp-for="Priority" class="edit-dropdown" asp-items="priorityList"></select>
+                        <span asp-validation-for="Priority" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+
+
+           
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="RepairedAt" class="edit-input-label"></label>
+                        <input asp-for="RepairedAt" class="edit-input-field" />
+                        <span asp-validation-for="RepairedAt" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="CreatedAt" class="edit-input-label"></label>
+                        <input asp-for="CreatedAt" class="edit-input-field" />
+                        <span asp-validation-for="CreatedAt" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="edit-input-group">
+                <label asp-for="IssueDescription" class="edit-input-label"></label>
+                <textarea asp-for="IssueDescription" class="edit-input-field" rows="2" ></textarea>
+                <span asp-validation-for="IssueDescription" class="edit-validation-message"></span>
+            </div>
+
+            <div class="edit-button-group">
+                <input type="submit" value="Save" class="edit-primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

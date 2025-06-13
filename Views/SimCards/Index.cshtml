@@ -1,0 +1,56 @@
+﻿@model IEnumerable<SmartFleet.Models.SimCard>
+
+@{
+    ViewData["Title"] = "SimCard List";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/simcard/list.css">
+   
+</head>
+<p class="add-simcard">
+    <a asp-action="Create" class="btn btn-add-sim"><i class="fas fa-sim-card sim-icon "></i> Add SimCard</a>
+</p>
+
+<div class="table-responsive">
+    <table id="simcard-table" class="table table-bordered">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                <th>@Html.DisplayNameFor(model => model.SimNumber)</th>
+                <th>@Html.DisplayNameFor(model => model.Carrier)</th>
+                <th>@Html.DisplayNameFor(model => model.ActivatedAt)</th>
+                <th>@Html.DisplayNameFor(model => model.Status)</th>
+                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Vehicle.Id)</td>
+                    <td>@Html.DisplayFor(modelItem => item.SimNumber)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Carrier)</td>
+                    <td>@Html.DisplayFor(modelItem => item.ActivatedAt)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Status)</td>
+                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sim">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sim">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sim">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<br />

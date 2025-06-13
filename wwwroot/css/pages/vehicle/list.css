@@ -1,0 +1,96 @@
+#vehicle-table {
+    border-radius: 15px;
+    width: 80%;
+    padding: 20px;
+    background-color: white;
+    margin: auto;
+}
+
+    #vehicle-table th, #vehicle-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 5px;
+        color: rgb(128, 126, 126);
+        font-weight: bold;
+    }
+
+    #vehicle-table th {
+        font-size: 1.2rem;
+        color: black;
+        background-color: white;
+    }
+
+.status-active {
+    color: green;
+}
+
+.status-maintenance {
+    color: orange;
+}
+
+.status-inactive {
+    color: red;
+}
+
+.btn-vehicle {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-edit {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+.btn-details {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+.btn-delete {
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+.deleted_icon {
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+}
+
+.fa-edit {
+    margin-right: 5px;
+    color: black;
+}
+
+.car-icon {
+    margin-right: 5px;
+    color: black;
+}
+
+.btn-add-car {
+    color: white;
+    background-color: #16b416;
+    text-align: center;
+}
+
+    .btn-add-car:hover {
+        color: white;
+        background-color: #16b416;
+    }
+
+.status {
+    color: green;
+}
+
+.add-vehicle {
+    text-align: center;
+}
+
+.vehicle-image {
+    width: 50px;
+    height: 50px;
+}

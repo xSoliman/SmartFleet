@@ -1,0 +1,51 @@
+#simcard-table {
+    border-radius: 15px;
+    width: 80%;
+    padding: 20px;
+    background-color: white;
+    margin: auto;
+}
+
+    #simcard-table th, #simcard-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 5px;
+        color: rgb(128, 126, 126);
+        font-weight: bold;
+    }
+
+    #simcard-table th {
+        font-size: 1.2rem;
+        color: black;
+        background-color: white;
+    }
+
+.btn-sim {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    background-color: rgb(235, 235, 235);
+    color: black;
+}
+
+.btn-add-sim {
+    color: white;
+    background-color: #16b416;
+    text-align: center;
+}
+
+    .btn-add-sim:hover {
+        color: white;
+        background-color: #16b416;
+    }
+
+.add-simcard {
+    text-align: center;
+}
+
+.sim-icon {
+    margin-right: 5px;
+    color: black;
+}

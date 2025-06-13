@@ -1,0 +1,67 @@
+﻿@model IEnumerable<SmartFleet.Models.Driver>
+
+@{
+    ViewData["Title"] = "Drivers";
+}
+
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/driver/list.css">
+    
+</head>
+<p class="add-driver ">
+    <a asp-action="Create" class="btn btn-add-car"> <i class="fas fa-user driver-icon "></i> Add Drivers</a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-driver table-bordered">
+        <thead>
+            <tr>
+            <th>UserName</th>
+            <th>Email</th>
+            <th>License Number</th>
+            <th>License Expiry</th>
+            <th>Status</th>
+            <th>Profile Image</th>
+
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var driver in Model)
+        {
+            <tr>
+                <td>@driver.UserName</td>
+                <td>@driver.Email</td>
+                <td>@driver.LicenseNumber</td>
+                <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
+                    <td class="status-active">@driver.DriverStatus</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(driver.ProfileImageUrl))
+                    {
+                        <img src="@driver.ProfileImageUrl" alt="Profile Image" width="50" height="50" />
+                    }
+                </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@driver.Id" class="btn edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+
+
+
+                        
+                        <a asp-action="Details" asp-route-id="@driver.Id" class="btn details">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@driver.Id" class="btn delete">
+                            <i class="fas fa-trash-alt deleted_icon"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<br />
+

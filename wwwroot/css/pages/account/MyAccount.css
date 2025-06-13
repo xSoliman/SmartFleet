@@ -1,0 +1,76 @@
+
+.container1 {
+    width: 30%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.profile-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #007BFF;
+}
+
+.camera-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #20B2AA;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+}
+
+    .camera-icon i {
+        color: white;
+        font-size: 18px;
+    }
+
+.info {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.info-card {
+    background: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    text-align: left;
+}
+
+    .info-card dt {
+        font-weight: bold;
+        color: #030303;
+    }
+
+.btn {
+    background: #20B2AA;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+    .btn:hover {
+        background: #1e9b94;
+    }

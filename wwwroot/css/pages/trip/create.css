@@ -1,0 +1,109 @@
+
+.create-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.create-layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.create-form-wrapper {
+    width: 50%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.create-custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.create-input-group {
+    margin-bottom: 15px;
+}
+
+.create-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.create-input-field,
+.create-dropdown {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.create-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.create-button-group {
+    text-align: center;
+}
+
+.btn.btn-secondary {
+    background: #00796b; /* ??????? */
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+    .btn.btn-secondary:hover {
+        background-color: #004d40;
+    }
+
+
+.create-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .create-primary-button:hover {
+        background: #004d40;
+    }
+
+.create-back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+
+
+    .create-back-link:hover {
+        background: #004d40;
+    }
+
+
+.flex-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+
+.flex-col-3 {
+    flex: 1 1 calc(33.333% - 15px);
+}
+
+
+.flex-col-2 {
+    flex: 1 1 calc(50% - 15px);
+}

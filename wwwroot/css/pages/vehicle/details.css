@@ -1,0 +1,158 @@
+.main-container {
+    width: 80%;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 50px;
+}
+
+/* Left section - Vehicle details and Sim Card data */
+.left-container {
+    width: 70%; /* Adjusted width to make it smaller */
+}
+
+.vehicle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vehicle-heading {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.vehicle-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.vehicle-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.vehicle-label {
+    font-weight: bold;
+}
+
+.vehicle-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.vehicle-button {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+    .vehicle-button:hover {
+        background: #004d40;
+    }
+
+.sim-card-container {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.sim-card-data {
+    width: 40%;
+    background-color: #f4f7f6;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+    .sim-card-data h2 {
+        color: #00796b;
+        margin-bottom: 15px;
+    }
+
+    .sim-card-data p {
+        font-size: 16px;
+        color: #333;
+        line-height: 1.5;
+    }
+
+        .sim-card-data p strong {
+            color: #000;
+        }
+
+.image-container {
+    width: 30%;
+}
+
+    .image-container img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+
+.no-content-message {
+    text-align: center;
+    font-size: 18px;
+    color: #888;
+    margin-top: 30px;
+}
+
+/* Right sidebar - links section */
+.right-container {
+    width: 30%; /* Increased width */
+    padding: 20px;
+    background-color: #f4f7f6;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-left: 20px; /* Space between left content and sidebar */
+}
+
+    .right-container h2 {
+        color: #00796b;
+        margin-bottom: 20px;
+    }
+
+    .right-container ul {
+        list-style: none;
+        padding: 0;
+    }
+
+        .right-container ul li a {
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            font-size: 20px;
+            align-items: center;
+            gap: 15px;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+            .right-container ul li a:hover {
+                color: #ffffff;
+                background-color: #00796b;
+            }
+
+            .right-container ul li a .icon {
+                font-size: 30px;
+                color: #00796b;
+                transition: color 0.3s ease;
+            }
+
+            .right-container ul li a:hover .icon {
+                color: #ffffff;
+            }

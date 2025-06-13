@@ -1,0 +1,40 @@
+/* responsive.css */
+
+/* Small screens (Mobile first) */
+@media (max-width: 600px) {
+    body {
+        font-size: var(--font-size-small);
+    }
+
+    .container {
+        padding: var(--space-sm);
+    }
+
+    /* Adjust buttons */
+    button {
+        font-size: var(--font-size-small);
+        padding: var(--space-xs) var(--space-sm);
+    }
+}
+
+/* Medium screens (Tablets) */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .container {
+        padding: var(--space-md);
+    }
+
+    button {
+        font-size: var(--font-size-medium);
+    }
+}
+
+/* Large screens (Desktops) */
+@media (min-width: 1025px) {
+    .container {
+        padding: var(--space-lg);
+    }
+
+    button {
+        font-size: var(--font-size-large);
+    }
+}

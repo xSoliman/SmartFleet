@@ -1,0 +1,74 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Fleet Tracking</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/pages/tracking/tracking.css" />
+</head>
+<body>
+    <div id="content">
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-truck-moving"></i> Fleet Overview</h2>
+                <form class="search-form" onsubmit="event.preventDefault();">
+                    <div class="input-group">
+                        <input type="text" class="form-control search-bar" placeholder="Search vehicles..." oninput="filterVehicles()">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="table-container">
+                <table id="vehicleTable">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-truck"></i> Vehicle</th>
+                            <th><i class="fas fa-tachometer-alt"></i> Speed</th>
+                            <th><i class="fas fa-circle"></i> Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Vehicle data will be loaded dynamically via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <div id="info-panel">
+        <div class="info-section">
+            <div class="info-card" id="driver-info">
+                <h3><i class="fas fa-user"></i> Driver Information</h3>
+                <div class="info-content">
+                    <!-- Driver info will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+        <div class="info-section">
+            <div class="info-card" id="vehicle-details">
+                <h3><i class="fas fa-info-circle"></i> Vehicle Details</h3>
+                <div class="info-content">
+                    <!-- Vehicle details will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+        <div class="info-section">
+            <div class="info-card" id="position-info">
+                <h3><i class="fas fa-map-marker-alt"></i> Position</h3>
+                <div class="info-content">
+                    <!-- Position info will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="~/js/tracking.js"></script>
+</body>
+</html>

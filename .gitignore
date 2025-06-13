@@ -1,0 +1,48 @@
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.app
+*.log
+
+# Rider-specific
+.idea/
+*.sln.iml
+
+# VS-specific (if team uses it)
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Core specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+wwwroot/lib/
+*.db
+
+# Node modules (if frontend involved)
+node_modules/
+
+# Publish outputs
+out/
+*.Publish.xml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment or secrets
+.env
+secrets.json
+
+# Others
+*.vsix
+*.zip
+*.tar.gz
+*.tar
+*.gz
+*.7z
+*.rar

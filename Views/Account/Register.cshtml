@@ -1,0 +1,85 @@
+﻿@model SmartFleet.ViewModel.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/lib/fontawesome/all.css">
+    <link rel="stylesheet" href="~/css/pages/account/register.css">
+
+  
+</head>
+<body>
+
+    <img src="~/assets/images/logos/logo-aun.png" class=" logo-assiut" />
+
+    <div class="register-container">
+        <h1>Register</h1>
+        <form asp-action="SaveRegister" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="UserName"></label>
+                <div class="input-group">
+                    <i class="fa fa-user"></i>
+                    <input asp-for="UserName" class="form-control" placeholder="Enter  your name" />
+                </div>
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email"></label>
+                <div class="input-group">
+                    <i class="fa fa-envelope"></i>
+                    <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <div class="input-group">
+                    <i class="fa fa-lock"></i>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword"></label>
+                <div class="input-group">
+                    <i class="fa fa-lock"></i>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PhoneNumber"></label>
+                <div class="input-group">
+                    <i class="fa fa-phone"></i>
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number" />
+                </div>
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-register">Create Account</button>
+        </form>
+        Already have an account?
+        <a asp-controller="Account" asp-action="Login" class="back-link">Login</a>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+
+</body>
+</html>

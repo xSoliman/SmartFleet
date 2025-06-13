@@ -1,0 +1,164 @@
+
+.edit-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.edit-layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.edit-form-wrapper {
+    width: 30%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 30px;
+}
+
+.edit-custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-input-group {
+    margin-bottom: 15px;
+}
+
+.edit-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.edit-input-field, .edit-dropdown {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.edit-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.edit-button-group {
+    text-align: center;
+}
+
+.edit-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .edit-primary-button:hover {
+        background: #004d40;
+    }
+
+.edit-navigation {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.edit-back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+    .edit-back-link:hover {
+        background: #004d40;
+    }
+
+    .edit-back-link i {
+        margin-right: 5px;
+    }
+
+/* ????? ?????? ?????? */
+.image-preview-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.image-preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 4px;
+    display: none;
+    margin-top: 10px;
+}
+
+/* ????? ?? ?????? */
+.btn-secondary {
+    background: #20B2AA;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+}
+
+    .btn-secondary:hover {
+        background: #1e9b94;
+    }
+
+/* ????? ??????? ?????? ??????? ??????? */
+.profile-container {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+    .profile-container img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+.camera-icon {
+    position: relative;
+    top: -25px;
+    left: -10px;
+    cursor: pointer;
+    background: #00796b;
+    color: white;
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 14px;
+}
+
+    .camera-icon:hover {
+        background: #004d40;
+    }
+
+.profile-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #007BFF;
+}

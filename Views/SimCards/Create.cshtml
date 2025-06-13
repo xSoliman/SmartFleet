@@ -1,0 +1,82 @@
+﻿@model SmartFleet.Models.SimCard
+
+@{
+    ViewData["Title"] = "Create Sim Card";
+}
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/simcard/create.css">
+    
+</head>
+
+
+<div class="layout-container">
+    <div class="form-wrapper">
+        <div class="navigation">
+            <a asp-action="Index" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to List
+
+            </a>
+        </div>
+        <h1 class="page-title">Create Sim Card</h1>
+
+        <form asp-action="Create" class="custom-form">
+            <div asp-validation-summary="ModelOnly" class="validation-message"></div>
+
+            <div class="input-group">
+                <label asp-for="VehicleId" class="input-label"></label>
+                <select asp-for="VehicleId" class="custom-select" asp-items="ViewBag.VehicleId"></select>
+            </div>
+
+            <div class="input-row">
+                <div class="input-col">
+                    <div class="input-group">
+                        <label asp-for="SimNumber" class="input-label"></label>
+                        <input asp-for="SimNumber" class="text-input" />
+                        <span asp-validation-for="SimNumber" class="validation-message"></span>
+                    </div>
+                </div>
+                <div class="input-col">
+                    <div class="input-group">
+                        <label asp-for="Carrier" class="input-label"></label>
+                        <input asp-for="Carrier" class="text-input" />
+                        <span asp-validation-for="Carrier" class="validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="input-col">
+                    <div class="input-group">
+                        <label asp-for="ActivatedAt" class="input-label"></label>
+                        <input asp-for="ActivatedAt" class="text-input" />
+                        <span asp-validation-for="ActivatedAt" class="validation-message"></span>
+                    </div>
+                </div>
+                <div class="input-col">
+                    <div class="input-group">
+                        <label asp-for="Status" class="input-label"></label>
+                        <input asp-for="Status" class="text-input" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label asp-for="CreatedAt" class="input-label"></label>
+                <input asp-for="CreatedAt" class="text-input" />
+                <span asp-validation-for="CreatedAt" class="validation-message"></span>
+            </div>
+
+            <div class="button-group">
+                <input type="submit" value="Create" class="primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,151 @@
+.nav-auto {
+    display: flex;
+    justify-content: flex-end; /* Aligns items to the right */
+    gap: 2px; /* Adds space between the buttons */
+}
+
+.icon-btn {
+    padding: 12px 55px; /* Larger padding for bigger buttons */
+    font-size: 16px; /* Larger text */
+    border-radius: 25px; /* Rounded corners for buttons */
+    display: flex;
+    align-items: center; /* Aligns text and icon */
+    gap: 8px; /* Space between icon and text */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+    .icon-btn:hover {
+        background-color: #f1f1f1; /* Light background color on hover */
+    }
+
+    .icon-btn i {
+        font-size: 18px; /* Larger icon size */
+    }
+
+.navbar-nav .nav-item {
+    position: relative;
+}
+
+.navbar-nav .nav-link {
+    color: var(--bs-dark);
+    padding: 5px 0;
+    transition: 0.3s;
+}
+
+    .navbar-nav .nav-link:hover,
+    .navbar-nav .nav-link.active {
+        color: var(--bs-primary);
+    }
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: var(--bs-primary);
+}
+
+.navbar-nav .dropdown-menu {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s;
+    transform: rotateX(-75deg);
+    transform-origin: top left;
+}
+
+.navbar-nav .dropdown:hover .dropdown-menu {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: rotateX(0);
+}
+
+.nav-right {
+    margin-right: 5px;
+    width: 300px;
+}
+
+/* Adjust logo and navbar */
+.navbar-light .navbar-nav .nav-link {
+    color: var(--bs-dark);
+    padding: 12px 0;
+    transition: 0.3s;
+}
+
+.navbar-nav .nav-item {
+    position: relative;
+}
+
+.navbar-nav .dropdown-menu {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s;
+    transform: rotateX(-75deg);
+    transform-origin: top left;
+}
+
+.navbar-nav .dropdown:hover .dropdown-menu {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: rotateX(0);
+}
+
+/* Move the account buttons and logo slightly to the left */
+.nav-auto {
+    display: flex;
+    justify-content: flex-start; /* Align items to the left */
+    gap: 5px; /* Adds space between the buttons */
+    margin-left: 5px; /* Moves the account section slightly to the left */
+}
+
+.nav-right {
+    margin-right: 50px;
+    width: 50px;
+    margin-left: 0; /* Moves the logo slightly to the left */
+}
+
+/* Adjust the icon buttons */
+.icon-btn {
+    padding: 12px 55px; /* Larger padding for bigger buttons */
+    font-size: 16px; /* Larger text */
+    border-radius: 25px; /* Rounded corners for buttons */
+    display: flex;
+    align-items: center; /* Aligns text and icon */
+    gap: 8px; /* Space between icon and text */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+    .icon-btn:hover {
+        background-color: #f1f1f1; /* Light background color on hover */
+    }
+
+    .icon-btn i {
+        font-size: 18px; /* Larger icon size */
+    }
+
+nav {
+    margin-left: -100px;
+}
+
+.noti {
+    position: relative;
+    left: 290px;
+}
+
+.acc {
+    position: relative;
+    left: 280px;
+}
+
+.it {
+    position: relative;
+    left: 150px;
+}
+
+.lo {
+    position: relative;
+    right: 50px;
+}
+
+.nav-auto {
+    width: 100%;
+}

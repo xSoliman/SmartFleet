@@ -1,0 +1,84 @@
+﻿@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle Details";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+   
+</head>
+
+    <div class="main-container">
+        <!-- Left Section: Sim Card Details and Vehicle Details -->
+        <div class="left-container">
+            <!-- Sim Card Details -->
+            <div class="sim-card-container">
+                <div class="sim-card-data">
+                    <h2>Sim Card Data</h2>
+                    <p><strong>Sim Number:</strong> <span id="simNumber"></span></p>
+                    <p><strong>Tracking Code:</strong> <span id="trackingCode"></span></p>
+                    <p><strong>Device Type:</strong> <span id="deviceType"></span></p>
+                </div>
+                <div class="image-container">
+                    @* <img src="~/assets/images/icons/download.png" alt="Sim Card Image"> *@
+                    <img src="@Model.VehicleImageUrl" alt="Vehcile Image">
+
+                </div>
+            </div>
+
+            <!-- Vehicle Details -->
+            <div class="vehicle-container">
+                <h1 class="vehicle-heading">Vehicle Details</h1>
+                <div class="vehicle-details">
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">Model:</span>
+                        <span>@Html.DisplayFor(model => model.Model)</span>
+                    </div>
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">Type:</span>
+                        <span>@Html.DisplayFor(model => model.Type)</span>
+                    </div>
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">Capacity:</span>
+                        <span>@Html.DisplayFor(model => model.Capacity)</span>
+                    </div>
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">License Plate:</span>
+                        <span>@Html.DisplayFor(model => model.LicensePlate)</span>
+                    </div>
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">Status:</span>
+                        <span>@Html.DisplayFor(model => model.Status)</span>
+                    </div>
+                    <div class="vehicle-item">
+                        <span class="vehicle-label">Distance:</span>
+                        <span>@Html.DisplayFor(model => model.Distance)</span>
+                    </div>
+                    
+                </div>
+
+                <div class="vehicle-actions">
+                    <a asp-action="Index" class="vehicle-button">Back to List</a>
+                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="vehicle-button">Edit</a>
+                    <a asp-action="Tracking" asp-route-id="@Model?.Id" class="vehicle-button">Tracking</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar Section -->
+        <div class="right-container">
+            <h2>Details</h2>
+            <ul>
+                <li><a href="page1.html"><i class="fa-solid fa-info"></i> Information</a></li>
+                <li><a href="page2.html"><i class="fa-solid fa-car"></i> Details</a></li>
+                <li><a href="page3.html"><i class="fa-solid fa-diagram-project"></i> Structure</a></li>
+                <li><a href="page4.html"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+                <li><a href="page5.html"><i class="fa-solid fa-gears"></i> Operations</a></li>
+                <li><a href="page6.html"><i class="fa-solid fa-triangle-exclamation"></i> Violations</a></li>
+            </ul>
+        </div>
+    </div>
+

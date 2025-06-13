@@ -1,0 +1,73 @@
+﻿@model IEnumerable<SmartFleet.Models.Maintenance>
+
+@{
+    ViewData["Title"] = "Maintenance List";
+}
+
+
+   <head >
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <link rel="stylesheet" href="~/css/pages/maintenance/list.css" >
+    
+   </head>
+
+
+
+<form method="get" class="search-form">
+    <div class="input-group">
+        <input type="text" name="searchLicensePlate" class="form-control" placeholder="Search by License Plate" value="@Context.Request.Query["searchLicensePlate"]">
+        <button type="submit">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+</form>
+
+<p class="add-maintenance">
+    <a asp-action="Create" class=" btn-add-maintenance"> <i class="fas fa-tools maintenance-icon "></i> Add Maintenance Record</a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-maintenance table-bordered">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.Vehicle.LicensePlate)</th>
+                @* <th>@Html.DisplayNameFor(model => model.ReportedUser.Id)</th> *@
+                <th>@Html.DisplayNameFor(model => model.IssueDescription)</th>
+                <th>@Html.DisplayNameFor(model => model.RepairStatus)</th>
+                <th >@Html.DisplayNameFor(model => model.Priority)</th>
+                <th>@Html.DisplayNameFor(model => model.RepairedAt)</th>
+                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Vehicle.LicensePlate)</td>
+                    @* <td>@Html.DisplayFor(modelItem => item.ReportedUser.Id)</td> *@
+                    <td>@Html.DisplayFor(modelItem => item.IssueDescription)</td>
+                    <td>@Html.DisplayFor(modelItem => item.RepairStatus)</td>
+                    <td class="priority-status">@Html.DisplayFor(modelItem => item.Priority)</td>
+                    <td>@Html.DisplayFor(modelItem => item.RepairedAt)</td>
+                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn details">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
+                            <i class="fas fa-trash-alt deleted_icon"></i>
+                            
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+

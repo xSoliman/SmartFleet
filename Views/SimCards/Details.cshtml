@@ -1,0 +1,61 @@
+﻿@model SmartFleet.Models.SimCard
+@{
+    ViewData["Title"] = "Details";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/simcard/details.css">
+    
+</head>
+
+<div class="details-layout-container">
+    <div class="details-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="details-heading">Details</h1>
+
+        <!-- Display Data -->
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.Vehicle)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.Vehicle.Id)</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.SimNumber)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.SimNumber)</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.Carrier)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.Carrier)</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.ActivatedAt)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.ActivatedAt)</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.Status)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.Status)</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">@Html.DisplayNameFor(model => model.CreatedAt)</label>
+            <div class="details-display-value">@Html.DisplayFor(model => model.CreatedAt)</div>
+        </div>
+
+        <!-- Button Group -->
+        <div class="details-button-group">
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="details-primary-button">Edit</a>
+        </div>
+    </div>
+</div>

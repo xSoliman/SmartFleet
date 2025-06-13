@@ -1,0 +1,82 @@
+.details-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.details-layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.details-form-wrapper {
+    width: 50%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 30px;
+}
+
+.details-display-group {
+    margin-bottom: 15px;
+    margin-top: 30px;
+}
+
+.details-display-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.details-display-value {
+    padding: 8px;
+    background: #f9f9f9;
+    color: #555;
+}
+
+.details-navigation {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.details-back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+    .details-back-link:hover {
+        text-decoration: none;
+        background: #004d40;
+    }
+
+    .details-back-link i {
+        margin-right: 5px;
+    }
+
+.details-button-group {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.details-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .details-primary-button:hover {
+        background: #004d40;
+    }

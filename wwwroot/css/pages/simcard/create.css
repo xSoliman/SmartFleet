@@ -1,0 +1,98 @@
+
+.page-title {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 60px;
+    text-align: center;
+}
+
+.layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.form-wrapper {
+    width: 50%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 30px;
+}
+
+.custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.text-input, .custom-select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.button-group {
+    text-align: center;
+}
+
+.primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100px;
+    font-size: 20px;
+}
+
+    .primary-button:hover {
+        background: #004d40;
+    }
+
+.navigation {
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+    .back-link:hover {
+        text-decoration: none;
+        background: #004d40;
+    }
+
+.input-row {
+    display: flex;
+    gap: 15px;
+}
+
+.input-col {
+    flex: 1;
+}

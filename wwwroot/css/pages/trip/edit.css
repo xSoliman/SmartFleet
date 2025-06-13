@@ -1,0 +1,126 @@
+
+.edit-layout-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+
+.edit-form-wrapper {
+    width: 60%;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+
+.edit-navigation-inside {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+
+.btn.btn-secondary {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+    .btn.btn-secondary:hover {
+        background: #004d40;
+    }
+
+    .btn.btn-secondary i {
+        margin-right: 5px;
+    }
+
+
+.edit-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+
+.edit-custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.edit-flex-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.time-container {
+    gap: 20px;
+}
+
+.flex-item {
+    flex: 1;
+    min-width: 150px;
+}
+
+
+.edit-input-group {
+    margin-bottom: 15px;
+}
+
+.edit-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+
+.edit-input-field,
+.edit-dropdown {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+
+.time-input {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+
+.edit-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+
+.edit-button-group {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.edit-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .edit-primary-button:hover {
+        background: #004d40;
+    }

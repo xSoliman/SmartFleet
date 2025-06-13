@@ -1,0 +1,442 @@
+
+/*** Spinner Start ***/
+/*** Spinner ***/
+#spinner {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .5s ease-out, visibility 0s linear .5s;
+    z-index: 99999;
+}
+
+    #spinner.show {
+        transition: opacity .5s ease-out, visibility 0s linear 0s;
+        visibility: visible;
+        opacity: 1;
+    }
+/*** Spinner End ***/
+
+.back-to-top {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    transition: 0.5s;
+    z-index: 99;
+}
+
+/*** Button Start ***/
+.btn {
+    font-weight: 600;
+    transition: .5s;
+}
+
+.btn-square {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-sm-square {
+    width: 34px;
+    height: 34px;
+}
+
+.btn-md-square {
+    width: 44px;
+    height: 44px;
+}
+
+.btn-lg-square {
+    width: 56px;
+    height: 56px;
+}
+
+.btn-xl-square {
+    width: 66px;
+    height: 66px;
+}
+
+.btn-square,
+.btn-sm-square,
+.btn-md-square,
+.btn-lg-square,
+.btn-xl-square {
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: normal;
+}
+
+.btn.btn-primary {
+    color: var(--bs-white);
+}
+
+    .btn.btn-primary:hover {
+        background: var(--bs-secondary);
+        border: 1px solid var(--bs-secondary);
+    }
+
+.btn.btn-secondary {
+    color: var(--bs-white);
+}
+
+    .btn.btn-secondary:hover {
+        background: var(--bs-primary);
+        border: 1px solid var(--bs-primary);
+    }
+
+.btn.btn-light {
+    color: var(--bs-primary);
+}
+
+    .btn.btn-light:hover {
+        color: var(--bs-white);
+        background: var(--bs-primary);
+        border: 1px solid var(--bs-primary);
+    }
+
+/*** Icon Animation Start ***/
+@keyframes icon-animat {
+    0% {
+        border-radius: 67% 33% 29% 71% / 39% 46% 54% 61%;
+    }
+
+    25% {
+        border-radius: 69% 31% 19% 81% / 43% 37% 63% 57%;
+    }
+
+    50% {
+        border-radius: 67% 33% 16% 84% / 57% 37% 63% 43%;
+    }
+
+    75% {
+        border-radius: 77% 23% 61% 39% / 36% 61% 39% 64%;
+    }
+
+    100% {
+        border-radius: 67% 33% 29% 71% / 39% 46% 54% 61%;
+    }
+}
+/*** Icon Animation End ***/
+/*** Navbar Start ***/
+.nav-bar {
+    background: var(--bs-white);
+}
+
+.sticky-top {
+    transition: 1s;
+}
+
+.navbar-light .navbar-nav .nav-link {
+    position: relative;
+    margin-right: 18px;
+    padding: 35px 0;
+    letter-spacing: 1px;
+    color: var(--bs-dark);
+    font-size: 20px;
+    font-weight: bold;
+    outline: none;
+    transition: .5s;
+}
+
+.sticky-top .navbar-light .navbar-nav .nav-link {
+    padding: 12px 0;
+    color: var(--bs-dark);
+}
+
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link.active {
+    color: var(--bs-primary);
+}
+
+.navbar-light .navbar-brand img {
+    max-height: 60px;
+    transition: .5s;
+}
+
+.sticky-top .navbar-light .navbar-brand img {
+    max-height: 50px;
+}
+
+.navbar .dropdown-toggle::after {
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+.dropdown .dropdown-menu a:hover {
+    background: var(--bs-primary);
+    color: var(--bs-white);
+}
+
+.navbar .nav-item:hover .dropdown-menu {
+    transform: rotateX(0deg);
+    visibility: visible;
+    margin-top: 8px !important;
+    background: var(--bs-light);
+    transition: .5s;
+    opacity: 1;
+}
+
+.nav-right {
+    margin-right: 20px;
+    width: 300px;
+}
+
+
+
+@media (min-width: 992px) {
+    .navbar .nav-item .dropdown-menu {
+        display: block;
+        visibility: hidden;
+        top: 100%;
+        transform: rotateX(-75deg);
+        transform-origin: 0% 0%;
+        border: 0;
+        border-radius: 10px;
+        margin-top: 8px !important;
+        transition: .5s;
+        opacity: 0;
+    }
+}
+
+@media (max-width: 991px) {
+    .navbar.navbar-expand-lg .navbar-toggler {
+        padding: 8px 15px;
+        border: 1px solid var(--bs-primary);
+        color: var(--bs-primary);
+    }
+
+    .sticky-top .navbar-light .navbar-nav .nav-link {
+        padding: 12px 0;
+    }
+}
+
+.d-flex {
+    margin-left: -80px;
+    margin-right: 30px;
+}
+/*** Navbar End ***/
+/*** Carousel Header Start ***/
+.carousel .carousel-item img {
+    object-fit: cover;
+}
+
+.carousel .carousel-item,
+.carousel .carousel-item img {
+    height: 700px;
+}
+
+.carousel-item .carousel-caption {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, .6);
+    display: flex;
+    align-items: center;
+}
+
+.carousel .carousel-indicators {
+    left: 75%;
+    top: 50%;
+    margin-right: 25%;
+    transform: translateY(-50%);
+    flex-direction: column;
+}
+
+.carousel-indicators [data-bs-target] {
+    display: flex;
+    width: 15px;
+    height: 15px;
+    border: 6px solid var(--bs-white);
+    border-radius: 15px;
+    padding: 0;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: var(--bs-secondary);
+    opacity: 1;
+    transition: 0.5s;
+}
+
+    .carousel-indicators [data-bs-target].active {
+        background-color: var(--bs-primary);
+    }
+
+@media (max-width: 992px) {
+    .carousel-indicators [data-bs-target] {
+        display: none;
+    }
+}
+/*** Carousel Header End ***/
+
+/*** Single Page Hero Header Start ***/
+.bg-breadcrumb {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(rgba(31, 46, 78, 1), rgba(0, 12, 33, 0.8)), url(/assets/images/banners/fact-bg.jpg);
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding: 60px 0 60px 0;
+    transition: 0.5s;
+}
+
+    .bg-breadcrumb .breadcrumb {
+        position: relative;
+    }
+
+        .bg-breadcrumb .breadcrumb .breadcrumb-item a {
+            color: var(--bs-white);
+        }
+/*** Single Page Hero Header End ***/
+
+/*** Features Start ***/
+.feature {
+    background: var(--bs-light);
+}
+
+    .feature .feature-item {
+        display: flex;
+        border-radius: 10px;
+    }
+
+        .feature .feature-item .feature-icon span {
+            width: 90px;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bs-secondary);
+            background: var(--bs-primary);
+            border-radius: 67% 33% 29% 71% / 39% 46% 54% 61%;
+            ;
+            animation-name: icon-animat;
+            animation-duration: 5s;
+            animation-delay: 1s;
+            animation-direction: alternate;
+            animation-iteration-count: infinite;
+            transition: 0.5s;
+        }
+
+/*** Features End ***/
+
+
+/*** Fact Counter Start ***/
+.counter {
+    background: linear-gradient(rgba(0, 12, 33, 0.9), rgba(31, 46, 78, 0.9)), url(/assets/images/banners/fact-bg.jpg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+    .counter .counter-item .counter-item-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 67% 33% 29% 71% / 39% 46% 54% 61%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-secondary);
+        background: var(--bs-primary);
+        animation-name: icon-animat;
+        animation-duration: 5s;
+        animation-delay: 1s;
+        animation-direction: alternate;
+        animation-iteration-count: infinite;
+        transition: 0.5s;
+    }
+
+/*** Fact Counter End ***/
+
+
+
+/*** Process Start ***/
+.steps {
+    background: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9)), url(/assets/images/banners/bg-1.jpg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+
+    .steps .steps-item {
+        position: relative;
+        background: var(--bs-secondary);
+        border-radius: 10px;
+    }
+
+        .steps .steps-item h4,
+        .steps .steps-item p {
+            color: var(--bs-white);
+        }
+
+        .steps .steps-item .setps-number {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            bottom: 0;
+            right: 40px;
+            font-weight: 900;
+            border: 1px solid var(--bs-white);
+            border-radius: 64px;
+            transform: translateY(50%);
+            color: var(--bs-white);
+            background: var(--bs-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+/*** Process End ***/
+
+/*** copyright Start ***/
+.copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bs-dark);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px 0; /* Reduced padding to decrease height */
+    z-index: 1000; /* Ensure it's on top */
+    text-align: center; /* Center text */
+}
+
+/*** copyright End ***/
+
+
+/*** copyright End ***/
+
+/* Custom styles for the new icons */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    margin: 4px;
+    font-size: 14px;
+    color: #ffffff;
+    background-color: var(--bs-primary);
+    border-radius: 50px;
+    transition: background-color 0.3s ease;
+    width: 80px;
+    height: auto;
+}
+
+    .icon-btn i {
+        margin-right: 8px;
+    }
+
+    .icon-btn:hover {
+        background-color: #166a66;
+        /* color: #0f403e; */
+    }
+
+.nav-auto {
+    width: 450px;
+    margin-left: 50px;
+}
+

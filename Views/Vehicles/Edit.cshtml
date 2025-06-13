@@ -1,0 +1,113 @@
+﻿@model SmartFleet.Models.Vehicle
+@{
+    ViewData["Title"] = "Edit Vehicle";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/edit.css">
+    
+</head>
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="edit-navigation">
+            <a asp-action="Index" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="edit-heading">Edit Vehicle</h1>
+
+        <!-- Form -->
+        <form asp-action="Edit" class="edit-custom-form" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="edit-validation-message"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <!-- Row 1: Model & Type -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Model" class="edit-input-label"></label>
+                        <input asp-for="Model" class="edit-input-field" />
+                        <span asp-validation-for="Model" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Type" class="edit-input-label"></label>
+                        <select asp-for="Type" class="edit-dropdown">
+                            <option>Car</option>
+                        </select>
+                        <span asp-validation-for="Type" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Capacity & LicensePlate -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Capacity" class="edit-input-label"></label>
+                        <input asp-for="Capacity" class="edit-input-field" />
+                        <span asp-validation-for="Capacity" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="LicensePlate" class="edit-input-label"></label>
+                        <input asp-for="LicensePlate" class="edit-input-field" />
+                        <span asp-validation-for="LicensePlate" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VehicleImageUrl (Single Row) -->
+            <div class="edit-input-group">
+                <label asp-for="VehicleImageUrl" class="edit-input-label"></label>
+                <input type="file" asp-for="VehicleImageUrl" name="imageFile" class="edit-input-field" accept="image/*" onchange="previewImage(event)" />
+                <span asp-validation-for="VehicleImageUrl" class="edit-validation-message"></span>
+                <!-- Image Preview Container -->
+                <div class="image-preview-container">
+                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+                </div>
+            </div>
+
+            <!-- Row 3: Status & Distance -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Status" class="edit-input-label"></label>
+                        <select asp-for="Status" class="edit-dropdown">
+                            <option>Available</option>
+                        </select>
+                        <span asp-validation-for="Status" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Distance" class="edit-input-label"></label>
+                        <input asp-for="Distance" class="edit-input-field" />
+                        <span asp-validation-for="Distance" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="edit-button-group">
+                <input type="submit" value="Save" class="edit-primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scripts Section -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/vehicle/edit.js"> </script>
+}

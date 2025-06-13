@@ -1,0 +1,53 @@
+﻿@model SmartFleet.ViewModel.MyAccountViewModel
+
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/account/MyAccount.css">
+    <link rel="stylesheet" href="~/lib/fontawesome/all.css">
+</head>
+
+<br />
+<div class="container1">
+    <h2>My Account</h2>
+
+    <div class="profile-container">
+        <img src="@Model.ImageUrl" alt="Profile Picture" class="profile-pic">
+    </div>
+
+    <dl class="info">
+        <div class="info-card">
+            <dt>Username</dt>
+            <dd>@Model.UserName</dd>
+        </div>
+        <div class="info-card">
+            <dt>Email</dt>
+            <dd>@Model.Email</dd>
+        </div>
+        <div class="info-card">
+            <dt>Phone Number</dt>
+            <dd>@Model.PhoneNumber</dd>
+        </div>
+        <div class="info-card">
+            <dt>Role</dt>
+            <dd>@Model.Role</dd>
+        </div>
+
+        @if (Model.OrderStatus != null)
+        {
+            <div class="info-card">
+                <dt>Order Status</dt>
+                <dd>
+                    <input type="text" value="@Model.OrderStatus" readonly class="readonly-input" />
+                </dd>
+            </div>
+        }
+    </dl>
+
+    <a asp-action="EditProfile" class="btn">Edit Profile</a>
+    <a asp-action="ChangePassword" class="btn">Change Password</a>
+</div>
+<br />

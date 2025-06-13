@@ -1,0 +1,113 @@
+﻿@model SmartFleet.ViewModel.DriverViewModel
+@{
+    ViewData["Title"] = "Edit Driver";
+}
+
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/driver/edit.css">
+    
+</head>
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="edit-navigation">
+            <a asp-action="Index" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="edit-heading">Edit Driver</h1>
+
+        <!-- Form -->
+        <form asp-action="Edit" class="edit-custom-form" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="edit-validation-message"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <!-- Row 1: UserName & Email -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="UserName" class="edit-input-label"></label>
+                        <input asp-for="UserName" class="edit-input-field" />
+                        <span asp-validation-for="UserName" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Email" class="edit-input-label"></label>
+                        <input asp-for="Email" class="edit-input-field" />
+                        <span asp-validation-for="Email" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Password & LicenseNumber -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Password" class="edit-input-label"></label>
+                        <input asp-for="Password" class="edit-input-field" type="password" />
+                        <span asp-validation-for="Password" class="edit-validation-message"></span>
+                        <small class="form-text text-muted">
+                            Leave blank to keep the current password.
+                        </small>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="LicenseNumber" class="edit-input-label"></label>
+                        <input asp-for="LicenseNumber" class="edit-input-field" />
+                        <span asp-validation-for="LicenseNumber" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: LicenseExpiryDate & DriverStatus -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="LicenseExpiryDate" class="edit-input-label"></label>
+                        <input asp-for="LicenseExpiryDate" class="edit-input-field" />
+                        <span asp-validation-for="LicenseExpiryDate" class="edit-validation-message"></span>
+                    </div>
+                </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="DriverStatus" class="edit-input-label"></label>
+                        <select asp-for="DriverStatus" class="edit-dropdown" asp-items="Html.GetEnumSelectList<SmartFleet.Models.DriverState>()"></select>
+                        <span asp-validation-for="DriverStatus" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Image (Single Row) -->
+            <div class="edit-input-group">
+                <label asp-for="ProfileImageFile" class="edit-input-label"></label>
+                <input type="file" asp-for="ProfileImageFile" class="edit-input-field" accept="image/*" onchange="previewImage(event)" />
+                <span asp-validation-for="ProfileImageFile" class="edit-validation-message"></span>
+                <div class="image-preview-container">
+                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <br />
+            <div class="edit-button-group">
+                <input type="submit" value="Save" class="edit-primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Scripts Section -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="~/js/driver/edit.js"></script>
+}

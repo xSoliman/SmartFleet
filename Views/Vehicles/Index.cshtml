@@ -1,0 +1,60 @@
+﻿@model IEnumerable<SmartFleet.Models.Vehicle>
+
+@{
+    ViewData["Title"] = "Vehicle List";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/list.css">
+    
+</head>
+<p class="add-vehicle">
+    <a asp-action="Create" class="btn btn-add-car"><i class="fas fa-car car-icon"></i> Add Vehicle</a>
+</p>
+
+<div class="table-responsive">
+    <table id="vehicle-table" class="table table-bordered">
+        <thead>
+            <tr>
+                <th>@Html.DisplayNameFor(model => model.Model)</th>
+                <th>@Html.DisplayNameFor(model => model.Type)</th>
+                <th>@Html.DisplayNameFor(model => model.Capacity)</th>
+                <th>@Html.DisplayNameFor(model => model.LicensePlate)</th>
+                <th>@Html.DisplayNameFor(model => model.Status)</th>
+                <th>@Html.DisplayNameFor(model => model.Distance)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.Model)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Type)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Capacity)</td>
+               
+                    <td>@Html.DisplayFor(modelItem => item.LicensePlate)</td>
+                    <td class="status-active" style="color:green">
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.Distance)</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                      
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                            <i class="fas fa-trash-alt deleted_icon"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<br />

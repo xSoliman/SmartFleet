@@ -1,0 +1,67 @@
+﻿@model SmartFleet.Models.Driver
+@{
+    ViewData["Title"] = "Driver Details";
+}
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/driver/details.css">
+    
+</head>
+<div class="details-layout-container">
+    <div class="details-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="details-heading">Driver Details</h1>
+
+        <!-- Display Data -->
+        <div class="details-display-group">
+            <label class="details-display-label">UserName</label>
+            <div class="details-display-value">@Model.UserName</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Email</label>
+            <div class="details-display-value">@Model.Email</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">License Number</label>
+            <div class="details-display-value">@Model.LicenseNumber</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">License Expiry Date</label>
+            <div class="details-display-value">@Model.LicenseExpiryDate.ToShortDateString()</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Status</label>
+            <div class="details-display-value">@Model.DriverStatus</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Profile Image</label>
+            @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+            {
+                <img src="@Model.ProfileImageUrl" alt="Profile Image" class="profile-image" />
+            }
+            else
+            {
+                <span class="details-display-value">No image available</span>
+            }
+        </div>
+
+        <!-- Button Group -->
+        <div class="details-button-group">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
+        </div>
+    </div>
+</div>
