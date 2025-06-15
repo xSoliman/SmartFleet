@@ -4,86 +4,148 @@
     ViewData["Title"] = "Create Trip";
 }
 
-<h1>Create Trip</h1>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h4 mb-0">Create New Trip</h1>
+        </div>
 
-<h4>Trip Details</h4>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="card-body">
+            <form asp-action="Create" class="needs-validation" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-            <div class="form-group">
-                <label asp-for="OrderId" class="control-label">Order ID</label>
-                <input type="text" class="form-control" value="@ViewBag.OrderId" readonly />
-                <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
-            </div>
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="OrderId" class="form-label fw-bold">Order ID</label>
+                            <input type="text" class="form-control" value="@ViewBag.OrderId" readonly />
+                            <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="CreatedBy" class="control-label">Created By (User ID)</label>
-                <input type="text" class="form-control" value="@ViewBag.CreatedBy" readonly />
-                <input type="hidden" asp-for="CreatedBy" value="@ViewBag.CreatedBy" />
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="CreatedBy" class="form-label fw-bold">Created By</label>
+                            <input type="text" class="form-control" value="@ViewBag.CreatedBy" readonly />
+                            <input type="hidden" asp-for="CreatedBy" value="@ViewBag.CreatedBy" />
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="VehicleId" class="control-label"></label>
-                <select asp-for="VehicleId" class="form-control" asp-items="ViewBag.VehicleId"></select>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="VehicleId" class="form-label fw-bold">Vehicle</label>
+                            <select asp-for="VehicleId" class="form-select" asp-items="@ViewBag.VehicleId" required>
+                                <option value="">-- Select Vehicle --</option>
+                            </select>
+                            <span asp-validation-for="VehicleId" class="text-danger small"></span>
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="DriverId" class="control-label"></label>
-                <select asp-for="DriverId" class="form-control" asp-items="ViewBag.DriverId"></select>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="DriverId" class="form-label fw-bold">Driver</label>
+                            <select asp-for="DriverId" class="form-select" asp-items="ViewBag.DriverId" required>
+                                <option value="">-- Select Driver --</option>
+                            </select>
+                            <span asp-validation-for="DriverId" class="text-danger small"></span>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label"></label>
-                <input asp-for="StartTime" class="form-control" />
-                <span asp-validation-for="StartTime" class="text-danger"></span>
-            </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="StartTime" class="form-label fw-bold">Start Time</label>
+                            <input asp-for="StartTime" class="form-control datetimepicker" type="datetime-local" required />
+                            <span asp-validation-for="StartTime" class="text-danger small"></span>
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label"></label>
-                <input asp-for="EndTime" class="form-control" />
-                <span asp-validation-for="EndTime" class="text-danger"></span>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="EndTime" class="form-label fw-bold">End Time</label>
+                            <input asp-for="EndTime" class="form-control datetimepicker" type="datetime-local" />
+                            <span asp-validation-for="EndTime" class="text-danger small"></span>
+                        </div>
 
-            <div class="form-group">
-                <label asp-for="StartLocation" class="control-label"></label>
-                <input asp-for="StartLocation" class="form-control" />
-                <span asp-validation-for="StartLocation" class="text-danger"></span>
-            </div>
+                        <div class="form-group mb-3">
+                            <label asp-for="Status" class="form-label fw-bold">Trip Status</label>
+                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TripState>()" required>
+                                <option value="">-- Select Status --</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="EndLocation" class="control-label"></label>
-                <input asp-for="EndLocation" class="form-control" />
-                <span asp-validation-for="EndLocation" class="text-danger"></span>
-            </div>
+                <!-- Full Width Fields -->
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="StartLocation" class="form-label fw-bold">Start Location</label>
+                            <input asp-for="StartLocation" class="form-control" required />
+                            <span asp-validation-for="StartLocation" class="text-danger small"></span>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label asp-for="Distance" class="control-label"></label>
-                <input asp-for="Distance" class="form-control" />
-                <span asp-validation-for="Distance" class="text-danger"></span>
-            </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="EndLocation" class="form-label fw-bold">End Location</label>
+                            <input asp-for="EndLocation" class="form-control" />
+                            <span asp-validation-for="EndLocation" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<TripState>()"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group mb-3">
+                            <label asp-for="Distance" class="form-label fw-bold">Distance (km)</label>
+                            <input asp-for="Distance" class="form-control" type="number" step="0.01" />
+                            <span asp-validation-for="Distance" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-1"></i> Create Trip
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // Initialize datetime pickers if needed
+        $(document).ready(function() {
+            $('.datetimepicker').flatpickr({
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true
+            });
+        });
+    </script>
 }
+
+<style>
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+    }
+
+    .form-label {
+        margin-bottom: 0.3rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 4px;
+        padding: 0.5rem 0.75rem;
+    }
+</style>

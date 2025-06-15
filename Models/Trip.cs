@@ -22,6 +22,9 @@ namespace SmartFleet.Models
         public int Id { get; set; }
         public int? VehicleId { get; set; }
         [ForeignKey("VehicleId")]
+        [Required]
+        [Column("CreatedBy")] // تحديد اسم العمود صراحة
+        public string CreatedBy { get; set; }
         public Vehicle? Vehicle { get; set; }
         public int? OrderId { get; set; }
 
@@ -37,7 +40,7 @@ namespace SmartFleet.Models
         public decimal Distance { get; set; }
         public TripState Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public string CreatedBy { get; set; }
+       
         [ForeignKey("CreatedBy")]
         public ApplicationUser admin { get; set; } 
 

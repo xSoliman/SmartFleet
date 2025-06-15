@@ -48,23 +48,37 @@ namespace SmartFleet.Controllers
             return View(trip);
         }
 
-        public IActionResult Create(int? id, string? userId)
+        public async Task<IActionResult> Create(int? id, string? userId)
         {
             if (id == null || string.IsNullOrEmpty(userId))
             {
                 return NotFound();
             }
 
-            ViewData["DriverId"] = new SelectList(_context.Drivers, "Id", "Id");
-            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id");
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id");
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
+            if (order == null)
+            {
+                return NotFound();
+            }
 
+            // فلترة المركبات حسب النوع ومتاحة فقط
+            var filteredVehicles = await _context.Vehicles
+                .Where(v => v.Type == order.VehicleType && v.Status == VehicleState.available)
+                .ToListAsync();
+
+            // فلترة السائقين المتاحين فقط (DriverStatus = active)
+            var availableDrivers = await _context.Drivers
+                .Where(d => d.DriverStatus == DriverState.active)
+                .ToListAsync();
+
+            // عرض اسم المستخدم (UserName) بدلاً من Id
+            ViewBag.DriverId = new SelectList(availableDrivers, "Id", "UserName");
+            ViewBag.VehicleId = new SelectList(filteredVehicles, "Id", "Model"); // لو عايز تعرض اسم الموديل مثلاً
             ViewBag.OrderId = id;
-            ViewBag.CreatedBy = userId; // تمرير الـ UserId بشكل صحيح
+            ViewBag.CreatedBy = userId;
 
             return View();
         }
-
 
 
 
@@ -72,18 +86,23 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,StartTime,EndTime,StartLocation,EndLocation,Distance,Status,CreatedBy")] Trip trip)
         {
-            if (ModelState.IsValid)
+            // التحقق من عدم وجود رحلة لهذا الطلب مسبقاً
+            var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == trip.OrderId);
+            if (existingTrip)
             {
-                trip.CreatedAt = DateTime.Now; // تعيين وقت الإنشاء
-                _context.Add(trip);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("OrderId", "يوجد رحلة مسجلة لهذا الطلب بالفعل");
             }
 
-            ViewData["DriverId"] = new SelectList(_context.Drivers, "Id", "Id", trip.DriverId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id", trip.OrderId);
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", trip.VehicleId);
 
+            trip.CreatedAt = DateTime.Now;
+            _context.Add(trip);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+
+
+            // إعادة تحميل بيانات العرض في حالة الخطأ
+            ViewBag.DriverId = new SelectList(_context.Drivers, "Id", "UserName", trip.DriverId);
+            ViewBag.VehicleId = new SelectList(_context.Vehicles, "Id", "Model", trip.VehicleId);
             return View(trip);
         }
 

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartFleet.Models;
 using SmartFleet.ViewModel;
 using SmartFleet.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SmartFleet.Controllers
 {
@@ -34,6 +35,7 @@ namespace SmartFleet.Controllers
             return View(drivers);
         }
 
+
         // GET: Drivers/Details/5
         public async Task<IActionResult> Details(string id)
         {
@@ -52,7 +54,48 @@ namespace SmartFleet.Controllers
             return View(driver);
         }
 
-        // GET: Drivers/Create
+        public async Task<IActionResult> DriverDashboard()
+        {
+            string? driverId = Request.Cookies["UserId"];
+            if (string.IsNullOrEmpty(driverId))
+                return RedirectToAction("Login", "Account");
+
+            var driver = await _context.Drivers
+                .FirstOrDefaultAsync(d => d.Id == driverId);
+
+            if (driver == null) return NotFound();
+
+            // Load only trips assigned to this driver
+            var trips = await _context.Trips
+                .Where(t => t.DriverId == driverId)
+                .ToListAsync();
+
+            driver.Trips = trips;
+
+            ViewBag.StatusList = new SelectList(Enum.GetValues(typeof(DriverState)));
+            return View(driver);
+        }
+
+
+
+
+
+        [HttpPost]
+        
+        public async Task<IActionResult> UpdateDriverStatus(string id, DriverState status)
+        {
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == id);
+            if (driver == null) return NotFound();
+
+            driver.DriverStatus = status;
+            _context.Update(driver);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("DriverDashboard");
+        }
+
+
+
         public IActionResult Create()
         {
             return View();

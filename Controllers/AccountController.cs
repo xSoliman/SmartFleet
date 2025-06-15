@@ -52,7 +52,7 @@ namespace SmartFleet.Controllers
 
             var pendingOrders = await _context.Orders
                 .Include(o => o.User)
-                .Where(o => o.Status == OrderState.approved)
+                .Where(o => o.Status == OrderState.approved && o.Trip == null)
                 .ToListAsync();
 
             var viewModel = new FleetManagerViewModel
@@ -192,36 +192,52 @@ namespace SmartFleet.Controllers
             if (ModelState.IsValid)
             {
                 var applicationUser = await userManager.FindByEmailAsync(User.Email);
+
+                
+                if (applicationUser != null)
+                {
+                    var cookieOptions = new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddDays(7),
+                        HttpOnly = true,
+                        IsEssential = true
+                    };
+                    Response.Cookies.Append("UserId", applicationUser.Id, cookieOptions);
+                }
+
+                // بعد كده نعمل التوجيهات حسب الإيميل
                 if (User.Email == "sayed@smartfleet.com")
                 {
-                    return RedirectToAction("Fleet_Manager","Account");
+                    return RedirectToAction("Fleet_Manager", "Account");
                 }
+
                 if (User.Email == "sayed1@smartfleet.com")
                 {
                     return RedirectToAction("Index", "Account");
                 }
 
+                if (User.Email == "salem@smartfleet.com")
+                {
+                    return RedirectToAction("DriverDashboard", "Drivers");
+                }
+
+                // التحقق من كلمة المرور
                 if (applicationUser != null)
                 {
                     bool found = await userManager.CheckPasswordAsync(applicationUser, User.Password);
                     if (found)
                     {
-                        var cookieOptions = new CookieOptions
-                        {
-                            Expires = DateTime.Now.AddDays(7), // Cookie valid for 7 days
-                            HttpOnly = true,
-                            IsEssential = true
-                        };
-                        Response.Cookies.Append("UserId", applicationUser.Id, cookieOptions);
-
                         await signInManager.SignInAsync(applicationUser, User.RememberMe);
                         return RedirectToAction("Index", "Home");
                     }
                 }
+
                 ModelState.AddModelError("", "Email or Password Wrong");
             }
+
             return View("Login", User);
         }
+
 
 
 

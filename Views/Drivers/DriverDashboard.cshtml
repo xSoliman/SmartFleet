@@ -1,0 +1,57 @@
+﻿@model SmartFleet.Models.Driver
+
+@{
+    ViewData["Title"] = "Driver Dashboard";
+}
+
+<h2>Welcome, @Model.UserName</h2>
+
+<form asp-action="UpdateDriverStatus" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <div class="form-group">
+        <label>Driver Status</label>
+        <select name="status" class="form-select">
+           @foreach (DriverState item in Enum.GetValues(typeof(DriverState)))
+{
+    var selected = item == Model.DriverStatus ? "selected" : "";
+    @:<option value="@item" @selected>@item</option>
+}
+
+
+
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Update Status</button>
+</form>
+
+<hr />
+
+<h4>Trips Assigned</h4>
+@if (Model.Trips != null && Model.Trips.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Start</th>
+                <th>End</th>
+                <th>Status</th>
+                <th>Distance (km)</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var trip in Model.Trips)
+        {
+            <tr>
+                <td>@trip.StartLocation</td>
+                <td>@trip.EndLocation</td>
+                <td>@trip.Status</td>
+                <td>@trip.Distance</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No trips assigned yet.</p>
+}
