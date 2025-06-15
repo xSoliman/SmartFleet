@@ -2,8 +2,15 @@
 document.addEventListener("DOMContentLoaded", function () {
     const map = L.map('map', { zoomControl: false }).setView([30.0444, 31.2357], 8); // Centered on Egypt
 
-    // Ensure the map container has a fixed height
-    document.getElementById('map').style.height = '500px';
+    // Make sure map resizes correctly when window size changes
+    window.addEventListener('resize', function() {
+        map.invalidateSize();
+    });
+
+    // Ensure map is properly sized
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -219,6 +226,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add event listeners for search
     document.addEventListener('DOMContentLoaded', function() {
+
         const searchForm = document.querySelector('.search-form');
         const searchInput = document.querySelector('.search-bar');
         
