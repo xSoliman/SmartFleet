@@ -18,11 +18,13 @@ html, body {
     box-sizing: border-box;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: var(--text-color);
+    scroll-behavior: smooth;
+    font-size: 16px; /* Added base font size */
 }
 
 .page-title {
     text-align: center;
-    padding: 10px 0;
+    padding: 5px 0;
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -30,29 +32,23 @@ html, body {
 .page-title h1 {
     margin: 0;
     color: var(--primary-color);
-    font-size: 2rem;
+    font-size: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
 }
-
-.title-divider {
-    width: 60%;
-    margin: 10px auto 0;
-    border: 0;
-    height: 2px;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), var(--secondary-color), rgba(0, 0, 0, 0));
+.page-title hr{
+    margin: 5px;  
 }
-
 .main-layout {
     display: flex;
-    height:100%;
+    height: 100%;
     width: 100%;
 }
 
 #sidebar {
-    width: 350px;
+    width: 420px;
     height: 100%;
     min-height: 0;
     overflow-y: auto;
@@ -63,6 +59,7 @@ html, body {
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
     z-index: 100;
     position: relative;
+    transition: width 0.3s ease;
 }
 
 .right-content {
@@ -70,7 +67,7 @@ html, body {
     flex-direction: column;
     flex: 1;
     height: 100%;
-    min-width: 0;
+
 }
 
 #map {
@@ -78,19 +75,25 @@ html, body {
     min-height: 0;
     position: relative;
     width: 100%;
+
 }
 
 #info-panel {
-   /* height: 200px;*/
-    padding: 20px;
+    padding:20px;
     margin-bottom:25px;
     display: flex;
     justify-content: center;
     gap: 20px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-    z-index: 1000;
     overflow-y: auto;
     position: relative;
+    scroll-margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+#info-panel:target,
+#info-panel.highlight {
+    background-color: rgba(52, 152, 219, 0.05);
 }
 
 .sidebar-header {
@@ -135,7 +138,7 @@ html, body {
 .table-container {
     flex: 1;
     overflow-y: auto;
-    padding: 0 20px;
+    padding: 0 5px;
     background: white;
 }
 
@@ -143,42 +146,54 @@ html, body {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    margin-top: 10px;
+    font-size: 15px;
 }
 
 #vehicleTable th {
     background-color: var(--background-color);
-    padding: 12px;
+    padding: 14px 12px;
     text-align: left;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--primary-color);
     border-bottom: 2px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 1;
+    font-size: 16px;
+    letter-spacing: 0.3px;
 }
 
 #vehicleTable td {
-    padding: 12px;
+    padding: 14px 12px;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s ease;
+    font-weight: 500;
+    letter-spacing: 0.2px;
 }
 
 #vehicleTable tr {
     cursor: pointer;
     transition: all 0.2s ease;
+    height: 55px;
 }
 
 #vehicleTable tr:hover {
     background-color: var(--hover-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .selected-vehicle {
-    background-color: rgba(52, 152, 219, 0.1) !important;
+    background-color: rgba(52, 152, 219, 0.2) !important;
+    font-weight: bold;
+}
+
+#vehicleTable tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 .info-section {
-    flex: 0 1 300px;
+    flex: 0 1 370px;
 }
 
 .info-card {
@@ -213,7 +228,7 @@ html, body {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    font-size: 14px;
+    font-size: 20px;
     line-height: 1.5;
     padding: 5px 0;
     border-bottom: 1px solid var(--border-color);
@@ -234,10 +249,13 @@ html, body {
 }
 
 .status-badge {
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
 }
 
 .status-badge.moving {
@@ -287,6 +305,12 @@ html, body {
     }
 }
 
+@media (max-width: 992px) {
+    #sidebar {
+        width: 380px;
+    }
+}
+
 @media (max-width: 768px) {
     #content {
         flex-direction: column;
@@ -314,7 +338,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .search-form .input-group {

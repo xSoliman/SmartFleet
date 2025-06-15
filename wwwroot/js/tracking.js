@@ -52,8 +52,8 @@ document.addEventListener("DOMContentLoaded", function () {
             row.onclick = function() { selectVehicle(vehicle.id); };
             
             row.innerHTML = `
-                <td><i class="fas fa-${getVehicleIcon(vehicle.type)}"></i> ${vehicle.model}</td>
-                <td>${vehicle.latestLocation.speed} kph</td>
+                <td><i class="fas fa-${getVehicleIcon(vehicle.type)} fa-lg"></i>&nbsp;&nbsp;${vehicle.model}</td>
+                <td><strong>${vehicle.latestLocation.speed}</strong> kph</td>
                 <td><span class="status-badge ${status.toLowerCase()}">${status}</span></td>
             `;
             
@@ -111,6 +111,20 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!isNaN(lat) && !isNaN(lon)) {
                 map.setView([lat, lon], 12);
                 markers[vehicle.id].openPopup();
+            }
+
+            // Scroll to info panel when a vehicle is selected
+            const infoPanel = document.getElementById('info-panel');
+            if (infoPanel) {
+                setTimeout(() => {
+                    infoPanel.scrollIntoView({ behavior: 'smooth' });
+
+                    // Add highlight effect
+                    infoPanel.classList.add('highlight');
+                    setTimeout(() => {
+                        infoPanel.classList.remove('highlight');
+                    }, 1500);
+                }, 300);
             }
 
             // Format status for display
