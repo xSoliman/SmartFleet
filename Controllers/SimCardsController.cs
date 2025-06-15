@@ -20,10 +20,27 @@ namespace SmartFleet.Controllers
         }
 
         // GET: SimCards
-        public async Task<IActionResult> Index()
+        //search & filter
+        public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter)
         {
-            var smartFleetContext = _context.SimCards.Include(s => s.Vehicle);
-            return View(await smartFleetContext.ToListAsync());
+            var simCards = _context.SimCards.Include(s => s.Vehicle).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchSimNumber))
+            {
+                simCards = simCards.Where(s => s.SimNumber.Contains(searchSimNumber));
+            }
+
+            if (!string.IsNullOrEmpty(searchCarrier))
+            {
+                simCards = simCards.Where(s => s.Carrier.Contains(searchCarrier));
+            }
+
+            if (Enum.TryParse<SimCardStatus>(statusFilter, out var parsedStatus))
+            {
+                simCards = simCards.Where(s => s.Status == parsedStatus);
+            }
+
+            return View(await simCards.ToListAsync());
         }
 
         // GET: SimCards/Details/5

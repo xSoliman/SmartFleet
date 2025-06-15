@@ -1,0 +1,102 @@
+﻿.edit-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.edit-layout-container {
+    display: flex;
+    justify-content: center;
+}
+
+.edit-form-wrapper {
+    width: 60%;
+    background: #f9f9f9;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 30px;
+}
+
+.edit-custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-input-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.edit-input-col {
+    flex: 1;
+}
+
+.edit-input-group {
+    margin-bottom: 15px;
+}
+
+.edit-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.edit-input-field,
+.edit-dropdown {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.edit-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.edit-button-group {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.edit-primary-button {
+    background: #00796b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .edit-primary-button:hover {
+        background: #004d40;
+    }
+
+.edit-navigation {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.edit-back-link {
+    background: #00796b;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+    .edit-back-link:hover {
+        background: #004d40;
+        text-decoration: none;
+    }
+
+    .edit-back-link i {
+        margin-right: 5px;
+    }

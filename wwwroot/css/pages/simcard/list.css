@@ -49,3 +49,18 @@
     margin-right: 5px;
     color: black;
 }
+.custom-bt {
+    border-color: #16b416;
+    color: white !important;
+    background-color: #16b416;
+}
+
+    .custom-bt:hover {
+        background-color: #13a013;
+        color: white;
+        border-color: #6BDA00;
+    }
+
+.search-icon {
+    color: black;
+}  

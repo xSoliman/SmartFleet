@@ -20,11 +20,26 @@ namespace SmartFleet.Controllers
             _context = context;
         }
 
-        // GET: Vehicles
-        public async Task<IActionResult> Index()
+        // GET: Vehicles + search & filter
+        public async Task<IActionResult> Index(string searchModel, string searchPlate, VehicleType? typeFilter, VehicleState? stateFilter)
         {
             ViewData["PageTitle"] = "Vehicles";
-            return View(await _context.Vehicles.ToListAsync());
+
+            var vehicles = _context.Vehicles.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchModel))
+                vehicles = vehicles.Where(v => v.Model.Contains(searchModel));
+
+            if (!string.IsNullOrEmpty(searchPlate))
+                vehicles = vehicles.Where(v => v.LicensePlate.Contains(searchPlate));
+
+            if (typeFilter.HasValue)
+                vehicles = vehicles.Where(v => v.Type == typeFilter);
+
+            if (stateFilter.HasValue)
+                vehicles = vehicles.Where(v => v.Status == stateFilter);
+
+            return View(await vehicles.ToListAsync());
         }
 
         // GET: Vehicles/Details/5

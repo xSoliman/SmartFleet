@@ -144,6 +144,7 @@
                     <div class="nav-auto acc">
                         @if (User.Identity.IsAuthenticated)
                         {
+                            <a asp-controller="Home" asp-action="Dashboard" class="icon-btn me-2" title="Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                             <a asp-controller="Account" asp-action="MyAccount" class="icon-btn"><i class="fas fa-user"></i>Account</a>
                             <a asp-controller="Account" asp-action="Logout" class="icon-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         }

@@ -4,81 +4,79 @@
     ViewData["Title"] = "Create Order";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-lg p-4 rounded">
-        <h2 class="text-center text-primary">Create Order</h2>
-        <hr />
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <form asp-action="Create" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+<head>
+    <link rel="stylesheet" href="~/css/pages/order/create.css" />
+</head>
 
-                    <div class="mb-3">
-                        
-                        <input hidden type="text" class="form-control bg-light" value="@ViewBag.UserId" readonly />
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="PassengerCount" class="form-label fw-bold"></label>
-                        <input asp-for="PassengerCount" class="form-control" />
-                        <span asp-validation-for="PassengerCount" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="TripStartLocation" class="form-label fw-bold"></label>
-                        <input asp-for="TripStartLocation" class="form-control" />
-                        <span asp-validation-for="TripStartLocation" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="TripEndLocation" class="form-label fw-bold"></label>
-                        <input asp-for="TripEndLocation" class="form-control" />
-                        <span asp-validation-for="TripEndLocation" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="TripStartDate" class="form-label fw-bold"></label>
-                        <input asp-for="TripStartDate" class="form-control" type="date" />
-                        <span asp-validation-for="TripStartDate" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="TripEndDate" class="form-label fw-bold"></label>
-                        <input asp-for="TripEndDate" class="form-control" type="date" />
-                        <span asp-validation-for="TripEndDate" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Reason" class="form-label fw-bold"></label>
-                        <input asp-for="Reason" class="form-control" />
-                        <span asp-validation-for="Reason" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="VehicleType" class="form-label fw-bold"></label>
-                        <select asp-for="VehicleType" class="form-control" asp-items="ViewBag.VehicleTypes">
-                            <option value="">-- Select Vehicle Type --</option>
-                        </select>
-                        <span asp-validation-for="VehicleType" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="CreatedAt" class="form-label fw-bold"></label>
-                        <input asp-for="CreatedAt" class="form-control" type="datetime-local" />
-                        <span asp-validation-for="CreatedAt" class="text-danger"></span>
-                    </div>
-
-                    <div class="text-center">
-                        <input type="submit" value="Create" class="btn btn-primary w-50" />
-                    </div>
-                </form>
-            </div>
+<div class="order-layout-container">
+    <div class="order-form-wrapper">
+        <div class="order-navigation">
+            <a asp-action="Index" class="order-back-link">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
         </div>
-    </div>
-</div>
+        <h2 class="order-heading">Create Order</h2>
+        <form asp-action="Create" method="post" class="order-custom-form">
+            <div asp-validation-summary="ModelOnly" class="order-validation-message"></div>
 
-<div class="text-center mt-4">
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+            <input hidden type="text" class="order-input-field" value="@ViewBag.UserId" readonly />
+
+            <div class="order-input-group">
+                <label asp-for="PassengerCount" class="order-input-label"></label>
+                <input asp-for="PassengerCount" class="order-input-field" />
+                <span asp-validation-for="PassengerCount" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-input-group">
+                <label asp-for="TripStartLocation" class="order-input-label"></label>
+                <input asp-for="TripStartLocation" class="order-input-field" />
+                <span asp-validation-for="TripStartLocation" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-input-group">
+                <label asp-for="TripEndLocation" class="order-input-label"></label>
+                <input asp-for="TripEndLocation" class="order-input-field" />
+                <span asp-validation-for="TripEndLocation" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-input-row">
+                <div class="order-input-col">
+                    <label asp-for="TripStartDate" class="order-input-label"></label>
+                    <input asp-for="TripStartDate" class="order-input-field" type="date" />
+                    <span asp-validation-for="TripStartDate" class="order-validation-message"></span>
+                </div>
+                <div class="order-input-col">
+                    <label asp-for="TripEndDate" class="order-input-label"></label>
+                    <input asp-for="TripEndDate" class="order-input-field" type="date" />
+                    <span asp-validation-for="TripEndDate" class="order-validation-message"></span>
+                </div>
+            </div>
+
+            <div class="order-input-group">
+                <label asp-for="Reason" class="order-input-label"></label>
+                <input asp-for="Reason" class="order-input-field" />
+                <span asp-validation-for="Reason" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-input-group">
+                <label asp-for="VehicleType" class="order-input-label"></label>
+                <select asp-for="VehicleType" class="order-dropdown" asp-items="ViewBag.VehicleTypes">
+                    <option value="">-- Select Vehicle Type --</option>
+                </select>
+                <span asp-validation-for="VehicleType" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-input-group">
+                <label asp-for="CreatedAt" class="order-input-label"></label>
+                <input asp-for="CreatedAt" class="order-input-field" type="datetime-local" />
+                <span asp-validation-for="CreatedAt" class="order-validation-message"></span>
+            </div>
+
+            <div class="order-button-group">
+                <button type="submit" class="order-primary-button">Create</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

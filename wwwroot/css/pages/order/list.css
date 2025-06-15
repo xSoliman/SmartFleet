@@ -1,0 +1,92 @@
+﻿.table-driver {
+    border-radius: 15px;
+    width: 80%;
+    padding: 20px;
+    background-color: white;
+    margin: auto;
+}
+
+th, td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 5px;
+    color: rgb(128, 126, 126);
+    font-weight: bold;
+}
+
+th {
+    font-size: 1.2rem;
+    color: white;
+    background-color: black;
+}
+
+/* Status Styling (optional enhancement) */
+.status-active {
+    color: green;
+}
+
+.status-pending {
+    color: orange;
+}
+
+.status-cancelled {
+    color: red;
+}
+
+/* Buttons */
+.btn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
+    .btn.edit,
+    .btn.details,
+    .btn.delete {
+        background-color: rgb(235, 235, 235);
+        color: black;
+    }
+
+.deleted_icon {
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+}
+
+.driver-icon {
+    margin-right: 5px;
+    color: black;
+}
+
+.btn-add-car {
+    color: white;
+    background-color: #16b416;
+    text-align: center;
+}
+
+    .btn-add-car:hover {
+        background-color: #13a013;
+        color: white;
+    }
+
+.add-order {
+    text-align: center;
+}
+/*search & filter*/
+.custom-btn {
+    border-color: #16b416;
+    color: white !important;
+    background-color: #16b416;
+}
+
+    .custom-btn:hover {
+        background-color: #13a013;
+        color: white;
+        border-color: #6BDA00;
+       
+    }
+.search-icon {
+    color: black;
+}  

@@ -1,0 +1,186 @@
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container py-5">
+    <h2 class="mb-4 text-center">SmartFleet Dashboard</h2>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+            <a href="/Vehicles" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-car fa-3x text-primary mb-2"></i>
+                <h5>Vehicles</h5>
+                <span class="fs-4 fw-bold">@ViewBag.FleetCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Drivers" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-id-card fa-3x text-success mb-2"></i>
+                <h5>Drivers</h5>
+                <span class="fs-4 fw-bold">@ViewBag.DriversCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Trips" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-route fa-3x text-info mb-2"></i>
+                <h5>Trips</h5>
+                <span class="fs-4 fw-bold">@ViewBag.TripsCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Orders" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-file-alt fa-3x text-warning mb-2"></i>
+                <h5>Orders</h5>
+                <span class="fs-4 fw-bold">@ViewBag.OrdersCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Maintenances" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-tools fa-3x text-danger mb-2"></i>
+                <h5>Maintenances</h5>
+                <span class="fs-4 fw-bold">@ViewBag.MaintenanceCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/SimCards" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-sim-card fa-3x text-secondary mb-2"></i>
+                <h5>Sim Cards</h5>
+                <span class="fs-4 fw-bold">@ViewBag.SimCardsCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Notifications" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-bell fa-3x text-primary mb-2"></i>
+                <h5>Notifications</h5>
+                <span class="fs-4 fw-bold">@ViewBag.NotificationsCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Account/MyAccount" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-users fa-3x text-dark mb-2"></i>
+                <h5>Users</h5>
+                <span class="fs-4 fw-bold">@ViewBag.UserCount</span>
+            </a>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <a href="/Events" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                <i class="fas fa-history fa-3x text-info mb-2"></i>
+                <h5>Events</h5>
+                <span class="fs-4 fw-bold">@ViewBag.EventsCount</span>
+            </a>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white"><i class="fas fa-history me-2"></i>Latest Events</div>
+                <ul class="list-group list-group-flush">
+                    @if (ViewBag.LatestEvents != null && ViewBag.LatestEvents.Count > 0)
+                    {
+                        foreach (var ev in ViewBag.LatestEvents)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-circle me-2 text-info"></i>@ev.Message</span>
+                                <span class="badge bg-light text-muted">@ev.CreatedAt.ToString("g")</span>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-center text-muted">No recent events</li>
+                    }
+                </ul>
+                <div class="card-footer text-end">
+                    <a href="/Events" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark"><i class="fas fa-bell me-2"></i>Latest Notifications</div>
+                <ul class="list-group list-group-flush">
+                    @if (ViewBag.LatestNotifications != null && ViewBag.LatestNotifications.Count > 0)
+                    {
+                        foreach (var n in ViewBag.LatestNotifications)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bell me-2 text-warning"></i>@n.Title</span>
+                                <span class="badge bg-light text-muted">@n.CreatedAt.ToString("g")</span>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-center text-muted">No recent notifications</li>
+                    }
+                </ul>
+                <div class="card-footer text-end">
+                    <a href="/Notifications" class="btn btn-sm btn-outline-warning">View All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white"><i class="fas fa-chart-bar me-2"></i>Trips Per Month</div>
+                <div class="card-body">
+                    <canvas id="tripsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.dashboard-card.card {
+    border: none;
+    border-radius: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+}
+.dashboard-card.card:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    text-decoration: none;
+}
+.dashboard-card i {
+    display: block;
+}
+.dashboard-card h5 {
+    margin: 0.5rem 0 0.25rem 0;
+    font-weight: 600;
+}
+.dashboard-card span {
+    color: #222;
+}
+</style>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var tripsLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.TripsPerMonthLabels ?? new List<string>()));
+        var tripsData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.TripsPerMonthData ?? new List<int>()));
+        var ctx = document.getElementById('tripsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: tripsLabels,
+                datasets: [{
+                    label: 'Trips',
+                    data: tripsData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+} 

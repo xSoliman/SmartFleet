@@ -234,7 +234,7 @@ namespace SmartFleet.Data
                     SimNumber = "1234567890",
                     Carrier = "CarrierX",
                     ActivatedAt = DateTime.Now,
-                    Status = true,
+                    Status = SimCardStatus.Active,
                     CreatedAt = DateTime.Now
                 }
             );

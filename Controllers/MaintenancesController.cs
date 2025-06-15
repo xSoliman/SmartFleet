@@ -19,20 +19,34 @@ namespace SmartFleet.Controllers
             _context = context;
         }
 
-       
-        public async Task<IActionResult> Index(string searchLicensePlate)
-        {
-            var query = _context.Maintenances.Include(m => m.Vehicle).Include(m => m.ReportedUser).AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchLicensePlate))
+        public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter)
+        {
+            var query = _context.Maintenances
+                .Include(m => m.Vehicle)
+                .Include(m => m.ReportedUser)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchPlate))
             {
-                query = query.Where(m => m.Vehicle.LicensePlate.Contains(searchLicensePlate));
+                query = query.Where(m => m.Vehicle.LicensePlate.Contains(searchPlate));
+            }
+
+            if (statusFilter.HasValue)
+            {
+                query = query.Where(m => m.RepairStatus == statusFilter.Value);
+            }
+
+            if (priorityFilter.HasValue)
+            {
+                query = query.Where(m => m.Priority == priorityFilter.Value);
             }
 
             return View(await query.ToListAsync());
         }
 
-        
+
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

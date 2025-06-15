@@ -20,11 +20,41 @@ namespace SmartFleet.Controllers
         }
 
         // GET: Orders
-        public async Task<IActionResult> Index()
+
+        // search & filter
+        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchEndLocation, string typeFilter, OrderState? stateFilter)
         {
-            var smartFleetContext = _context.Orders.Include(o => o.User);
-            return View(await smartFleetContext.ToListAsync());
+            var orders = _context.Orders.Include(o => o.User).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchUserId))
+            {
+                orders = orders.Where(o => o.User.UserName.Contains(searchUserId));
+            }
+
+
+            if (!string.IsNullOrEmpty(searchStartLocation))
+            {
+                orders = orders.Where(o => o.TripStartLocation.Contains(searchStartLocation));
+            }
+
+            if (!string.IsNullOrEmpty(searchEndLocation))
+            {
+                orders = orders.Where(o => o.TripEndLocation.Contains(searchEndLocation));
+            }
+
+            if (!string.IsNullOrEmpty(typeFilter) && Enum.TryParse<VehicleType>(typeFilter, out var parsedType))
+            {
+                orders = orders.Where(o => o.VehicleType == parsedType);
+            }
+
+            if (stateFilter.HasValue)
+            {
+                orders = orders.Where(o => o.Status == stateFilter.Value);
+            }
+
+            return View(await orders.ToListAsync());
         }
+
 
         // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)

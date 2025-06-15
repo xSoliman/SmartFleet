@@ -1,78 +1,84 @@
 ﻿@model SmartFleet.Models.Order
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Order Details";
 }
 
-<h1>Details</h1>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/order/details.css" />
+</head>
 
-<div>
-    <h4>Order</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.VehicleType)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.VehicleType)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PassengerCount)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PassengerCount)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TripStartLocation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TripStartLocation)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TripEndLocation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TripEndLocation)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TripStartDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TripStartDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TripEndDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TripEndDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Reason)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Reason)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="details-layout-container">
+    <div class="details-form-wrapper">
+
+        <!-- Back Navigation -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="details-heading">Order Details</h1>
+
+        <!-- Display Fields in two columns -->
+        <div class="details-grid">
+            <div class="details-display-group">
+                <label class="details-display-label">User ID</label>
+                <div class="details-display-value">@Model.User?.Id</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Vehicle Type</label>
+                <div class="details-display-value">@Model.VehicleType</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Passenger Count</label>
+                <div class="details-display-value">@Model.PassengerCount</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Trip Start Location</label>
+                <div class="details-display-value">@Model.TripStartLocation</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Trip End Location</label>
+                <div class="details-display-value">@Model.TripEndLocation</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Trip Start Date</label>
+                <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Trip End Date</label>
+                <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Reason</label>
+                <div class="details-display-value">@Model.Reason</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Status</label>
+                <div class="details-display-value">@Model.Status</div>
+            </div>
+
+            <div class="details-display-group">
+                <label class="details-display-label">Created At</label>
+                <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="details-button-group">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
+        </div>
+
+    </div>
 </div>

@@ -1,89 +1,99 @@
 ﻿@model IEnumerable<SmartFleet.Models.Order>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Orders";
 }
 
-<h1>Index</h1>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/order/list.css">
+</head>
 
-<p>
-    <a asp-action="Create">Create New</a>
+<p class="add-order">
+    <a asp-action="Create" class="btn btn-add-car">
+        <i class="fas fa-plus driver-icon"></i> Add Order
+    </a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.VehicleType)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PassengerCount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TripStartLocation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TripEndLocation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TripStartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TripEndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Reason)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.VehicleType)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PassengerCount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TripStartLocation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TripEndLocation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TripStartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TripEndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Reason)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="d-flex justify-content-center mb-3">
+    <form asp-action="Index" method="get" class="d-flex align-items-center">
+        <div class="form-group mx-2">
+            <input type="text" name="searchUserId" value="@Context.Request.Query["searchUserId"]" class="form-control form-control-sm" placeholder="Search User name" />
+        </div>
+        <div class="form-group mx-2">
+            <input type="text" name="searchStartLocation" value="@Context.Request.Query["searchStartLocation"]" class="form-control form-control-sm" placeholder="Start Location" />
+        </div>
+        <div class="form-group mx-2">
+            <input type="text" name="searchEndLocation" value="@Context.Request.Query["searchEndLocation"]" class="form-control form-control-sm" placeholder="End Location" />
+        </div>
+        <div class="form-group mx-2">
+            <select name="typeFilter" class="form-control form-control-sm">
+                <option value="">All Types</option>
+                @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
+                {
+                    <option value="@type" selected="@(Context.Request.Query["typeFilter"] == type.ToString() ? "selected" : null)">@type</option>
+                }
+            </select>
+        </div>
+        <div class="form-group mx-2">
+            <select name="stateFilter" class="form-control form-control-sm">
+                <option value="">All Statuses</option>
+                @foreach (SmartFleet.Models.OrderState state in Enum.GetValues(typeof(SmartFleet.Models.OrderState)))
+                {
+                    <option value="@state" selected="@(Context.Request.Query["stateFilter"] == state.ToString() ? "selected" : null)">@state</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-sm custom-btn">
+            <i class="fas fa-search search-icon"></i> Filter
+        </button>
+        <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-driver table-bordered">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Vehicle Type</th>
+                <th>Passengers</th>
+                <th>Start Location</th>
+                <th>End Location</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.User.UserName</td> <!-- أو أي خاصية تُظهر الاسم -->
+                    <td>@item.VehicleType</td>
+                    <td>@item.PassengerCount</td>
+                    <td>@item.TripStartLocation</td>
+                    <td>@item.TripEndLocation</td>
+                    <td>@item.TripStartDate.ToShortDateString()</td>
+                    <td>@item.TripEndDate.ToShortDateString()</td>
+                    <td>@item.Reason</td>
+                    <td class="status-active">@item.Status</td>
+                    <td>@item.CreatedAt.ToShortDateString()</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn details">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
+                            <i class="fas fa-trash-alt deleted_icon"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -94,3 +94,32 @@
     width: 50px;
     height: 50px;
 }
+
+
+/*search & Filter*/
+.form-inline input,
+.form-inline select {
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 4px 8px;
+}
+
+.form-inline button {
+    padding: 4px 10px;
+}
+
+.custom-btn {
+    border-color: #16b416;
+    color: white !important;
+    background-color: #16b416;
+}
+
+    .custom-btn:hover {
+        background-color: #13a013;
+        color: white;
+        border-color: #6BDA00;
+    }
+
+.search-icon {
+    color: black;
+}    

@@ -10,9 +10,35 @@
     <link rel="stylesheet" href="~/css/pages/driver/list.css">
     
 </head>
-<p class="add-driver ">
-    <a asp-action="Create" class="btn btn-add-car"> <i class="fas fa-user driver-icon "></i> Add Drivers</a>
-</p>
+<div class="text-center mb-3">
+    <a asp-action="Create" class="btn btn-add-car">
+        <i class="fas fa-user-plus car-icon"></i> Add Driver
+    </a>
+</div>
+
+<div class="d-flex justify-content-center mb-3">
+    <form asp-action="Index" method="get" class="d-flex align-items-center">
+        <div class="form-group mx-2">
+            <input type="text" name="searchUserName" value="@Context.Request.Query["searchUserName"]" class="form-control form-control-sm" placeholder="Search Username" />
+        </div>
+        <div class="form-group mx-2">
+            <input type="text" name="searchLicense" value="@Context.Request.Query["searchLicense"]" class="form-control form-control-sm" placeholder="Search License Number" />
+        </div>
+        <div class="form-group mx-2">
+            <select name="statusFilter" class="form-control form-control-sm">
+                <option value="">All Statuses</option>
+                @foreach (SmartFleet.Models.DriverState state in Enum.GetValues(typeof(SmartFleet.Models.DriverState)))
+                {
+                    <option value="@state" selected="@(Context.Request.Query["statusFilter"] == state.ToString() ? "selected" : null)">@state</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-sm custom-btn">
+            <i class="fas fa-search search-icon"></i> Filter
+        </button>
+        <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+    </form>
+</div>
 
 <div class="table-responsive">
     <table class="table table-driver table-bordered">
