@@ -1,3 +1,6 @@
+@{
+    Layout = null;
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,8 +13,8 @@
     <link rel="stylesheet" href="~/css/pages/tracking/tracking.css" />
 </head>
 <body>
-<h1>Test</h1>
-<div id="content">
+
+<div class="main-layout">
     <div id="sidebar">
         <div class="sidebar-header">
             <h2><i class="fas fa-truck-moving"></i> Fleet Overview</h2>
@@ -37,31 +40,32 @@
             </table>
         </div>
     </div>
-    <div id="map"></div>
-</div>
-
-<div id="info-panel">
-    <div class="info-section">
-        <div class="info-card" id="driver-info">
-            <h3><i class="fas fa-user"></i> Driver Information</h3>
-            <div class="info-content">
-                <!-- Driver info will be loaded dynamically -->
+    <div class="right-content">
+        <div id="map"></div>
+        <div id="info-panel">
+            <div class="info-section">
+                <div class="info-card" id="driver-info">
+                    <h3><i class="fas fa-user"></i> Driver Information</h3>
+                    <div class="info-content">
+                        <!-- Driver info will be loaded dynamically -->
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="info-section">
-        <div class="info-card" id="vehicle-details">
-            <h3><i class="fas fa-info-circle"></i> Vehicle Details</h3>
-            <div class="info-content">
-                <!-- Vehicle details will be loaded dynamically -->
+            <div class="info-section">
+                <div class="info-card" id="vehicle-details">
+                    <h3><i class="fas fa-info-circle"></i> Vehicle Details</h3>
+                    <div class="info-content">
+                        <!-- Vehicle details will be loaded dynamically -->
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="info-section">
-        <div class="info-card" id="position-info">
-            <h3><i class="fas fa-map-marker-alt"></i> Position</h3>
-            <div class="info-content">
-                <!-- Position info will be loaded dynamically -->
+            <div class="info-section">
+                <div class="info-card" id="position-info">
+                    <h3><i class="fas fa-map-marker-alt"></i> Position</h3>
+                    <div class="info-content">
+                        <!-- Position info will be loaded dynamically -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

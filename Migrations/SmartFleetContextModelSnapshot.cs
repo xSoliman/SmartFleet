@@ -236,14 +236,14 @@ namespace SmartFleet.Migrations
                             Id = "1",
                             AccessFailedCount = 0,
                             AccountStatus = true,
-                            ConcurrencyStamp = "19fb531c-00ac-4540-b20d-7805b171b346",
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7566),
+                            ConcurrencyStamp = "eeb225ad-4e3f-4bc3-bf63-042d5b2c14f0",
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(1284),
                             Email = "admin@smartfleet.com",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             PhoneNumberConfirmed = false,
                             ProfileImageUrl = "https://example.com/admin.jpg",
-                            SecurityStamp = "66c956ba-66d5-46c4-927a-fa0f34145237",
+                            SecurityStamp = "5645d948-b5f3-4ae8-99a0-c0dd3385d860",
                             TwoFactorEnabled = false,
                             UserName = "admin@smartfleet.com"
                         });
@@ -333,7 +333,7 @@ namespace SmartFleet.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7930),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2280),
                             IssueDescription = "Flat tire",
                             Priority = "high",
                             RepairStatus = "pending",
@@ -434,13 +434,13 @@ namespace SmartFleet.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7968),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2371),
                             PassengerCount = 3,
                             Reason = "Business Trip",
                             Status = "pending",
-                            TripEndDate = new DateTime(2025, 6, 11, 3, 2, 47, 279, DateTimeKind.Local).AddTicks(7966),
+                            TripEndDate = new DateTime(2025, 6, 15, 3, 33, 26, 783, DateTimeKind.Local).AddTicks(2365),
                             TripEndLocation = "Airport",
-                            TripStartDate = new DateTime(2025, 6, 11, 1, 2, 47, 279, DateTimeKind.Local).AddTicks(7963),
+                            TripStartDate = new DateTime(2025, 6, 15, 1, 33, 26, 783, DateTimeKind.Local).AddTicks(2358),
                             TripStartLocation = "University",
                             UserId = "1",
                             VehicleType = 0
@@ -487,9 +487,9 @@ namespace SmartFleet.Migrations
                         new
                         {
                             Id = 1,
-                            ActivatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(8009),
+                            ActivatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2440),
                             Carrier = "CarrierX",
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(8012),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2444),
                             SimNumber = "1234567890",
                             Status = true,
                             VehicleId = 1
@@ -559,14 +559,14 @@ namespace SmartFleet.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(8052),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2519),
                             CreatedBy = "1",
                             Distance = 50m,
                             DriverId = "2",
                             EndLocation = "Airport",
                             OrderId = 1,
                             StartLocation = "University",
-                            StartTime = new DateTime(2025, 6, 11, 1, 2, 47, 279, DateTimeKind.Local).AddTicks(8049),
+                            StartTime = new DateTime(2025, 6, 15, 1, 33, 26, 783, DateTimeKind.Local).AddTicks(2512),
                             Status = "scheduled",
                             VehicleId = 1
                         });
@@ -617,7 +617,7 @@ namespace SmartFleet.Migrations
                         {
                             Id = 1,
                             Capacity = 5,
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7884),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2193),
                             Distance = 0m,
                             LicensePlate = "XYZ 1234",
                             Model = "Toyota Corolla",
@@ -629,7 +629,7 @@ namespace SmartFleet.Migrations
                         {
                             Id = 2,
                             Capacity = 12,
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7890),
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2210),
                             Distance = 500m,
                             LicensePlate = "XYZ 5678",
                             Model = "Ford Transit",
@@ -692,18 +692,18 @@ namespace SmartFleet.Migrations
                             Id = "2",
                             AccessFailedCount = 0,
                             AccountStatus = true,
-                            ConcurrencyStamp = "97155c92-bcfe-4ca6-be49-e0c93d88d07d",
-                            CreatedAt = new DateTime(2025, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7848),
+                            ConcurrencyStamp = "f876cfcc-b131-4085-9bf3-78b94cc03030",
+                            CreatedAt = new DateTime(2025, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2126),
                             Email = "driver@smartfleet.com",
                             EmailConfirmed = false,
                             LockoutEnabled = false,
                             PhoneNumberConfirmed = false,
                             ProfileImageUrl = "https://example.com/driver.jpg",
-                            SecurityStamp = "63a8c561-c828-4635-b6d7-8ce2d7b17cff",
+                            SecurityStamp = "45ab5317-e0b8-4c85-9386-c7ea54cddbef",
                             TwoFactorEnabled = false,
                             UserName = "driver@smartfleet.com",
                             DriverStatus = "active",
-                            LicenseExpiryDate = new DateTime(2027, 6, 11, 0, 2, 47, 279, DateTimeKind.Local).AddTicks(7838),
+                            LicenseExpiryDate = new DateTime(2027, 6, 15, 0, 33, 26, 783, DateTimeKind.Local).AddTicks(2116),
                             LicenseNumber = "AB12345"
                         });
                 });
