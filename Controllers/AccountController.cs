@@ -220,6 +220,10 @@ namespace SmartFleet.Controllers
                 {
                     return RedirectToAction("DriverDashboard", "Drivers");
                 }
+                if (User.Email == "mechanic@smartfleet.com")
+                {
+                    return RedirectToAction("MaintenanceVehicles", "Maintenances");
+                }
 
                 // التحقق من كلمة المرور
                 if (applicationUser != null)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -66,7 +66,49 @@ namespace SmartFleet.Controllers
             return View(maintenance);
         }
 
-        
+        public async Task<IActionResult> MaintenanceVehicles()
+        {
+            var vehicles = await _context.Vehicles
+                .Where(v => v.Status == VehicleState.under_maintenance)
+                .ToListAsync();
+
+            return View(vehicles);
+        }
+
+
+        [HttpGet]
+        public IActionResult CreateMaintenance(int? vehicleId = null)
+        {
+            var userId = Request.Cookies["UserId"];
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var maintenance = new Maintenance
+            {
+                VehicleId = vehicleId ?? 0,
+                ReportedBy = userId,
+                CreatedAt = DateTime.Now
+            };
+
+            return View("Create", maintenance);
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateVehicleStatus(int vehicleId, VehicleState newStatus)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+            if (vehicle == null) return NotFound();
+
+            vehicle.Status = newStatus;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(MaintenanceVehicles));
+        }
+
         public IActionResult Create()
         {
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "Id");
@@ -80,17 +122,26 @@ namespace SmartFleet.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Assign ReportedUser based on ReportedBy (User ID)
                 maintenance.ReportedUser = await _context.Users.FindAsync(maintenance.ReportedBy);
-
                 _context.Add(maintenance);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                // احصل على LicensePlate
+                var licensePlate = await _context.Vehicles
+                    .Where(v => v.Id == maintenance.VehicleId)
+                    .Select(v => v.LicensePlate)
+                    .FirstOrDefaultAsync();
+
+                // إعادة التوجيه مع فلترة باللوحة
+                return RedirectToAction("Index", new { searchPlate = licensePlate });
             }
-            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName"); // Use UserName or another user-friendly field
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate"); // Use LicensePlate or another user-friendly field
-            return View();
+
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
+            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
+            return View(maintenance);
         }
+
+
 
 
         public async Task<IActionResult> Edit(int? id)
@@ -163,20 +214,26 @@ namespace SmartFleet.Controllers
             return View(maintenance);
         }
 
-        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var maintenance = await _context.Maintenances.FindAsync(id);
+            var maintenance = await _context.Maintenances
+                .Include(m => m.Vehicle)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            string? licensePlate = null;
+
             if (maintenance != null)
             {
+                licensePlate = maintenance.Vehicle?.LicensePlate;
                 _context.Maintenances.Remove(maintenance);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { searchPlate = licensePlate });
         }
+
 
         private bool MaintenanceExists(int id)
         {

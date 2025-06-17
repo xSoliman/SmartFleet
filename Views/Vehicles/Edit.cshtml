@@ -81,7 +81,10 @@
                     <div class="edit-input-group">
                         <label asp-for="Status" class="edit-input-label"></label>
                         <select asp-for="Status" class="edit-dropdown">
-                            <option>Available</option>
+                            <option value="available">Available</option>
+                            <option value="in_use">In_Use</option>
+                            <option value ="under_maintenance">Under_Maintenance</option>
+                         
                         </select>
                         <span asp-validation-for="Status" class="edit-validation-message"></span>
                     </div>

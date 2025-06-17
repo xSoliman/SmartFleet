@@ -1,23 +1,11 @@
 ﻿@model IEnumerable<SmartFleet.Models.Maintenance>
-
 @{
     ViewData["Title"] = "Maintenance List";
 }
-
-
-   <head >
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
-    <link rel="stylesheet" href="~/css/pages/maintenance/list.css" >
-    
-   </head>
-
-
-
-
-<p class="add-maintenance">
-    <a asp-action="Create" class=" btn-add-maintenance"> <i class="fas fa-tools maintenance-icon "></i> Add Maintenance Record</a>
-</p>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/maintenance/list.css">
+</head>
 
 <div class="d-flex justify-content-center mb-3">
     <form asp-action="Index" method="get" class="d-flex align-items-center">
@@ -46,7 +34,6 @@
                 }
             </select>
         </div>
-
         <button type="submit" class="btn btn-sm custom-btn">
             <i class="fas fa-search search-icon"></i> Filter
         </button>
@@ -58,13 +45,12 @@
     <table class="table table-maintenance table-bordered">
         <thead>
             <tr>
-                <th>@Html.DisplayNameFor(model => model.Vehicle.LicensePlate)</th>
-                @* <th>@Html.DisplayNameFor(model => model.ReportedUser.Id)</th> *@
-                <th>@Html.DisplayNameFor(model => model.IssueDescription)</th>
-                <th>@Html.DisplayNameFor(model => model.RepairStatus)</th>
-                <th >@Html.DisplayNameFor(model => model.Priority)</th>
-                <th>@Html.DisplayNameFor(model => model.RepairedAt)</th>
-                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
+                <th>License Plate</th>
+                <th>Issue Description</th>
+                <th>Repair Status</th>
+                <th>Priority</th>
+                <th>Repaired At</th>
+                <th>Created At</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -72,8 +58,7 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@Html.DisplayFor(modelItem => item.Vehicle.LicensePlate)</td>
-                    @* <td>@Html.DisplayFor(modelItem => item.ReportedUser.Id)</td> *@
+                    <td>@(item.Vehicle?.LicensePlate ?? "غير متوفر")</td>
                     <td>@Html.DisplayFor(modelItem => item.IssueDescription)</td>
                     <td>@Html.DisplayFor(modelItem => item.RepairStatus)</td>
                     <td class="priority-status">@Html.DisplayFor(modelItem => item.Priority)</td>
@@ -88,7 +73,6 @@
                         </a>
                         <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
                             <i class="fas fa-trash-alt deleted_icon"></i>
-                            
                         </a>
                     </td>
                 </tr>
@@ -96,5 +80,3 @@
         </tbody>
     </table>
 </div>
-
-

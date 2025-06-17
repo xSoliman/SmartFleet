@@ -1,100 +1,72 @@
 ﻿@model SmartFleet.Models.Maintenance
-@using SmartFleet.Models
+
 @{
-    ViewData["Title"] = "Create Maintenance";
+    ViewData["Title"] = "Create Maintenance";}
 
-    var repairStatusList = Html.GetEnumSelectList<RepairState>();
-    var priorityList = Html.GetEnumSelectList<PriorityDegree>();
-}
+<link rel="stylesheet" href="~/css/pages/maintenance/create.css" />
 
-<head>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="~/css/pages/maintenance/create.css">
-   
-</head>
-<div class="create-layout-container">
-    <div class="create-form-wrapper">
-        <div class="create-navigation">
-            <a asp-action="Index" class="create-back-link">
-                <i class="fas fa-arrow-left"></i> Back
-            </a>
+<div class="container mt-4">
+    <div class="card shadow-sm rounded">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create Maintenance</h4>
         </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-        <h1 class="create-heading">Create Maintenance</h1>
-        
-        <form asp-action="Create" class="create-custom-form">
-            <div asp-validation-summary="All" class="create-validation-message"></div>
+                <div class="mb-3">
+                    <label class="form-label">Vehicle ID</label>
+                    <input type="text" class="form-control" value="@Model.VehicleId" readonly />
+                    <input type="hidden" asp-for="VehicleId" />
+                </div>
 
-          
-            <div class="create-input-row">
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="VehicleId" class="create-input-label"></label>
-                        <select asp-for="VehicleId" class="create-dropdown" asp-items="ViewBag.VehicleId"></select>
-                        <span asp-validation-for="VehicleId" class="create-validation-message"></span>
+                <div class="mb-3">
+                    <label class="form-label">Reported By (User ID)</label>
+                    <input type="text" class="form-control" value="@Model.ReportedBy" readonly />
+                    <input type="hidden" asp-for="ReportedBy" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="RepairStatus" class="form-label"></label>
+                        <select asp-for="RepairStatus" class="form-select" asp-items="Html.GetEnumSelectList<RepairState>()"></select>
+                        <span asp-validation-for="RepairStatus" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Priority" class="form-label"></label>
+                        <select asp-for="Priority" class="form-select" asp-items="Html.GetEnumSelectList<PriorityDegree>()"></select>
+                        <span asp-validation-for="Priority" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="ReportedBy" class="create-input-label"></label>
-                        <select asp-for="ReportedBy" class="create-dropdown" asp-items="ViewBag.ReportedBy"></select>
-                        <span asp-validation-for="ReportedBy" class="create-validation-message"></span>
-                    </div>
-                </div>
-            </div>
 
-            <div class="create-input-row">
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="RepairStatus" class="create-input-label"></label>
-                        <select asp-for="RepairStatus" class="create-dropdown" asp-items="repairStatusList"></select>
-                        <span asp-validation-for="RepairStatus" class="create-validation-message"></span>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="RepairedAt" class="form-label"></label>
+                        <input asp-for="RepairedAt" class="form-control" type="date" />
+                        <span asp-validation-for="RepairedAt" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CreatedAt" class="form-label"></label>
+                        <input asp-for="CreatedAt" class="form-control" type="date" />
+                        <span asp-validation-for="CreatedAt" class="text-danger"></span>
                     </div>
                 </div>
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="Priority" class="create-input-label"></label>
-                        <select asp-for="Priority" class="create-dropdown" asp-items="priorityList"></select>
-                        <span asp-validation-for="Priority" class="create-validation-message"></span>
-                    </div>
-                </div>
-            </div>
 
-          
-            <div class="create-input-row">
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="RepairedAt" class="create-input-label"></label>
-                        <input asp-for="RepairedAt" class="create-input-field" />
-                        <span asp-validation-for="RepairedAt" class="create-validation-message"></span>
-                    </div>
+                <div class="mb-3">
+                    <label asp-for="IssueDescription" class="form-label"></label>
+                    <textarea asp-for="IssueDescription" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="IssueDescription" class="text-danger"></span>
                 </div>
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="CreatedAt" class="create-input-label"></label>
-                        <input asp-for="CreatedAt" class="create-input-field" />
-                        <span asp-validation-for="CreatedAt" class="create-validation-message"></span>
-                    </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">Create</button>
+                    <a asp-action="MaintenanceVehicles" class="btn btn-secondary">Back</a>
                 </div>
-            </div>
-
-          
-            <div class="create-input-group">
-                <label asp-for="IssueDescription" class="create-input-label"></label>
-                <textarea asp-for="IssueDescription" class="create-input-field" rows="2"></textarea>
-                <span asp-validation-for="IssueDescription" class="create-validation-message"></span>
-            </div>
-
-            <div class="create-button-group">
-                <input type="submit" value="Create" class="create-primary-button" />
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }
