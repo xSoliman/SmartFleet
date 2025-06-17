@@ -68,7 +68,11 @@
                 <td>@driver.Email</td>
                 <td>@driver.LicenseNumber</td>
                 <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
-                    <td class="status-active">@driver.DriverStatus</td>
+                <td>
+                    <span class="badge-status badge-@driver.DriverStatus.ToString().ToLower()">
+                        @driver.DriverStatus
+                    </span>
+                </td>
        
                     <td>
                         <a asp-action="Edit" asp-route-id="@driver.Id" class="btn edit">
