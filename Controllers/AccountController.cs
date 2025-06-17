@@ -205,25 +205,7 @@ namespace SmartFleet.Controllers
                     Response.Cookies.Append("UserId", applicationUser.Id, cookieOptions);
                 }
 
-                // بعد كده نعمل التوجيهات حسب الإيميل
-                if (User.Email == "sayed@smartfleet.com")
-                {
-                    return RedirectToAction("Fleet_Manager", "Account");
-                }
-
-                if (User.Email == "sayed1@smartfleet.com")
-                {
-                    return RedirectToAction("Index", "Account");
-                }
-
-                if (User.Email == "salem@smartfleet.com")
-                {
-                    return RedirectToAction("DriverDashboard", "Drivers");
-                }
-                if (User.Email == "mechanic@smartfleet.com")
-                {
-                    return RedirectToAction("MaintenanceVehicles", "Maintenances");
-                }
+            
 
                 // التحقق من كلمة المرور
                 if (applicationUser != null)
