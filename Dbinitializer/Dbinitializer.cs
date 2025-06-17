@@ -1,8 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+public enum Roles
+{
+    NormalUser,
+    SysSupport,
+    FleetManager,
+    MaintanceManager,
+    commissioner,
+    Driver,
 
+}
 namespace SmartFleet
 {
     public class Dbinitializer
@@ -67,7 +77,7 @@ namespace SmartFleet
         {
             if (!await _roleManager.RoleExistsAsync("Driver"))
             {
-                var roles = new[] { "NormalUser", "SysSupport", "FleetManager", "MaintanceManager", "commissioner", "Driver" };
+                List<string> roles = Enum.GetValues(typeof(Roles)).Cast<Roles>().Select(r => r.ToString()).ToList();
 
                 foreach (var roleName in roles)
                 {

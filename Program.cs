@@ -2,6 +2,7 @@ using SmartFleet.Data;
 using SmartFleet.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace SmartFleet
 {
@@ -23,9 +24,15 @@ namespace SmartFleet
                 {
                     //option.Password.RequiredLength = 10; // length for password
                     option.Password.RequireNonAlphanumeric = false;
+                    option.Password.RequireUppercase = false;
                 })
                 .AddEntityFrameworkStores<SmartFleetContext>();
 
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                    .AddCookie(options => {
+            options.LoginPath = "/Account/Login";
+            options.AccessDeniedPath = "/Account/AccessDenied";
+                                     });
             // Database initializer 
             builder.Services.AddScoped<Dbinitializer>();
 
