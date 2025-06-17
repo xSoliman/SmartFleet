@@ -14,8 +14,9 @@
         <i class="fas fa-plus driver-icon"></i> Add Order
     </a>
 </p>
-<div class="d-flex justify-content-center mb-3">
-    <form asp-action="Index" method="get" class="d-flex align-items-center">
+
+<div class="order-filter-bar">
+    <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
         <div class="form-group mx-2">
             <input type="text" name="searchUserId" value="@Context.Request.Query["searchUserId"]" class="form-control form-control-sm" placeholder="Search User name" />
         </div>
@@ -43,15 +44,17 @@
                 }
             </select>
         </div>
-        <button type="submit" class="btn btn-sm custom-btn">
-            <i class="fas fa-search search-icon"></i> Filter
-        </button>
-        <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+        <div class="order-filter-actions">
+            <button type="submit" class="btn btn-sm custom-btn">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+        </div>
     </form>
 </div>
 
 <div class="table-responsive">
-    <table class="table table-driver table-bordered">
+    <table class="table table-order table-bordered">
         <thead>
             <tr>
                 <th>User</th>
@@ -71,7 +74,7 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.User.UserName</td> <!-- أو أي خاصية تُظهر الاسم -->
+                    <td>@item.User.UserName</td>
                     <td>@item.VehicleType</td>
                     <td>@item.PassengerCount</td>
                     <td>@item.TripStartLocation</td>
@@ -79,16 +82,20 @@
                     <td>@item.TripStartDate.ToShortDateString()</td>
                     <td>@item.TripEndDate.ToShortDateString()</td>
                     <td>@item.Reason</td>
-                    <td class="status-active">@item.Status</td>
+                    <td>
+                        <span class="badge-status badge-@item.Status.ToString().ToLower()">
+                            @item.Status
+                        </span>
+                    </td>
                     <td>@item.CreatedAt.ToShortDateString()</td>
                     <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn edit">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn details">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
                             <i class="fas fa-info-circle"></i> Details
                         </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
                             <i class="fas fa-trash-alt deleted_icon"></i>
                         </a>
                     </td>
