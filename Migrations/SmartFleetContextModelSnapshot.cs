@@ -229,24 +229,6 @@ namespace SmartFleet.Migrations
                     b.ToTable("Users", (string)null);
 
                     b.UseTptMappingStrategy();
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "1",
-                            AccessFailedCount = 0,
-                            AccountStatus = true,
-                            ConcurrencyStamp = "54c58364-7f26-4375-a8a1-cd6efb59fb8c",
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 481, DateTimeKind.Local).AddTicks(9413),
-                            Email = "admin@smartfleet.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            PhoneNumberConfirmed = false,
-                            ProfileImageUrl = "https://example.com/admin.jpg",
-                            SecurityStamp = "7e6b238e-0f65-4b08-a8b6-7bda698e9cc9",
-                            TwoFactorEnabled = false,
-                            UserName = "admin@smartfleet.com"
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.Event", b =>
@@ -328,18 +310,6 @@ namespace SmartFleet.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("Maintenances");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 482, DateTimeKind.Local).AddTicks(59),
-                            IssueDescription = "Flat tire",
-                            Priority = "high",
-                            RepairStatus = "pending",
-                            ReportedBy = "1",
-                            VehicleId = 1
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.Notification", b =>
@@ -429,22 +399,6 @@ namespace SmartFleet.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 482, DateTimeKind.Local).AddTicks(142),
-                            PassengerCount = 3,
-                            Reason = "Business Trip",
-                            Status = "pending",
-                            TripEndDate = new DateTime(2025, 6, 14, 16, 11, 3, 482, DateTimeKind.Local).AddTicks(136),
-                            TripEndLocation = "Airport",
-                            TripStartDate = new DateTime(2025, 6, 14, 14, 11, 3, 482, DateTimeKind.Local).AddTicks(128),
-                            TripStartLocation = "University",
-                            UserId = "1",
-                            VehicleType = 0
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.SimCard", b =>
@@ -469,8 +423,8 @@ namespace SmartFleet.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int?>("VehicleId")
                         .HasColumnType("int");
@@ -482,18 +436,6 @@ namespace SmartFleet.Migrations
                         .HasFilter("[VehicleId] IS NOT NULL");
 
                     b.ToTable("SimCards");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ActivatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 482, DateTimeKind.Local).AddTicks(200),
-                            Carrier = "CarrierX",
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 482, DateTimeKind.Local).AddTicks(206),
-                            SimNumber = "1234567890",
-                            Status = true,
-                            VehicleId = 1
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.Trip", b =>
@@ -509,7 +451,8 @@ namespace SmartFleet.Migrations
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("CreatedBy");
 
                     b.Property<decimal>("Distance")
                         .HasColumnType("decimal(9, 6)");
@@ -554,22 +497,6 @@ namespace SmartFleet.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("Trips");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 482, DateTimeKind.Local).AddTicks(276),
-                            CreatedBy = "1",
-                            Distance = 50m,
-                            DriverId = "2",
-                            EndLocation = "Airport",
-                            OrderId = 1,
-                            StartLocation = "University",
-                            StartTime = new DateTime(2025, 6, 14, 14, 11, 3, 482, DateTimeKind.Local).AddTicks(267),
-                            Status = "scheduled",
-                            VehicleId = 1
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.Vehicle", b =>
@@ -611,32 +538,6 @@ namespace SmartFleet.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Vehicles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Capacity = 5,
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 481, DateTimeKind.Local).AddTicks(9974),
-                            Distance = 0m,
-                            LicensePlate = "XYZ 1234",
-                            Model = "Toyota Corolla",
-                            Status = "available",
-                            Type = "Car",
-                            VehicleImageUrl = "https://example.com/toyota.jpg"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Capacity = 12,
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 481, DateTimeKind.Local).AddTicks(9990),
-                            Distance = 500m,
-                            LicensePlate = "XYZ 5678",
-                            Model = "Ford Transit",
-                            Status = "available",
-                            Type = "Van",
-                            VehicleImageUrl = "https://example.com/ford.jpg"
-                        });
                 });
 
             modelBuilder.Entity("SmartFleet.Models.VehicleLocation", b =>
@@ -685,27 +586,6 @@ namespace SmartFleet.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.ToTable("Drivers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "2",
-                            AccessFailedCount = 0,
-                            AccountStatus = true,
-                            ConcurrencyStamp = "1baa5def-5411-4d6e-b9af-1bd0fd00acdf",
-                            CreatedAt = new DateTime(2025, 6, 14, 13, 11, 3, 481, DateTimeKind.Local).AddTicks(9904),
-                            Email = "driver@smartfleet.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            PhoneNumberConfirmed = false,
-                            ProfileImageUrl = "https://example.com/driver.jpg",
-                            SecurityStamp = "2964324d-c3d7-42d0-af06-b4f181e55056",
-                            TwoFactorEnabled = false,
-                            UserName = "driver@smartfleet.com",
-                            DriverStatus = "active",
-                            LicenseExpiryDate = new DateTime(2027, 6, 14, 13, 11, 3, 481, DateTimeKind.Local).AddTicks(9892),
-                            LicenseNumber = "AB12345"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

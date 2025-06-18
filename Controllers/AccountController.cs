@@ -1,6 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using NuGet.Common;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.ViewModel;
@@ -12,16 +18,14 @@ namespace SmartFleet.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly SmartFleetContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public AccountController(SmartFleetContext context, UserManager<ApplicationUser> userManager,
-       SignInManager<ApplicationUser> signInManager, IHttpContextAccessor httpContextAccessor)
+       SignInManager<ApplicationUser> signInManager)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             _context = context;
-            _httpContextAccessor = httpContextAccessor; // حفظ الكائن
         }
 
 
@@ -33,6 +37,7 @@ namespace SmartFleet.Controllers
         /// <summary>
         ///
         //
+        [Authorize(Roles = "FleetManager , SysSupport")]
         public async Task<IActionResult> Fleet_Manager()
         {
             var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
@@ -65,6 +70,7 @@ namespace SmartFleet.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "FleetManager , SysSupport")]
         public async Task<IActionResult> Fleet_Manager(FleetManagerViewModel model)
         {
             var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
@@ -79,7 +85,7 @@ namespace SmartFleet.Controllers
             return RedirectToAction(nameof(Fleet_Manager));
         }
 
-
+        [Authorize(Roles = "FleetManager , SysSupport")]
         public async Task<IActionResult> Index()
         {
             var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
@@ -108,7 +114,7 @@ namespace SmartFleet.Controllers
                 PendingOrders = pendingOrders
             };
 
-            return View("Broker_Manager", viewModel); // توجيه إلى View باسم "Broker_Manager"
+            return View("Broker_Manager", viewModel); 
         }
 
 
@@ -150,35 +156,42 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> SaveRegister(RegisterViewModel User)
         {
-            if (ModelState.IsValid)
+            try
             {
-                //string role = User.UserType == UserType.Student ? "Student" : "Instructor";
-                // Mapping
-                ApplicationUser appUser = new ApplicationUser();
-                appUser.UserName = User.UserName;
-                appUser.Email = User.Email;
-                // appUser.PasswordHash = User.Password;
-                appUser.PhoneNumber = User.PhoneNumber;
-                    
-                // save DB
-                IdentityResult identityResult = await userManager.CreateAsync(appUser, User.Password);// hash password
-                if (identityResult.Succeeded)
+                if (!ModelState.IsValid)
                 {
-                   // await userManager.AddToRoleAsync(appUser, "Fleet Administrator");
-                    // Create Cookies after Register
-
-                    await signInManager.SignInAsync(appUser, false);
-                    return RedirectToAction("Login");
+                    return View("Register", User);
                 }
 
-                foreach (var item in identityResult.Errors)
+                var newUser = new ApplicationUser
                 {
-                    ModelState.AddModelError("", item.Description);
+                    UserName = User.UserName,
+                    Email = User.Email,
+                    PhoneNumber = User.PhoneNumber
+                };
+                var result = await userManager.CreateAsync(newUser, User.Password);
+
+                if (result.Succeeded)
+                {
+
+                    await userManager.AddToRoleAsync(newUser, Roles.NormalUser.ToString());
+
+                    return RedirectToAction("Index", "Home");
                 }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("RegisterError", error.Description);
+                }
+                return View("Register", User);
             }
-            return View("Register", User);
+            catch (Exception ex)
+            {
+                
+                ModelState.AddModelError("RegisterError", "An error occurred during registration. Please try again.");
+                return View("Register", User);
+            }
         }
-
         [HttpGet]
         public IActionResult Login()
         {
@@ -189,60 +202,51 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveLogin(LoginViewModel User)
         {
-            if (ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View("Login", User);
+                }
+
                 var applicationUser = await userManager.FindByEmailAsync(User.Email);
-
-                
-                if (applicationUser != null)
+                if (applicationUser == null)
                 {
-                    var cookieOptions = new CookieOptions
-                    {
-                        Expires = DateTime.Now.AddDays(7),
-                        HttpOnly = true,
-                        IsEssential = true
-                    };
-                    Response.Cookies.Append("UserId", applicationUser.Id, cookieOptions);
+                    ModelState.AddModelError("", "User not found.");
+                    return View("Login", User);
                 }
 
-                // بعد كده نعمل التوجيهات حسب الإيميل
-                if (User.Email == "sayed@smartfleet.com")
+                var passwordValid = await userManager.CheckPasswordAsync(applicationUser, User.Password);
+                if (!passwordValid)
                 {
-                    return RedirectToAction("Fleet_Manager", "Account");
+                    ModelState.AddModelError("", "Email or Password Wrong.");
+                    return View("Login", User);
                 }
 
-                if (User.Email == "sayed1@smartfleet.com")
-                {
-                    return RedirectToAction("Index", "Account");
-                }
+                await signInManager.SignInAsync(applicationUser, User.RememberMe);
 
-                if (User.Email == "salem@smartfleet.com")
+                var claims = new List<Claim>
+        {
+            new Claim("Email", applicationUser.Email),
+            new Claim("UserName", applicationUser.UserName),
+            new Claim(ClaimTypes.NameIdentifier, applicationUser.Id)
+        };
+                var roles = await userManager.GetRolesAsync(applicationUser);
+                foreach (var role in roles)
                 {
-                    return RedirectToAction("DriverDashboard", "Drivers");
+                    claims.Add(new Claim(ClaimTypes.Role, role));
                 }
-                if (User.Email == "mechanic@smartfleet.com")
-                {
-                    return RedirectToAction("MaintenanceVehicles", "Maintenances");
-                }
+                var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
+                await userManager.AddClaimsAsync(applicationUser, claims); 
 
-                // التحقق من كلمة المرور
-                if (applicationUser != null)
-                {
-                    bool found = await userManager.CheckPasswordAsync(applicationUser, User.Password);
-                    if (found)
-                    {
-                        await signInManager.SignInAsync(applicationUser, User.RememberMe);
-                        return RedirectToAction("Index", "Home");
-                    }
-                }
-
-                ModelState.AddModelError("", "Email or Password Wrong");
+                return RedirectToAction("Index", "Home");
             }
-
-            return View("Login", User);
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Error", "An error occurred during login.");
+                return View("Login", User);
+            }
         }
-
-
 
 
 
@@ -254,14 +258,12 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> MyAccount()
         {
-            // جلب UserId من الكوكيز
-            var userId = Request.Cookies["UserId"];
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
                 return RedirectToAction("Login");
             }
 
-            // البحث عن المستخدم بناءً على الـ UserId
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
             {
@@ -270,7 +272,6 @@ namespace SmartFleet.Controllers
 
             var roles = await userManager.GetRolesAsync(user);
 
-            // التحقق مما إذا كان لديه طلبات سابقة
             var lastOrder = await _context.Orders
                 .Where(o => o.UserId == user.Id)
                 .OrderByDescending(o => o.CreatedAt)
@@ -283,7 +284,7 @@ namespace SmartFleet.Controllers
                 PhoneNumber = user.PhoneNumber,
                 Role = roles.FirstOrDefault() ?? "No Role",
                 ImageUrl = user.ProfileImageUrl,
-                OrderStatus = lastOrder?.Status // تعيين الحالة فقط إذا كان هناك طلب
+                OrderStatus = lastOrder?.Status 
             };
 
             return View(viewModel);
