@@ -54,8 +54,8 @@
                 <th>@Html.DisplayNameFor(model => model.Type)</th>
                 <th>@Html.DisplayNameFor(model => model.Capacity)</th>
                 <th>@Html.DisplayNameFor(model => model.LicensePlate)</th>
-                <th>@Html.DisplayNameFor(model => model.Status)</th>
                 <th>@Html.DisplayNameFor(model => model.Distance)</th>
+                <th>@Html.DisplayNameFor(model => model.Status)</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -70,12 +70,13 @@
                     <td>@Html.DisplayFor(modelItem => item.Type)</td>
                     <td>@Html.DisplayFor(modelItem => item.Capacity)</td>
                     <td>@Html.DisplayFor(modelItem => item.LicensePlate)</td>
-                    <td>
+                 
+                    <td>@Html.DisplayFor(modelItem => item.Distance)</td>
+                       <td>
                         <span class="badge-status badge-@item.Status.ToString().ToLower()">
                             @Html.DisplayFor(modelItem => item.Status)
                         </span>
                     </td>
-                    <td>@Html.DisplayFor(modelItem => item.Distance)</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                             <i class="fas fa-edit"></i> Edit

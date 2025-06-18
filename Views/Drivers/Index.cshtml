@@ -10,14 +10,13 @@
     <link rel="stylesheet" href="~/css/pages/driver/list.css">
     
 </head>
-<div class="text-center mb-3">
+<div class="add-driver mb-3">
     <a asp-action="Create" class="btn btn-add-car">
-        <i class="fas fa-user-plus car-icon"></i> Add Driver
+        <i class="fas fa-user-plus driver-icon"></i> Add Driver
     </a>
 </div>
-
-<div class="d-flex justify-content-center mb-3">
-    <form asp-action="Index" method="get" class="d-flex align-items-center">
+<div class="driver-filter-bar">
+    <form asp-action="Index" method="get">
         <div class="form-group mx-2">
             <input type="text" name="searchUserName" value="@Context.Request.Query["searchUserName"]" class="form-control form-control-sm" placeholder="Search Username" />
         </div>
@@ -33,10 +32,12 @@
                 }
             </select>
         </div>
-        <button type="submit" class="btn btn-sm custom-btn">
-            <i class="fas fa-search search-icon"></i> Filter
-        </button>
-        <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+        <div class="driver-filter-actions">
+            <button type="submit" class="btn btn-sm custom-btn">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+        </div>
     </form>
 </div>
 
@@ -44,39 +45,39 @@
     <table class="table table-driver table-bordered">
         <thead>
             <tr>
+            <th>Profile Image</th>
             <th>UserName</th>
             <th>Email</th>
             <th>License Number</th>
             <th>License Expiry</th>
             <th>Status</th>
-            <th>Profile Image</th>
-
-                <th>Actions</th>
+            <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         @foreach (var driver in Model)
         {
             <tr>
-                <td>@driver.UserName</td>
-                <td>@driver.Email</td>
-                <td>@driver.LicenseNumber</td>
-                <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
-                    <td class="status-active">@driver.DriverStatus</td>
                 <td>
                     @if (!string.IsNullOrEmpty(driver.ProfileImageUrl))
                     {
                         <img src="@driver.ProfileImageUrl" alt="Profile Image" width="50" height="50" />
                     }
                 </td>
+                <td>@driver.UserName</td>
+                <td>@driver.Email</td>
+                <td>@driver.LicenseNumber</td>
+                <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
+                <td>
+                    <span class="badge-status badge-@driver.DriverStatus.ToString().ToLower()">
+                        @driver.DriverStatus
+                    </span>
+                </td>
+       
                     <td>
                         <a asp-action="Edit" asp-route-id="@driver.Id" class="btn edit">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-
-
-
-                        
                         <a asp-action="Details" asp-route-id="@driver.Id" class="btn details">
                             <i class="fas fa-info-circle"></i> Details
                         </a>
@@ -89,5 +90,3 @@
         </tbody>
     </table>
 </div>
-<br />
-
