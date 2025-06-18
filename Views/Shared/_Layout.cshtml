@@ -29,22 +29,130 @@
     
 
 
+    <style>
+        .notification-bell {
+            color: #000 !important;
+            font-size: 1.2rem;
+        }
+        
+        .notification-badge {
+            background-color: #dc3545 !important;
+            font-size: 0.7rem;
+            transform: translate(-50%, -50%) !important;
+            top: 0 !important;
+            right: -5px !important;
+            left: auto !important;
+        }
+
+        .btn-lg {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        /* Larger buttons for login and register */
+        .btn-success.btn-lg, .btn-primary.btn-lg:not(.my-account-btn) {
+            padding: 0.6rem 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Match Smart Fleet title color */
+        .btn-primary {
+            background-color: var(--bs-primary) !important;
+            border-color: var(--bs-primary) !important;
+            color: #fff !important;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--bs-primary) !important;
+            border-color: var(--bs-primary) !important;
+            opacity: 0.9;
+        }
+
+        /* Adjust My Account and Dashboard buttons */
+        .btn-warning.btn-lg {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* My Account button specific style */
+        .my-account-btn {
+            padding: 0.45rem 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Move buttons to the right using flex */
+        .navbar-collapse {
+            justify-content: space-between;
+        }
+
+        .navbar-collapse .d-flex.align-items-center.ms-auto {
+            margin-right: 0;
+            width: auto;
+            min-width: 200px;
+            justify-content: flex-end;
+        }
+
+        .btn-outline-warning {
+            color: #ffc107;
+            border-color: #ffc107;
+        }
+
+        .btn-outline-warning:hover {
+            color: #000;
+            background-color: #ffc107;
+            border-color: #ffc107;
+        }
+
+        .btn-outline-primary {
+            color: var(--bs-primary);
+            border-color: var(--bs-primary);
+        }
+
+        .btn-outline-primary:hover {
+            color: #fff;
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+        }
+
+        .btn-outline-success {
+            color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-outline-success:hover {
+            color: #fff;
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+    </style>
 
 </head>
 
 <body>
 
     <!-- Navbar & Hero Start -->
-    <div class="container-fluid nav-bar sticky-top px-0 px-lg-4 py-2 py-lg-0">
+    <div class="container-fluid nav-bar sticky-top px-0 py-2">
         <div class="container">
             <nav class="navbar navbar-expand-lg navbar-light">
-                <div class="d-flex align-items-center ">
-                    <div class="nav-right lo">
-                        <a asp-controller="Home" asp-action="Index" class="navbar-brand p-0 me-auto">
-                            <h1 class="display-6 text-primary"><i class="fas fa-car-alt me-3"></i>Smart Fleet</h1>
-                            <!-- <img src="img/logo.png" alt="Logo"> -->
-                        </a>
-                    </div>
+                <div class="d-flex align-items-center">
+                    <a asp-controller="Home" asp-action="Index" class="navbar-brand p-0">
+                        <h1 class="display-6 text-primary"><i class="fas fa-car-alt me-2"></i>Smart Fleet</h1>
+                    </a>
                 </div>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                     <span class="fa fa-bars"></span>
@@ -55,62 +163,59 @@
                 }
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav mx-auto py-0">
-                        <a asp-controller="Home" asp-action="Index" class="nav-item nav-link  @(currentController == "Home"   ? "active" : "") it">Home</a>
+                        <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(currentController == "Home" ? "active" : "")">Home</a>
 
-                        <div class="nav-item dropdown it">
-                            <a asp-controller="Vehicles" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Vehicles"   ? "active" : "")">Vehicles</a>
+                        <div class="nav-item dropdown">
+                            <a asp-controller="Vehicles" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Vehicles" ? "active" : "")">Vehicles</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="Vehicles" asp-action="Index" class="dropdown-item">All Vehicles</a>
                                 <a asp-controller="Vehicles" asp-action="Create" class="dropdown-item">Add New Vehicle</a>
                             </div>
                         </div>
 
-                        <div class="nav-item dropdown it">
-                            <a asp-controller="Drivers" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Drivers"   ? "active" : "")">Drivers</a>
+                        <div class="nav-item dropdown">
+                            <a asp-controller="Drivers" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Drivers" ? "active" : "")">Drivers</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="Drivers" asp-action="Index" class="dropdown-item">All Drivers</a>
                             </div>
                         </div>
 
-
-
-
-
-                        <div class="nav-item dropdown it">
-                            <a asp-controller="Maintenances" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Maintenances"   ? "active" : "")">Maintenance</a>
+                        <div class="nav-item dropdown">
+                            <a asp-controller="Maintenances" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Maintenances" ? "active" : "")">Maintenance</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="Maintenances" asp-action="Index" class="dropdown-item">All Maintenances</a>
                             </div>
                         </div>
 
-                        <div class="nav-item dropdown it">
+                        <div class="nav-item dropdown">
                             <a asp-controller="SimCards" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "SimCards" ? "active" : "")">SimCards</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="SimCards" asp-action="Index" class="dropdown-item">Sim Cards</a>
                                 <a asp-controller="SimCards" asp-action="Create" class="dropdown-item">Add new Sim Card</a>
-
                             </div>
                         </div>
 
-                        <div class="nav-item dropdown it">
-                            <a asp-controller="Tracking" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Tracking"   ? "active" : "")">Tracking</a>
+                        <div class="nav-item dropdown">
+                            <a asp-controller="Tracking" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Tracking" ? "active" : "")">Tracking</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="Tracking" asp-action="Index" class="dropdown-item">Tracking</a>
                             </div>
                         </div>
 
-
-                        <div class="nav-item dropdown it">
-                            <a asp-controller="Orders" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Orders"   ? "active" : "")">Orders</a>
+                        <div class="nav-item dropdown">
+                            <a asp-controller="Orders" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Orders" ? "active" : "")">Orders</a>
                             <div class="dropdown-menu m-0">
                                 <a asp-controller="Orders" asp-action="Index" class="dropdown-item">All Order</a>
                                 <a asp-controller="Orders" asp-action="Create" class="dropdown-item">Create New Order</a>
                             </div>
                         </div>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link position-relative noti" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                    </div>
+
+                    <div class="d-flex align-items-center ms-auto">
+                        <div class="nav-item dropdown me-3">
+                            <a class="nav-link position-relative notification-bell" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-bell fa-lg"></i>
-                                <span id="notificationCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+                                <span id="notificationCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notification-badge">
                                     @ViewBag.UnreadNotifications
                                 </span>
                             </a>
@@ -133,26 +238,20 @@
                                     <li><a class="dropdown-item text-center" href="#">No new notifications</a></li>
                                 }
                             </ul>
-                        </li>
+                        </div>
 
-
-
-                    </div>
-
-                    <div class="nav-auto acc">
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <a asp-controller="Home" asp-action="Dashboard" class="icon-btn me-2" title="Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                            <a asp-controller="Account" asp-action="MyAccount" class="icon-btn"><i class="fas fa-user"></i>Account</a>
-                            <a asp-controller="Account" asp-action="Logout" class="icon-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                            <a asp-controller="Home" asp-action="Dashboard" class="btn btn-lg btn-warning me-2" title="Dashboard">Dashboard</a>
+                            <a asp-controller="Account" asp-action="MyAccount" class="btn btn-lg btn-primary my-account-btn me-2">My Account <i class="fas fa-user"></i></a>
+                            <a asp-controller="Account" asp-action="Logout" class="btn btn-lg btn-outline-danger">Logout <i class="fas fa-sign-out-alt"></i></a>
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Login" class="icon-btn"><i class="fas fa-sign-in-alt"></i> SignIn</a>
-                            <a asp-controller="Account" asp-action="Register" class="icon-btn"><i class="fas fa-user-plus"></i> SignUp</a>
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-primary me-2"><i class="fas fa-sign-in-alt"></i> Sign In</a>
+                            <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-success"><i class="fas fa-user-plus"></i> Sign Up</a>
                         }
                     </div>
-
                 </div>
             </nav>
         </div>
@@ -183,6 +282,7 @@
 
     <!-- Template Javascript -->
     <script src="/js/home.js"></script>
+
 </body>
 
 </html>
