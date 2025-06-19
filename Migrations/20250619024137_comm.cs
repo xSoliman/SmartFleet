@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SmartFleet.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class comm : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

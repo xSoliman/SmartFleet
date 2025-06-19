@@ -96,6 +96,27 @@
                     </form>
                 }
             }
+            else if (ViewBag.IsFleetManager)
+            {
+                <!-- FleetManager can only create trips for approved orders -->
+                @if (Model.Status == SmartFleet.Models.OrderState.Approved)
+                {
+                    @if (Model.Trip != null)
+                    {
+                        <!-- Trip already exists -->
+                        <span class="details-primary-button btn-secondary disabled">
+                            <i class="fas fa-check-circle"></i> Trip Created
+                        </span>
+                    }
+                    else
+                    {
+                        <!-- No trip exists, can create one -->
+                        <a asp-action="CreateTrip" asp-route-id="@Model.Id" class="details-primary-button btn-success">
+                            <i class="fas fa-route"></i> Create Trip
+                        </a>
+                    }
+                }
+            }
             else
             {
                 <!-- Other roles can edit orders -->

@@ -206,6 +206,30 @@ namespace SmartFleet
                         string.Join(", ", commissionerResult.Errors.Select(e => e.Description)));
                 }
 
+                // Seed Maintenance Manager
+                var maintenanceManagerUser = new ApplicationUser
+                {
+                    Id = "4",
+                    UserName = "maintenance@smartfleet.com",
+                    Email = "maintenance@smartfleet.com",
+                    ProfileImageUrl = "https://example.com/maintenance.jpg",
+                    AccountStatus = true,
+                    CreatedAt = DateTime.Now,
+                    EmailConfirmed = true
+                };
+
+                var maintenanceManagerResult = await _ApplicationUserManager.CreateAsync(maintenanceManagerUser, "Password123!");
+                if (maintenanceManagerResult.Succeeded)
+                {
+                    await _ApplicationUserManager.AddToRoleAsync(maintenanceManagerUser, "MaintanceManager");
+                    _logger.LogInformation("Maintenance Manager user seeded successfully.");
+                }
+                else
+                {
+                    _logger.LogError("Failed to seed maintenance manager user: {Errors}",
+                        string.Join(", ", maintenanceManagerResult.Errors.Select(e => e.Description)));
+                }
+
                 // Only seed other data if it doesn't already exist
                 if (!await _db.Vehicles.AnyAsync())
                 {

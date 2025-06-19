@@ -43,8 +43,15 @@ namespace SmartFleet.Controllers
 
             var orders = _context.Orders.Include(o => o.User).AsQueryable();
 
-            // Role-based filtering - NormalUser, Driver, MaintenanceManager see only their own orders
-            if (!isAdminUser)
+            // Role-based filtering
+            if (isFleetManager)
+            {
+                // FleetManager can only see pending and approved orders
+                orders = orders.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
+                // Include Trips for FleetManager to check if trip exists
+                orders = orders.Include(o => o.Trip);
+            }
+            else if (!isAdminUser)
             {
                 // For NormalUser, Driver, MaintenanceManager - show only their own orders
                 orders = orders.Where(o => o.UserId == currentUser.Id);
@@ -88,7 +95,16 @@ namespace SmartFleet.Controllers
             }
 
             // Sort by submission date in descending order (newest first)
-            orders = orders.OrderByDescending(o => o.CreatedAt);
+            // For FleetManager, also sort by status (Pending first, then Approved)
+            if (isFleetManager)
+            {
+                orders = orders.OrderByDescending(o => o.Status == OrderState.Approved && !_context.Trips.Any(t => t.OrderId == o.Id))
+                              .ThenBy(o => o.CreatedAt); // Oldest first for FleetManager
+            }
+            else
+            {
+                orders = orders.OrderByDescending(o => o.CreatedAt);
+            }
 
             var viewModel = new OrderViewModel
             {
@@ -136,6 +152,15 @@ namespace SmartFleet.Controllers
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Include Trip for FleetManager to check if trip exists
+            if (isFleetManager)
+            {
+                order = await _context.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Trip)
+                    .FirstOrDefaultAsync(m => m.Id == id);
             }
 
             // Check if user has permission to view this order
@@ -499,7 +524,8 @@ namespace SmartFleet.Controllers
 
             if (!isCommissioner)
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "Only commissioners can reject orders.";
+                return RedirectToAction(nameof(Index));
             }
 
             var order = await _context.Orders.FindAsync(id);
@@ -508,35 +534,70 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Only allow rejection of pending orders
+            // Only allow rejecting pending orders
             if (order.Status != OrderState.Pending)
             {
                 TempData["ErrorMessage"] = "Only pending orders can be rejected.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Update order status to rejected
             order.Status = OrderState.Rejected;
-            
-            try
+            _context.Update(order);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Order rejected successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Orders/CreateTrip/5
+        public async Task<IActionResult> CreateTrip(int? id)
+        {
+            if (id == null)
             {
-                _context.Update(order);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Order has been rejected successfully.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(order.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return RedirectToAction(nameof(Index));
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isFleetManager = userRoles.Contains("FleetManager");
+
+            if (!isFleetManager)
+            {
+                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow creating trips for approved orders
+            if (order.Status != OrderState.Approved)
+            {
+                TempData["ErrorMessage"] = "Trips can only be created for approved orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if a trip already exists for this order
+            var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == order.Id);
+            if (existingTrip)
+            {
+                TempData["ErrorMessage"] = "A trip already exists for this order.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Redirect to Trips Create action with the order data
+            return RedirectToAction("Create", "Trips", new { id = order.Id, userId = order.UserId });
         }
 
         private bool OrderExists(int id)

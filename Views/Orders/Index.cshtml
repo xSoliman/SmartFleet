@@ -159,22 +159,23 @@
                         }
                         else if (Model.IsFleetManager)
                         {
-                            <!-- FleetManager can edit, delete, and cancel any order -->
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
-                                <i class="fas fa-trash-alt deleted_icon"></i>
-                            </a>
-                            <!-- FleetManager can cancel any pending order -->
-                            @if (item.Status == SmartFleet.Models.OrderState.Pending)
+                            <!-- FleetManager can only create trips for approved orders -->
+                            @if (item.Status == SmartFleet.Models.OrderState.Approved)
                             {
-                                <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-warning" 
-                                            onclick="return confirm('Are you sure you want to cancel this order?')">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                </form>
+                                @if (item.Trip != null)
+                                {
+                                    <!-- Trip already exists -->
+                                    <span class="btn btn-secondary disabled">
+                                        <i class="fas fa-check-circle"></i> Trip Created
+                                    </span>
+                                }
+                                else
+                                {
+                                    <!-- No trip exists, can create one -->
+                                    <a asp-action="CreateTrip" asp-route-id="@item.Id" class="btn btn-success">
+                                        <i class="fas fa-route"></i> Create Trip
+                                    </a>
+                                }
                             }
                         }
                         else if (Model.IsSysSupport)

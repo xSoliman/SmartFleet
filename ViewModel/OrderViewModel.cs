@@ -18,5 +18,9 @@ namespace SmartFleet.ViewModel
         public DateTime? EndDate { get; set; }
         
         public bool IsAdminUser { get; set; }
+        public bool IsCommissioner { get; set; }
+        public bool IsFleetManager { get; set; }
+        public bool IsSysSupport { get; set; }
+        public string? CurrentUserId { get; set; }
     }
 } 
