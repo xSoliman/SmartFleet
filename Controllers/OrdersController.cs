@@ -403,47 +403,6 @@ namespace SmartFleet.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Orders/Cancel/5 (for confirmation)
-        public async Task<IActionResult> Cancel(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
-
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            // Check if user has permission to cancel this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
-            {
-                return Forbid();
-            }
-
-            // Only allow cancellation of pending orders
-            if (order.Status != OrderState.Pending)
-            {
-                TempData["ErrorMessage"] = "Only pending orders can be cancelled.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(order);
-        }
-
         private bool OrderExists(int id)
         {
             return _context.Orders.Any(e => e.Id == id);
