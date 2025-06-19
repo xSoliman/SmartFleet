@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.ViewModel;
 
 namespace SmartFleet.Controllers
 {
@@ -22,10 +23,34 @@ namespace SmartFleet.Controllers
         }
 
         // GET: Trips
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchDriverName, VehicleType? vehicleType, string? destination, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
-            var smartFleetContext = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.admin);
-            return View(await smartFleetContext.ToListAsync());
+            var tripsQuery = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.admin).AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchDriverName))
+                tripsQuery = tripsQuery.Where(t => t.Driver != null && t.Driver.UserName.Contains(searchDriverName));
+            if (vehicleType.HasValue)
+                tripsQuery = tripsQuery.Where(t => t.Vehicle != null && t.Vehicle.Type == vehicleType);
+            if (!string.IsNullOrEmpty(destination))
+                tripsQuery = tripsQuery.Where(t => t.EndLocation.Contains(destination));
+            if (stateFilter.HasValue)
+                tripsQuery = tripsQuery.Where(t => t.Status == stateFilter);
+            if (startDate.HasValue)
+                tripsQuery = tripsQuery.Where(t => t.StartTime >= startDate);
+            if (endDate.HasValue)
+                tripsQuery = tripsQuery.Where(t => t.EndTime <= endDate);
+
+            var viewModel = new TripViewModel
+            {
+                Trips = await tripsQuery.ToListAsync(),
+                SearchDriverName = searchDriverName,
+                VehicleType = vehicleType,
+                Destination = destination,
+                StateFilter = stateFilter,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+            return View(viewModel);
         }
 
         // GET: Trips/Details/5
