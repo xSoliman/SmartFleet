@@ -3,6 +3,7 @@ using SmartFleet.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using SmartFleet.Services;
 
 namespace SmartFleet
 {
@@ -35,6 +36,9 @@ namespace SmartFleet
                                      });
             // Database initializer 
             builder.Services.AddScoped<Dbinitializer>();
+            
+            // User Role Service
+            builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
             var app = builder.Build();
 

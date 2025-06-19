@@ -120,9 +120,11 @@ namespace SmartFleet.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
                 var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
-                await userManager.AddClaimsAsync(applicationUser, claims); 
+                await userManager.AddClaimsAsync(applicationUser, claims);
 
-                return RedirectToAction("Index", "Home");
+                // Role-based redirect after successful login
+                var primaryRole = roles.FirstOrDefault();
+                return RedirectToRoleBasedPage(primaryRole);
             }
             catch (Exception ex)
             {
@@ -131,7 +133,17 @@ namespace SmartFleet.Controllers
             }
         }
 
-
+        private IActionResult RedirectToRoleBasedPage(string? role)
+        {
+            return role?.ToLower() switch
+            {
+                "fleetmanager" or "syssupport" => RedirectToAction("Dashboard", "Home"),
+                "maintancemanager" => RedirectToAction("Index", "Maintenances"),
+                "commissioner" => RedirectToAction("Index", "Orders"),
+                "driver" => RedirectToAction("Index", "Trips"),
+                "normaluser" or _ => RedirectToAction("Index", "Home")
+            };
+        }
 
         public async Task<IActionResult> LogOut()
         {

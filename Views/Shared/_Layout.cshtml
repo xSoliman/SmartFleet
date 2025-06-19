@@ -44,100 +44,42 @@
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                         <span class="fa fa-bars"></span>
                     </button>
-                    @{
-                        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-                        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-                    }
                     <div class="collapse navbar-collapse" id="navbarCollapse">
-                        <div class="navbar-nav mx-auto py-0">
-                            <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(currentController == "Home" ? "active" : "")">Home</a>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="Vehicles" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Vehicles" ? "active" : "")">Vehicles</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="Vehicles" asp-action="Index" class="dropdown-item">All Vehicles</a>
-                                    <a asp-controller="Vehicles" asp-action="Create" class="dropdown-item">Add New Vehicle</a>
-                                </div>
-                            </div>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="Drivers" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Drivers" ? "active" : "")">Drivers</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="Drivers" asp-action="Index" class="dropdown-item">All Drivers</a>
-                                </div>
-                            </div>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="Maintenances" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Maintenances" ? "active" : "")">Maintenance</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="Maintenances" asp-action="Index" class="dropdown-item">All Maintenances</a>
-                                </div>
-                            </div>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="SimCards" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "SimCards" ? "active" : "")">SimCards</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="SimCards" asp-action="Index" class="dropdown-item">Sim Cards</a>
-                                    <a asp-controller="SimCards" asp-action="Create" class="dropdown-item">Add new Sim Card</a>
-                                </div>
-                            </div>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="Tracking" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Tracking" ? "active" : "")">Tracking</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="Tracking" asp-action="Index" class="dropdown-item">Tracking</a>
-                                </div>
-                            </div>
-
-                            <div class="nav-item dropdown">
-                                <a asp-controller="Orders" asp-action="Index" class="nav-link dropdown-toggle @(currentController == "Orders" ? "active" : "")">Orders</a>
-                                <div class="dropdown-menu m-0">
-                                    <a asp-controller="Orders" asp-action="Index" class="dropdown-item">All Order</a>
-                                    <a asp-controller="Orders" asp-action="Create" class="dropdown-item">Create New Order</a>
-                                </div>
-                            </div>
-                        </div>
+                        @await Component.InvokeAsync("Navigation")
 
                         <div class="d-flex align-items-center ms-auto">
-                            <div class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative notification-bell" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-bell fa-lg"></i>
-                                    <span id="notificationCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notification-badge">
-                                        @ViewBag.UnreadNotifications
-                                    </span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                                    @if (ViewBag.Notifications != null && ViewBag.Notifications.Count > 0)
-                                    {
-                                        @foreach (var notification in ViewBag.Notifications)
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <div class="nav-item dropdown me-3">
+                                    <a class="nav-link position-relative notification-bell" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-bell fa-lg"></i>
+                                        <span id="notificationCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill notification-badge">
+                                            @ViewBag.UnreadNotifications
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                                        @if (ViewBag.Notifications != null && ViewBag.Notifications.Count > 0)
                                         {
-                                            <li>
-                                                <a class="dropdown-item d-flex justify-content-between" href="@Url.Action("MarkAsRead", "Notifications", new { id = notification.Id })">
-                                                    <span>@notification.Title - @notification.Message</span>
-                                                    <small class="text-muted">@notification.CreatedAt.ToString("hh:mm tt")</small>
-                                                </a>
-                                            </li>
-                                            <hr class="dropdown-divider">
+                                            @foreach (var notification in ViewBag.Notifications)
+                                            {
+                                                <li>
+                                                    <a class="dropdown-item d-flex justify-content-between" href="@Url.Action("MarkAsRead", "Notifications", new { id = notification.Id })">
+                                                        <span>@notification.Title - @notification.Message</span>
+                                                        <small class="text-muted">@notification.CreatedAt.ToString("hh:mm tt")</small>
+                                                    </a>
+                                                </li>
+                                                <hr class="dropdown-divider">
+                                            }
                                         }
-                                    }
-                                    else
-                                    {
-                                        <li><a class="dropdown-item text-center" href="#">No new notifications</a></li>
-                                    }
-                                </ul>
-                            </div>
+                                        else
+                                        {
+                                            <li><a class="dropdown-item text-center" href="#">No new notifications</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
 
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <a asp-controller="Home" asp-action="Dashboard" class="btn btn-lg btn-warning me-2" title="Dashboard">Dashboard</a>
-                                <a asp-controller="Account" asp-action="MyAccount" class="btn btn-lg btn-primary my-account-btn me-2">My Account <i class="fas fa-user"></i></a>
-                                <a asp-controller="Account" asp-action="Logout" class="btn btn-lg btn-outline-danger">Logout <i class="fas fa-sign-out-alt"></i></a>
-                            }
-                            else
-                            {
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-lg btn-primary me-2"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-                                <a asp-controller="Account" asp-action="Register" class="btn btn-lg btn-success"><i class="fas fa-user-plus"></i> Sign Up</a>
-                            }
+                            @await Component.InvokeAsync("UserActions")
                         </div>
                     </div>
                 </nav>
@@ -145,6 +87,19 @@
         </div>
     </div>
     <!-- Navbar & Hero End -->
+    
+    <!-- Error Messages Display -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    
     @RenderBody()
 
     <!-- Copyright Start -->

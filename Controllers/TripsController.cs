@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using SmartFleet.Models;
 
 namespace SmartFleet.Controllers
 {
+    [Authorize]
     public class TripsController : Controller
     {
         private readonly SmartFleetContext _context;
@@ -80,8 +82,6 @@ namespace SmartFleet.Controllers
             return View();
         }
 
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,StartTime,EndTime,StartLocation,EndLocation,Distance,Status,CreatedBy")] Trip trip)
@@ -93,20 +93,16 @@ namespace SmartFleet.Controllers
                 ModelState.AddModelError("OrderId", "يوجد رحلة مسجلة لهذا الطلب بالفعل");
             }
 
-
             trip.CreatedAt = DateTime.Now;
             _context.Add(trip);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-
 
             // إعادة تحميل بيانات العرض في حالة الخطأ
             ViewBag.DriverId = new SelectList(_context.Drivers, "Id", "UserName", trip.DriverId);
             ViewBag.VehicleId = new SelectList(_context.Vehicles, "Id", "Model", trip.VehicleId);
             return View(trip);
         }
-
-
 
         // GET: Trips/Edit/5
         public async Task<IActionResult> Edit(int? id)
