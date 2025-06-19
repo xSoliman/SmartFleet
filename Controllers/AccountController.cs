@@ -57,7 +57,7 @@ namespace SmartFleet.Controllers
 
             var pendingOrders = await _context.Orders
                 .Include(o => o.User)
-                .Where(o => o.Status == OrderState.approved && o.Trip == null)
+                .Where(o => o.Status == OrderState.Approved && o.Trip == null)
                 .ToListAsync();
 
             var viewModel = new FleetManagerViewModel
@@ -105,7 +105,7 @@ namespace SmartFleet.Controllers
 
             var pendingOrders = await _context.Orders
                 .Include(o => o.User)
-                .Where(o => o.Status == OrderState.pending)
+                .Where(o => o.Status == OrderState.Pending)
                 .ToListAsync();
 
             var viewModel = new FleetManagerViewModel
@@ -127,7 +127,7 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            order.Status = OrderState.approved;
+            order.Status = OrderState.Approved;
             _context.Update(order);
             await _context.SaveChangesAsync();
 
@@ -143,7 +143,7 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            order.Status = OrderState.rejected;
+            order.Status = OrderState.Rejected;
             _context.Update(order);
             await _context.SaveChangesAsync();
 

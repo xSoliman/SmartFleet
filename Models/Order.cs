@@ -4,12 +4,10 @@ namespace SmartFleet.Models
 {
     public enum OrderState
     {
-        pending,
-        in_progress,
-        approved,
-        cancelled,
-        rejected,
-        NULLL
+        Pending,
+        Approved,
+        Cancelled,
+        Rejected,
     }
 
     public class Order
