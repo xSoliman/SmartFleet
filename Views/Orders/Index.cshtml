@@ -138,17 +138,56 @@
                             <i class="fas fa-info-circle"></i> Details
                         </a>
                         
-                        @if (Model.IsAdminUser)
+                        @if (Model.IsCommissioner)
                         {
-                            <!-- Admin users can edit and delete any order -->
+                            <!-- Commissioner can only approve/reject pending orders -->
+                            @if (item.Status == SmartFleet.Models.OrderState.Pending)
+                            {
+                                <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-success" 
+                                            onclick="return confirm('Are you sure you want to approve this order?')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                </form>
+                                <form asp-action="Reject" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-danger" 
+                                            onclick="return confirm('Are you sure you want to reject this order?')">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </form>
+                            }
+                        }
+                        else if (Model.IsFleetManager)
+                        {
+                            <!-- FleetManager can edit, delete, and cancel any order -->
                             <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
                                 <i class="fas fa-trash-alt deleted_icon"></i>
                             </a>
-                            <!-- Admin users can also cancel pending orders -->
+                            <!-- FleetManager can cancel any pending order -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
+                            {
+                                <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-warning" 
+                                            onclick="return confirm('Are you sure you want to cancel this order?')">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </form>
+                            }
+                        }
+                        else if (Model.IsSysSupport)
+                        {
+                            <!-- SysSupport can edit, delete, and cancel only their own orders -->
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                                <i class="fas fa-trash-alt deleted_icon"></i>
+                            </a>
+                            <!-- SysSupport can only cancel their own pending orders -->
+                            @if (item.Status == SmartFleet.Models.OrderState.Pending && item.UserId == Model.CurrentUserId)
                             {
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
                                     <button type="submit" class="btn btn-warning" 

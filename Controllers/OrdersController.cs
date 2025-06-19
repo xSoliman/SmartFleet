@@ -37,6 +37,9 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isCommissioner = userRoles.Contains("commissioner");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
             var orders = _context.Orders.Include(o => o.User).AsQueryable();
 
@@ -97,7 +100,11 @@ namespace SmartFleet.Controllers
                 StateFilter = stateFilter,
                 StartDate = startDate,
                 EndDate = endDate,
-                IsAdminUser = isAdminUser
+                IsAdminUser = isAdminUser,
+                IsCommissioner = isCommissioner,
+                IsFleetManager = isFleetManager,
+                IsSysSupport = isSysSupport,
+                CurrentUserId = currentUser.Id
             };
 
             return View(viewModel);
@@ -119,6 +126,9 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isCommissioner = userRoles.Contains("commissioner");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
             var order = await _context.Orders
                 .Include(o => o.User)
@@ -133,6 +143,11 @@ namespace SmartFleet.Controllers
             {
                 return Forbid();
             }
+
+            ViewBag.IsCommissioner = isCommissioner;
+            ViewBag.IsFleetManager = isFleetManager;
+            ViewBag.IsSysSupport = isSysSupport;
+            ViewBag.IsAdminUser = isAdminUser;
 
             return View(order);
         }
@@ -359,6 +374,8 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isSysSupport = userRoles.Contains("SysSupport");
+            var isFleetManager = userRoles.Contains("FleetManager");
 
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -372,7 +389,14 @@ namespace SmartFleet.Controllers
                 return Forbid();
             }
 
-            // Only allow cancellation of pending orders (for NormalUser, Driver, MaintenanceManager)
+            // SysSupport can only cancel their own orders, not other users' orders
+            if (isSysSupport && order.UserId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only cancel your own orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Only allow cancellation of pending orders
             if (order.Status != OrderState.Pending)
             {
                 TempData["ErrorMessage"] = "Only pending orders can be cancelled.";
@@ -387,6 +411,118 @@ namespace SmartFleet.Controllers
                 _context.Update(order);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Order has been cancelled successfully.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(order.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Orders/Approve/5
+        [HttpPost, ActionName("Approve")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isCommissioner = userRoles.Contains("commissioner");
+
+            if (!isCommissioner)
+            {
+                return Forbid();
+            }
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow approval of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be approved.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Update order status to approved
+            order.Status = OrderState.Approved;
+            
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Order has been approved successfully.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(order.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Orders/Reject/5
+        [HttpPost, ActionName("Reject")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isCommissioner = userRoles.Contains("commissioner");
+
+            if (!isCommissioner)
+            {
+                return Forbid();
+            }
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow rejection of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be rejected.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Update order status to rejected
+            order.Status = OrderState.Rejected;
+            
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Order has been rejected successfully.";
             }
             catch (DbUpdateConcurrencyException)
             {
