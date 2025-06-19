@@ -76,6 +76,10 @@
         background: #004d40;
     }
 
+input.edit-primary-button[type="submit"] {
+    color: white !important;
+}
+
 .edit-navigation {
     position: absolute;
     top: 20px;
