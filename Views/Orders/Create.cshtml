@@ -42,12 +42,12 @@
             <div class="order-input-row">
                 <div class="order-input-col">
                     <label asp-for="TripStartDate" class="order-input-label"></label>
-                    <input asp-for="TripStartDate" class="order-input-field" type="date" />
+                    <input asp-for="TripStartDate" class="order-input-field" type="datetime-local" value="@(Model != null ? Model.TripStartDate.ToString("yyyy-MM-ddTHH:mm") : "")" />
                     <span asp-validation-for="TripStartDate" class="order-validation-message"></span>
                 </div>
                 <div class="order-input-col">
                     <label asp-for="TripEndDate" class="order-input-label"></label>
-                    <input asp-for="TripEndDate" class="order-input-field" type="date" />
+                    <input asp-for="TripEndDate" class="order-input-field" type="datetime-local" value="@(Model != null ? Model.TripEndDate.ToString("yyyy-MM-ddTHH:mm") : "")" />
                     <span asp-validation-for="TripEndDate" class="order-validation-message"></span>
                 </div>
             </div>
