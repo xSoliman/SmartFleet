@@ -47,7 +47,7 @@
             <input type="text" name="searchStartLocation" value="@Model.SearchStartLocation" class="form-control form-control-sm" placeholder="Start Location" />
         </div>
         <div class="form-group mx-2">
-            <input type="text" name="searchEndLocation" value="@Model.SearchEndLocation" class="form-control form-control-sm" placeholder="End Location" />
+            <input type="text" name="searchDestination" value="@Model.SearchDestination" class="form-control form-control-sm" placeholder="Destination" />
         </div>
         
         <!-- Select filters (grouped together) -->
@@ -121,8 +121,8 @@
                     }
                     <td>@item.VehicleType</td>
                     <td>@item.PassengerCount</td>
-                    <td>@item.TripStartLocation</td>
-                    <td>@item.TripEndLocation</td>
+                    <td>@item.StartLocation</td>
+                    <td>@item.Destination</td>
                     <td>@item.TripStartDate.ToShortDateString()</td>
                     <td>@item.TripEndDate.ToShortDateString()</td>
                     <td>@item.Reason</td>

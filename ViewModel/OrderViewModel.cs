@@ -9,7 +9,7 @@ namespace SmartFleet.ViewModel
         // Original filters
         public string? SearchUserId { get; set; }
         public string? SearchStartLocation { get; set; }
-        public string? SearchEndLocation { get; set; }
+        public string? SearchDestination { get; set; }
         public VehicleType? TypeFilter { get; set; }
         public OrderState? StateFilter { get; set; }
         

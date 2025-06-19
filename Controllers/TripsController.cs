@@ -25,14 +25,14 @@ namespace SmartFleet.Controllers
         // GET: Trips
         public async Task<IActionResult> Index(string? searchDriverName, VehicleType? vehicleType, string? destination, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
-            var tripsQuery = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.admin).AsQueryable();
+            var tripsQuery = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.CreatedByUser).AsQueryable();
 
             if (!string.IsNullOrEmpty(searchDriverName))
                 tripsQuery = tripsQuery.Where(t => t.Driver != null && t.Driver.UserName.Contains(searchDriverName));
             if (vehicleType.HasValue)
                 tripsQuery = tripsQuery.Where(t => t.Vehicle != null && t.Vehicle.Type == vehicleType);
             if (!string.IsNullOrEmpty(destination))
-                tripsQuery = tripsQuery.Where(t => t.EndLocation.Contains(destination));
+                tripsQuery = tripsQuery.Where(t => t.Order.Destination.Contains(destination));
             if (stateFilter.HasValue)
                 tripsQuery = tripsQuery.Where(t => t.Status == stateFilter);
             if (startDate.HasValue)
@@ -65,7 +65,7 @@ namespace SmartFleet.Controllers
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
                 .Include(t => t.Vehicle)
-                .Include(t => t.admin)
+                .Include(t => t.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (trip == null)
             {
@@ -109,7 +109,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,StartTime,EndTime,StartLocation,EndLocation,Distance,Status,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,StartTime,EndTime,Distance,Status,CreatedBy")] Trip trip)
         {
             // التحقق من عدم وجود رحلة لهذا الطلب مسبقاً
             var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == trip.OrderId);
@@ -154,7 +154,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OrderId,DriverId,StartTime,EndTime,StartLocation,EndLocation,Distance,Status,CreatedAt,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OrderId,DriverId,StartTime,EndTime,Distance,Status,CreatedAt,CreatedBy")] Trip trip)
         {
             if (id != trip.Id)
             {
@@ -200,7 +200,7 @@ namespace SmartFleet.Controllers
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
                 .Include(t => t.Vehicle)
-                .Include(t => t.admin)
+                .Include(t => t.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (trip == null)
             {

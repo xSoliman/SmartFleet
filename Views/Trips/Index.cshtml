@@ -1,95 +1,131 @@
-﻿@model IEnumerable<SmartFleet.Models.Trip>
+﻿@model SmartFleet.ViewModel.TripViewModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Trips";
 }
 
-<h1>Index</h1>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/trip/list.css">
+</head>
 
-<p>
-    <a asp-action="Create">Create New</a>
+<!-- Success/Error Messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<p class="add-trip text-center mb-3">
+    <a asp-action="Create" class="btn btn-add-trip">
+        <i class="fas fa-plus driver-icon"></i> Create Trip
+    </a>
 </p>
-<table class="table">
+
+<div class="order-filter-bar">
+    <form asp-action="Index" method="get" class="w-100">
+        <div class="d-flex flex-wrap justify-content-center gap-2 w-100">
+            <div class="form-group mx-2">
+                <input type="text" name="destination" value="@Model.Destination" class="form-control form-control-sm" placeholder="Destination" />
+            </div>
+            <div class="form-group mx-2">
+                <input type="text" name="searchDriverName" value="@Model.SearchDriverName" class="form-control form-control-sm" placeholder="Driver Name" />
+            </div>
+            <div class="form-group mx-2">
+                <select name="vehicleType" class="form-control form-control-sm">
+                    <option value="">All Vehicle Types</option>
+                    @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
+                    {
+                        <option value="@type" selected="@(Model.VehicleType == type ? "selected" : null)">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group mx-2">
+                <select name="stateFilter" class="form-control form-control-sm">
+                    <option value="">All Statuses</option>
+                    @foreach (SmartFleet.Models.TripState state in Enum.GetValues(typeof(SmartFleet.Models.TripState)))
+                    {
+                        <option value="@state" selected="@(Model.StateFilter == state ? "selected" : null)">@state</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center gap-2 w-100 mt-2">
+            <div class="form-group mx-2">
+                <label for="startDate" class="form-label">From:</label>
+                <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
+            <div class="form-group mx-2">
+                <label for="endDate" class="form-label">To:</label>
+                <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
+        </div>
+        <div class="order-filter-actions">
+            <button type="submit" class="btn btn-sm custom-btn">
+                <i class="fas fa-filter"></i> Filter
+            </button>
+            <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-order table-bordered">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Vehicle)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Order)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Driver)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartLocation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndLocation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Distance)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.admin)
-            </th>
-            <th></th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Vehicle)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Driver)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().StartTime)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().EndTime)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Distance)</th>
+                <th>Destination</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Status)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().CreatedAt)</th>
+                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().CreatedByUser)</th>
+                <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@if (Model.Trips != null)
+{
+    foreach (var item in Model.Trips) {
         <tr>
+            <td>@Html.DisplayFor(modelItem => item.Vehicle.Type)</td>
+            <td>@Html.DisplayFor(modelItem => item.Driver.UserName)</td>
+            <td>@Html.DisplayFor(modelItem => item.StartTime)</td>
+            <td>@Html.DisplayFor(modelItem => item.EndTime)</td>
+            <td>@Html.DisplayFor(modelItem => item.Distance)</td>
+            <td>@Html.DisplayFor(modelItem => item.Order.Destination)</td>
             <td>
-                @Html.DisplayFor(modelItem => item.Vehicle.Id)
+                <span class="badge-status badge-@item.Status.ToString().ToLower()">
+                    @item.Status
+                </span>
             </td>
+            <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+            <td>@Html.DisplayFor(modelItem => item.CreatedByUser.UserName)</td>
             <td>
-                @Html.DisplayFor(modelItem => item.Order.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Driver.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartLocation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndLocation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Distance)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.admin.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                    <i class="fas fa-edit edit-icon"></i> Edit
+                </a>
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
+                    <i class="fas fa-info-circle"></i> Details
+                </a>
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                    <i class="fas fa-trash-alt deleted-icon"></i> Delete
+                </a>
             </td>
         </tr>
+    }
 }
     </tbody>
 </table>
+</div>

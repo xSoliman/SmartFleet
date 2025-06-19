@@ -303,8 +303,8 @@ namespace SmartFleet
                         UserId = "1",
                         VehicleType = VehicleType.Car,
                         PassengerCount = 3,
-                        TripStartLocation = "University",
-                        TripEndLocation = "Airport",
+                        StartLocation = "University",
+                        Destination = "Airport",
                         TripStartDate = DateTime.Now.AddHours(1),
                         TripEndDate = DateTime.Now.AddHours(3),
                         Reason = "Business Trip",
@@ -323,10 +323,9 @@ namespace SmartFleet
                         OrderId = order.Id,
                         DriverId = "2",
                         StartTime = DateTime.Now.AddHours(1),
-                        StartLocation = "University",
-                        EndLocation = "Airport",
+                        EndTime = DateTime.Now.AddHours(3),
                         Distance = 50,
-                        Status = TripState.scheduled,
+                        Status = TripState.Scheduled,
                         CreatedAt = DateTime.Now,
                         CreatedBy = "1"
                     };

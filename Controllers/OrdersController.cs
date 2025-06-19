@@ -26,7 +26,7 @@ namespace SmartFleet.Controllers
         }
 
         // GET: Orders
-        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchEndLocation, 
+        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchDestination, 
             VehicleType? typeFilter, OrderState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -65,12 +65,12 @@ namespace SmartFleet.Controllers
 
             if (!string.IsNullOrEmpty(searchStartLocation))
             {
-                orders = orders.Where(o => o.TripStartLocation.Contains(searchStartLocation));
+                orders = orders.Where(o => o.StartLocation.Contains(searchStartLocation));
             }
 
-            if (!string.IsNullOrEmpty(searchEndLocation))
+            if (!string.IsNullOrEmpty(searchDestination))
             {
-                orders = orders.Where(o => o.TripEndLocation.Contains(searchEndLocation));
+                orders = orders.Where(o => o.Destination.Contains(searchDestination));
             }
 
             if (isAdminUser && typeFilter.HasValue)
@@ -111,7 +111,7 @@ namespace SmartFleet.Controllers
                 Orders = await orders.ToListAsync(),
                 SearchUserId = searchUserId,
                 SearchStartLocation = searchStartLocation,
-                SearchEndLocation = searchEndLocation,
+                SearchDestination = searchDestination,
                 TypeFilter = typeFilter,
                 StateFilter = stateFilter,
                 StartDate = startDate,
@@ -202,7 +202,7 @@ namespace SmartFleet.Controllers
         // POST: Orders/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,TripStartLocation,TripEndLocation,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
+        public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,StartLocation,Destination,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)

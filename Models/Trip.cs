@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartFleet.Models
@@ -6,43 +7,45 @@ namespace SmartFleet.Models
     public enum TripState
     {
         [Display(Name = "Scheduled")]
-        scheduled,
-
+        Scheduled,
         [Display(Name = "In Progress")]
-        in_progress,
-
+        InProgress,
         [Display(Name = "Completed")]
-        completed,
-
+        Completed,
         [Display(Name = "Cancelled")]
-        cancelled
+        Cancelled
     }
+
     public class Trip
     {
         public int Id { get; set; }
-        public int? VehicleId { get; set; }
-        [ForeignKey("VehicleId")]
-        [Required]
-        [Column("CreatedBy")] // تحديد اسم العمود صراحة
-        public string CreatedBy { get; set; }
-        public Vehicle? Vehicle { get; set; }
-        public int? OrderId { get; set; }
 
-        [ForeignKey("OrderId")]
-        public Order? Order { get; set; }
-        public string? DriverId { get; set; }
-        [ForeignKey("DriverId")]
-        public Driver? Driver { get; set; }
+        [Required]
+        public int VehicleId { get; set; }
+        public Vehicle Vehicle { get; set; }
+
+        [Required]
+        public int OrderId { get; set; }
+        public Order Order { get; set; }
+
+        [Required]
+        public string DriverId { get; set; }
+        public Driver Driver { get; set; }
+
+        [Required]
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public string StartLocation { get; set; }
-        public string EndLocation { get; set; }
-        public decimal Distance { get; set; }
-        public TripState Status { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-       
-        [ForeignKey("CreatedBy")]
-        public ApplicationUser admin { get; set; } 
 
+        public decimal Distance { get; set; }
+
+        [Required]
+        public TripState Status { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Required]
+        public string CreatedBy { get; set; }
+        [ForeignKey("CreatedBy")]
+        public ApplicationUser CreatedByUser { get; set; }
     }
 }

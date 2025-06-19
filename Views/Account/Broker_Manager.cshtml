@@ -31,8 +31,8 @@
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().User)</th>
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().VehicleType)</th>
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().PassengerCount)</th>
-            <th>@Html.DisplayNameFor(model => model.PendingOrders.First().TripStartLocation)</th>
-            <th>@Html.DisplayNameFor(model => model.PendingOrders.First().TripEndLocation)</th>
+            <th>@Html.DisplayNameFor(model => model.PendingOrders.First().StartLocation)</th>
+            <th>@Html.DisplayNameFor(model => model.PendingOrders.First().Destination)</th>
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().TripStartDate)</th>
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().TripEndDate)</th>
             <th>@Html.DisplayNameFor(model => model.PendingOrders.First().Reason)</th>
@@ -50,8 +50,8 @@
                     <td>@Html.DisplayFor(modelItem => item.User.Id)</td>
                     <td>@Html.DisplayFor(modelItem => item.VehicleType)</td>
                     <td>@Html.DisplayFor(modelItem => item.PassengerCount)</td>
-                    <td>@Html.DisplayFor(modelItem => item.TripStartLocation)</td>
-                    <td>@Html.DisplayFor(modelItem => item.TripEndLocation)</td>
+                    <td>@Html.DisplayFor(modelItem => item.StartLocation)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Destination)</td>
                     <td>@Html.DisplayFor(modelItem => item.TripStartDate)</td>
                     <td>@Html.DisplayFor(modelItem => item.TripEndDate)</td>
                     <td>@Html.DisplayFor(modelItem => item.Reason)</td>
