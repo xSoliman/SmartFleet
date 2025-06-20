@@ -28,37 +28,94 @@ namespace SmartFleet.Controllers
             _userManager = userManager;
         }
 
-        // GET: Trips
-        public async Task<IActionResult> Index(string? searchDriverName, VehicleType? vehicleType, string? destination, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> Index(string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
-            // Update trip states automatically before displaying
-            await _tripStateService.UpdateTripStatesAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
 
-            var tripsQuery = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.CreatedByUser).AsQueryable();
+            var isDriver = userRoles.Contains("Driver");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSystemSupport = userRoles.Contains("SystemSupport");
 
-            if (!string.IsNullOrEmpty(searchDriverName))
-                tripsQuery = tripsQuery.Where(t => t.Driver != null && t.Driver.UserName.Contains(searchDriverName));
-            if (vehicleType.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.Vehicle != null && t.Vehicle.Type == vehicleType);
+            IQueryable<Trip> tripsQuery = _context.Trips
+                .Include(t => t.Vehicle)
+                .Include(t => t.Driver)
+                .Include(t => t.Order)
+                .Include(t => t.CreatedByUser);
+
+            List<Trip> assignedTrips = new List<Trip>();
+
+            if (isFleetManager || isSystemSupport)
+            {
+                // Fleet Managers and System Support see all trips
+            }
+            else if (isDriver)
+            {
+                // Drivers see trips assigned to them in a separate list
+                assignedTrips = await tripsQuery.Where(t => t.DriverId == currentUser.Id).ToListAsync();
+                
+                // And also see trips from orders they created (if any)
+                tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
+            }
+            else
+            {
+                // Other users see trips from orders they created
+                tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
+            }
+            
+            // Apply filters
             if (!string.IsNullOrEmpty(destination))
+            {
                 tripsQuery = tripsQuery.Where(t => t.Order.Destination.Contains(destination));
+            }
+            if (!string.IsNullOrEmpty(searchDriverName))
+            {
+                tripsQuery = tripsQuery.Where(t => t.Driver.UserName.Contains(searchDriverName));
+            }
+            if (vehicleType.HasValue)
+            {
+                tripsQuery = tripsQuery.Where(t => t.Vehicle.Type == vehicleType.Value);
+            }
             if (stateFilter.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.Status == stateFilter);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Status == stateFilter.Value);
+            }
             if (startDate.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.Order.TripStartDate >= startDate);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Order.TripStartDate >= startDate.Value);
+            }
             if (endDate.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate <= endDate);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate <= endDate.Value);
+            }
+
+            var filteredTrips = await tripsQuery.ToListAsync();
+
+            // Custom sorting
+            var sortedTrips = filteredTrips.OrderBy(t => t.Status switch {
+                TripState.InProgress => 0,
+                TripState.Scheduled => 1,
+                TripState.Completed => 2,
+                TripState.Cancelled => 3,
+                _ => 4
+            }).ThenBy(t => t.Order.TripStartDate).ToList();
 
             var viewModel = new TripViewModel
             {
-                Trips = await tripsQuery.ToListAsync(),
+                Trips = sortedTrips,
+                AssignedTrips = assignedTrips,
+                Destination = destination,
                 SearchDriverName = searchDriverName,
                 VehicleType = vehicleType,
-                Destination = destination,
                 StateFilter = stateFilter,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                IsDriver = isDriver,
+                IsFleetManager = isFleetManager,
+                IsSystemSupport = isSystemSupport,
+                CurrentUserId = currentUser.Id
             };
+
             return View(viewModel);
         }
 
