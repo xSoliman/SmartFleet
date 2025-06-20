@@ -362,10 +362,18 @@ namespace SmartFleet.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Destination")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("PassengerCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StartLocation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -376,16 +384,8 @@ namespace SmartFleet.Migrations
                     b.Property<DateTime>("TripEndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TripEndLocation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("TripStartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("TripStartLocation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -451,37 +451,23 @@ namespace SmartFleet.Migrations
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("CreatedBy");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("Distance")
                         .HasColumnType("decimal(9, 6)");
 
                     b.Property<string>("DriverId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EndLocation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("EndTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("OrderId")
+                    b.Property<int>("OrderId")
                         .HasColumnType("int");
-
-                    b.Property<string>("StartLocation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("VehicleId")
+                    b.Property<int>("VehicleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -491,8 +477,7 @@ namespace SmartFleet.Migrations
                     b.HasIndex("DriverId");
 
                     b.HasIndex("OrderId")
-                        .IsUnique()
-                        .HasFilter("[OrderId] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasIndex("VehicleId");
 
@@ -696,7 +681,7 @@ namespace SmartFleet.Migrations
 
             modelBuilder.Entity("SmartFleet.Models.Trip", b =>
                 {
-                    b.HasOne("SmartFleet.Models.ApplicationUser", "admin")
+                    b.HasOne("SmartFleet.Models.ApplicationUser", "CreatedByUser")
                         .WithMany("Trips")
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -704,23 +689,29 @@ namespace SmartFleet.Migrations
 
                     b.HasOne("SmartFleet.Models.Driver", "Driver")
                         .WithMany()
-                        .HasForeignKey("DriverId");
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SmartFleet.Models.Order", "Order")
                         .WithOne("Trip")
-                        .HasForeignKey("SmartFleet.Models.Trip", "OrderId");
+                        .HasForeignKey("SmartFleet.Models.Trip", "OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SmartFleet.Models.Vehicle", "Vehicle")
                         .WithMany("Trips")
-                        .HasForeignKey("VehicleId");
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
 
                     b.Navigation("Driver");
 
                     b.Navigation("Order");
 
                     b.Navigation("Vehicle");
-
-                    b.Navigation("admin");
                 });
 
             modelBuilder.Entity("SmartFleet.Models.VehicleLocation", b =>

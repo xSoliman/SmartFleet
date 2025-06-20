@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SmartFleet.Models;
+using SmartFleet.Services;
 using System;
 using System.Threading.Tasks;
 using SmartFleet.Data;
@@ -11,10 +13,12 @@ namespace SmartFleet.Controllers
     public class LocationController : ControllerBase
     {
         private readonly SmartFleetContext _context;
+        private readonly IDistanceCalculationService _distanceService;
 
-        public LocationController(SmartFleetContext context)
+        public LocationController(SmartFleetContext context, IDistanceCalculationService distanceService)
         {
             _context = context;
+            _distanceService = distanceService;
         }
 
         // Simple model to receive GPS data
@@ -45,11 +49,42 @@ namespace SmartFleet.Controllers
                 _context.VehicleLocations.Add(location);
                 await _context.SaveChangesAsync();
 
+                // Check if this vehicle is currently on a trip and update distance
+                await UpdateTripDistance(gpsData.VehicleId);
+
                 return Ok(new { success = true, message = "Location updated successfully" });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        private async Task UpdateTripDistance(int vehicleId)
+        {
+            try
+            {
+                // Find active trip for this vehicle
+                var activeTrip = await _context.Trips
+                    .Include(t => t.Order)
+                    .FirstOrDefaultAsync(t => t.VehicleId == vehicleId && 
+                                            t.Status == TripState.InProgress);
+
+                if (activeTrip != null)
+                {
+                    // Calculate new distance
+                    var newDistance = _distanceService.CalculateTripDistance(activeTrip.Id, _context);
+                    
+                    // Update trip distance
+                    activeTrip.Distance = newDistance;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the location update
+                // In a production environment, you'd want to use proper logging
+                Console.WriteLine($"Error updating trip distance: {ex.Message}");
             }
         }
     }

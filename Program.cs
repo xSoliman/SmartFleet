@@ -40,6 +40,15 @@ namespace SmartFleet
             // User Role Service
             builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 
+            // Distance Calculation Service
+            builder.Services.AddScoped<IDistanceCalculationService, DistanceCalculationService>();
+
+            // Trip State Management Service
+            builder.Services.AddScoped<ITripStateManagementService, TripStateManagementService>();
+
+            // Background service for automatic trip state updates
+            builder.Services.AddHostedService<TripStateBackgroundService>();
+
             var app = builder.Build();
 
             // initialize the database

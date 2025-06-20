@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.ViewModel;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
@@ -16,15 +17,20 @@ namespace SmartFleet.Controllers
     public class TripsController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly ITripStateManagementService _tripStateService;
 
-        public TripsController(SmartFleetContext context)
+        public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService)
         {
             _context = context;
+            _tripStateService = tripStateService;
         }
 
         // GET: Trips
         public async Task<IActionResult> Index(string? searchDriverName, VehicleType? vehicleType, string? destination, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
+            // Update trip states automatically before displaying
+            await _tripStateService.UpdateTripStatesAsync();
+
             var tripsQuery = _context.Trips.Include(t => t.Driver).Include(t => t.Order).Include(t => t.Vehicle).Include(t => t.CreatedByUser).AsQueryable();
 
             if (!string.IsNullOrEmpty(searchDriverName))
@@ -36,9 +42,9 @@ namespace SmartFleet.Controllers
             if (stateFilter.HasValue)
                 tripsQuery = tripsQuery.Where(t => t.Status == stateFilter);
             if (startDate.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.StartTime >= startDate);
+                tripsQuery = tripsQuery.Where(t => t.Order.TripStartDate >= startDate);
             if (endDate.HasValue)
-                tripsQuery = tripsQuery.Where(t => t.EndTime <= endDate);
+                tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate <= endDate);
 
             var viewModel = new TripViewModel
             {
@@ -60,6 +66,9 @@ namespace SmartFleet.Controllers
             {
                 return NotFound();
             }
+
+            // Update trip state before displaying details
+            await _tripStateService.UpdateSingleTripStateAsync(id.Value);
 
             var trip = await _context.Trips
                 .Include(t => t.Driver)
@@ -88,6 +97,10 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            // Pass StartLocation and Destination to the view
+            ViewBag.OrderStartLocation = order.StartLocation;
+            ViewBag.OrderEndLocation = order.Destination;
+
             // فلترة المركبات حسب النوع ومتاحة فقط
             var filteredVehicles = await _context.Vehicles
                 .Where(v => v.Type == order.VehicleType && v.Status == VehicleState.available)
@@ -109,7 +122,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,StartTime,EndTime,Distance,Status,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,Status,CreatedBy")] Trip trip)
         {
             // التحقق من عدم وجود رحلة لهذا الطلب مسبقاً
             var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == trip.OrderId);
@@ -119,6 +132,7 @@ namespace SmartFleet.Controllers
             }
 
             trip.CreatedAt = DateTime.Now;
+            trip.Distance = 0; // Initialize distance to 0, will be calculated automatically
             _context.Add(trip);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -154,7 +168,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OrderId,DriverId,StartTime,EndTime,Distance,Status,CreatedAt,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OrderId,DriverId,Status,CreatedAt,CreatedBy")] Trip trip)
         {
             if (id != trip.Id)
             {
@@ -228,6 +242,109 @@ namespace SmartFleet.Controllers
         private bool TripExists(int id)
         {
             return _context.Trips.Any(e => e.Id == id);
+        }
+
+        // POST: Trips/RecalculateDistance/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecalculateDistance(int id)
+        {
+            var trip = await _context.Trips
+                .Include(t => t.Vehicle)
+                .Include(t => t.Order)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (trip == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                // Get all GPS locations for this vehicle during the trip period
+                var tripStartTime = trip.Order.TripStartDate;
+                var tripEndTime = trip.Order.TripEndDate;
+
+                var locations = await _context.VehicleLocations
+                    .Where(vl => vl.VehicleId == trip.VehicleId &&
+                                vl.Timestamp >= tripStartTime &&
+                                vl.Timestamp <= tripEndTime)
+                    .OrderBy(vl => vl.Timestamp)
+                    .ToListAsync();
+
+                if (locations.Count < 2)
+                {
+                    trip.Distance = 0;
+                }
+                else
+                {
+                    decimal totalDistance = 0;
+                    const double earthRadius = 6371; // Earth's radius in kilometers
+
+                    // Calculate distance between consecutive GPS points
+                    for (int i = 1; i < locations.Count; i++)
+                    {
+                        var prevLocation = locations[i - 1];
+                        var currentLocation = locations[i];
+
+                        // Only calculate distance if the vehicle is moving (speed > 0)
+                        if (currentLocation.Speed > 0)
+                        {
+                            // Convert to radians
+                            var lat1Rad = (double)prevLocation.Latitude * Math.PI / 180;
+                            var lon1Rad = (double)prevLocation.Longitude * Math.PI / 180;
+                            var lat2Rad = (double)currentLocation.Latitude * Math.PI / 180;
+                            var lon2Rad = (double)currentLocation.Longitude * Math.PI / 180;
+
+                            // Haversine formula
+                            var dLat = lat2Rad - lat1Rad;
+                            var dLon = lon2Rad - lon1Rad;
+                            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                                    Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
+                                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+                            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                            var segmentDistance = (decimal)(earthRadius * c);
+                            totalDistance += segmentDistance;
+                        }
+                    }
+
+                    trip.Distance = Math.Round(totalDistance, 3);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Trip distance recalculated successfully. New distance: {trip.Distance} km";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error recalculating distance: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Details), new { id = trip.Id });
+        }
+
+        // POST: Trips/Cancel/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var trip = await _context.Trips.FindAsync(id);
+            if (trip == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow cancellation of scheduled or in-progress trips
+            if (trip.Status != TripState.Scheduled && trip.Status != TripState.InProgress)
+            {
+                TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be cancelled.";
+                return RedirectToAction(nameof(Details), new { id = trip.Id });
+            }
+
+            trip.Status = TripState.Cancelled;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Trip cancelled successfully.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

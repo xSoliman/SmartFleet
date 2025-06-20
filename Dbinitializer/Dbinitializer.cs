@@ -322,9 +322,7 @@ namespace SmartFleet
                         VehicleId = toyotaVehicle.Id,
                         OrderId = order.Id,
                         DriverId = "2",
-                        StartTime = DateTime.Now.AddHours(1),
-                        EndTime = DateTime.Now.AddHours(3),
-                        Distance = 50,
+                        Distance = 0, // Initialize to 0, will be calculated automatically
                         Status = TripState.Scheduled,
                         CreatedAt = DateTime.Now,
                         CreatedBy = "1"

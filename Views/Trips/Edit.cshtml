@@ -1,72 +1,81 @@
 ﻿@model SmartFleet.Models.Trip
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Trip";
 }
 
-<h1>Edit</h1>
+<h1>Edit Trip</h1>
 
-<h4>Trip</h4>
+<h4>Trip Information</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="VehicleId" class="control-label"></label>
+            <input type="hidden" asp-for="CreatedAt" />
+            <input type="hidden" asp-for="CreatedBy" />
+            <input type="hidden" asp-for="Distance" />
+            
+            <div class="form-group mb-3">
+                <label asp-for="VehicleId" class="control-label">Vehicle</label>
                 <select asp-for="VehicleId" class="form-control" asp-items="ViewBag.VehicleId"></select>
                 <span asp-validation-for="VehicleId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="OrderId" class="control-label"></label>
+            
+            <div class="form-group mb-3">
+                <label asp-for="OrderId" class="control-label">Order</label>
                 <select asp-for="OrderId" class="form-control" asp-items="ViewBag.OrderId"></select>
                 <span asp-validation-for="OrderId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DriverId" class="control-label"></label>
+            
+            <div class="form-group mb-3">
+                <label asp-for="DriverId" class="control-label">Driver</label>
                 <select asp-for="DriverId" class="form-control" asp-items="ViewBag.DriverId"></select>
                 <span asp-validation-for="DriverId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label"></label>
-                <input asp-for="StartTime" class="form-control" />
-                <span asp-validation-for="StartTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label"></label>
-                <input asp-for="EndTime" class="form-control" />
-                <span asp-validation-for="EndTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Distance" class="control-label"></label>
-                <input asp-for="Distance" class="form-control" />
-                <span asp-validation-for="Distance" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
+            
+            <div class="form-group mb-3">
+                <label asp-for="Status" class="control-label">Status</label>
+                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<TripState>()"></select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> Trip dates are managed through the associated Order. Distance is automatically calculated based on GPS tracking data.
             </div>
+            
             <div class="form-group">
-                <label asp-for="CreatedBy" class="control-label"></label>
-                <select asp-for="CreatedBy" class="form-control" asp-items="ViewBag.CreatedBy"></select>
-                <span asp-validation-for="CreatedBy" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Save Changes" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Current Trip Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Distance:</dt>
+                    <dd class="col-sm-8">@Model.Distance km</dd>
+                    
+                    <dt class="col-sm-4">Created:</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
+                    
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge badge-@Model.Status.ToString().ToLower()">
+                            @Model.Status
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

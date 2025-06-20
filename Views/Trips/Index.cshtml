@@ -32,42 +32,38 @@
 </p>
 
 <div class="order-filter-bar">
-    <form asp-action="Index" method="get" class="w-100">
-        <div class="d-flex flex-wrap justify-content-center gap-2 w-100">
-            <div class="form-group mx-2">
-                <input type="text" name="destination" value="@Model.Destination" class="form-control form-control-sm" placeholder="Destination" />
-            </div>
-            <div class="form-group mx-2">
-                <input type="text" name="searchDriverName" value="@Model.SearchDriverName" class="form-control form-control-sm" placeholder="Driver Name" />
-            </div>
-            <div class="form-group mx-2">
-                <select name="vehicleType" class="form-control form-control-sm">
-                    <option value="">All Vehicle Types</option>
-                    @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
-                    {
-                        <option value="@type" selected="@(Model.VehicleType == type ? "selected" : null)">@type</option>
-                    }
-                </select>
-            </div>
-            <div class="form-group mx-2">
-                <select name="stateFilter" class="form-control form-control-sm">
-                    <option value="">All Statuses</option>
-                    @foreach (SmartFleet.Models.TripState state in Enum.GetValues(typeof(SmartFleet.Models.TripState)))
-                    {
-                        <option value="@state" selected="@(Model.StateFilter == state ? "selected" : null)">@state</option>
-                    }
-                </select>
-            </div>
+    <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
+        <div class="form-group mx-2">
+            <input type="text" name="destination" value="@Model.Destination" class="form-control form-control-sm" placeholder="Destination" />
         </div>
-        <div class="d-flex flex-wrap justify-content-center gap-2 w-100 mt-2">
-            <div class="form-group mx-2">
-                <label for="startDate" class="form-label">From:</label>
-                <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
-            </div>
-            <div class="form-group mx-2">
-                <label for="endDate" class="form-label">To:</label>
-                <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
-            </div>
+        <div class="form-group mx-2">
+            <input type="text" name="searchDriverName" value="@Model.SearchDriverName" class="form-control form-control-sm" placeholder="Driver Name" />
+        </div>
+        <div class="form-group mx-2">
+            <select name="vehicleType" class="form-control form-control-sm">
+                <option value="">All Vehicle Types</option>
+                @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
+                {
+                    <option value="@type" selected="@(Model.VehicleType == type ? "selected" : null)">@type</option>
+                }
+            </select>
+        </div>
+        <div class="form-group mx-2">
+            <select name="stateFilter" class="form-control form-control-sm">
+                <option value="">All Statuses</option>
+                @foreach (SmartFleet.Models.TripState state in Enum.GetValues(typeof(SmartFleet.Models.TripState)))
+                {
+                    <option value="@state" selected="@(Model.StateFilter == state ? "selected" : null)">@state</option>
+                }
+            </select>
+        </div>
+        <div class="form-group mx-2">
+            <label for="startDate" class="form-label">From:</label>
+            <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+        </div>
+        <div class="form-group mx-2">
+            <label for="endDate" class="form-label">To:</label>
+            <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
         </div>
         <div class="order-filter-actions">
             <button type="submit" class="btn btn-sm custom-btn">
@@ -82,15 +78,15 @@
     <table class="table table-order table-bordered">
     <thead>
         <tr>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Vehicle)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Driver)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().StartTime)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().EndTime)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Distance)</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Trip Start Date</th>
+                <th>Trip End Date</th>
+                <th>Distance</th>
                 <th>Destination</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().Status)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().CreatedAt)</th>
-                <th>@Html.DisplayNameFor(model => model.Trips.FirstOrDefault().CreatedByUser)</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Created By</th>
                 <th>Actions</th>
         </tr>
     </thead>
@@ -99,11 +95,11 @@
 {
     foreach (var item in Model.Trips) {
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.Vehicle.Type)</td>
+            <td>@Html.DisplayFor(modelItem => item.Vehicle.Model) (@Html.DisplayFor(modelItem => item.Vehicle.Type))</td>
             <td>@Html.DisplayFor(modelItem => item.Driver.UserName)</td>
-            <td>@Html.DisplayFor(modelItem => item.StartTime)</td>
-            <td>@Html.DisplayFor(modelItem => item.EndTime)</td>
-            <td>@Html.DisplayFor(modelItem => item.Distance)</td>
+            <td>@Html.DisplayFor(modelItem => item.Order.TripStartDate)</td>
+            <td>@Html.DisplayFor(modelItem => item.Order.TripEndDate)</td>
+            <td>@Html.DisplayFor(modelItem => item.Distance) km</td>
             <td>@Html.DisplayFor(modelItem => item.Order.Destination)</td>
             <td>
                 <span class="badge-status badge-@item.Status.ToString().ToLower()">
@@ -120,8 +116,19 @@
                     <i class="fas fa-info-circle"></i> Details
                 </a>
                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
-                    <i class="fas fa-trash-alt deleted-icon"></i> Delete
+                    <i class="fas fa-trash-alt deleted_icon"></i> Delete
                 </a>
+                
+                @if (item.Status == TripState.Scheduled || item.Status == TripState.InProgress)
+                {
+                    <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning" 
+                                onclick="return confirm('Are you sure you want to cancel this trip?')">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </form>
+                }
             </td>
         </tr>
     }

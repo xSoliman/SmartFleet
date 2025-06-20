@@ -32,11 +32,8 @@ namespace SmartFleet.Models
         public string DriverId { get; set; }
         public Driver Driver { get; set; }
 
-        [Required]
-        public DateTime StartTime { get; set; }
-        public DateTime? EndTime { get; set; }
-
-        public decimal Distance { get; set; }
+        // Auto-calculated distance based on GPS tracking during trip
+        public decimal Distance { get; set; } = 0;
 
         [Required]
         public TripState Status { get; set; }
