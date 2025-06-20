@@ -70,18 +70,67 @@
     </form>
 </div>
 
+@if (Model.IsDriver && Model.AssignedTrips.Any())
+{
+    <h3 class="assigned-trips-header">Assigned Trips</h3>
+    <div class="table-responsive assigned-trips-table">
+        <table class="table table-order table-bordered">
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Trip Start Date</th>
+                    <th>Trip End Date</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.AssignedTrips)
+            {
+                <tr>
+                    <td>@item.Vehicle.LicensePlate (@item.Vehicle.Type)</td>
+                    <td>@item.Order.TripStartDate.ToString("MM/dd/yyyy HH:mm")</td>
+                    <td>@item.Order.TripEndDate.ToString("MM/dd/yyyy HH:mm")</td>
+                    <td>@item.Order.Destination</td>
+                    <td>
+                        <span class="badge-status badge-@item.Status.ToString().ToLower()">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-sm">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <hr class="trips-divider" />
+}
+
+@if (Model.IsDriver)
+{
+    <h3 class="ordered-trips-header">Trips I Ordered</h3>
+}
+
 <div class="table-responsive">
     <table class="table table-order table-bordered">
     <thead>
         <tr>
-                <th>Vehicle</th>
-                <th>Driver</th>
-                <th>Trip Start Date</th>
-                <th>Trip End Date</th>
-                <th>Destination</th>
-                <th>Status</th>
+            <th>Vehicle</th>
+            <th>Driver</th>
+            <th>Trip Start Date</th>
+            <th>Trip End Date</th>
+            <th>Destination</th>
+            <th>Status</th>
+            @if (Model.IsFleetManager || Model.IsSystemSupport)
+            {
                 <th>Ordered By</th>
-                <th>Actions</th>
+            }
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -89,29 +138,40 @@
 {
     foreach (var item in Model.Trips) {
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.Vehicle.LicensePlate) (@Html.DisplayFor(modelItem => item.Vehicle.Type))</td>
-            <td>@Html.DisplayFor(modelItem => item.Driver.UserName)</td>
+            <td>@item.Vehicle.LicensePlate (@item.Vehicle.Type)</td>
+            <td>@item.Driver.UserName</td>
             <td>@item.Order.TripStartDate.ToString("MM/dd/yyyy HH:mm")</td>
             <td>@item.Order.TripEndDate.ToString("MM/dd/yyyy HH:mm")</td>
-            <td>@Html.DisplayFor(modelItem => item.Order.Destination)</td>
+            <td>@item.Order.Destination</td>
             <td>
                 <span class="badge-status badge-@item.Status.ToString().ToLower()">
                     @item.Status
                 </span>
             </td>
-            <td>@Html.DisplayFor(modelItem => item.CreatedByUser.UserName)</td>
+            @if (Model.IsFleetManager || Model.IsSystemSupport)
+            {
+                <td>@item.CreatedByUser.UserName</td>
+            }
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
-                    <i class="fas fa-edit edit-icon"></i> Edit
-                </a>
                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-sm">
                     <i class="fas fa-info-circle"></i> Details
                 </a>
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete btn-sm">
-                    <i class="fas fa-trash-alt deleted_icon"></i> Delete
-                </a>
+
+                @if (Model.IsFleetManager || Model.IsSystemSupport)
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
+                        <i class="fas fa-edit edit-icon"></i> Edit
+                    </a>
+                }
                 
-                @if (item.Status == TripState.Scheduled || item.Status == TripState.InProgress)
+                @if (Model.IsSystemSupport)
+                {
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete btn-sm">
+                        <i class="fas fa-trash-alt deleted_icon"></i> Delete
+                    </a>
+                }
+                
+                @if (item.Status == TripState.Scheduled)
                 {
                     <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
