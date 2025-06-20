@@ -6,16 +6,19 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
-    public class VehiclesController : Controller
+    public class VehiclesController : BaseController
     {
         private readonly SmartFleetContext _context;
 
-        public VehiclesController(SmartFleetContext context)
+        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService) 
+            : base(userManager, userRoleService)
         {
             _context = context;
         }
@@ -24,6 +27,13 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Index(string searchModel, string searchPlate, VehicleType? typeFilter, VehicleState? stateFilter)
         {
             ViewData["PageTitle"] = "Vehicles";
+
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
 
             var vehicles = _context.Vehicles.AsQueryable();
 
@@ -46,6 +56,14 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Details(int? id)
         {
             ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle details.";
+                return RedirectToAction("Index", "Home");
+            }
+
             if (id == null)
             {
                 return NotFound();
@@ -61,30 +79,41 @@ namespace SmartFleet.Controllers
             return View(vehicle);
         }
 
-       // [Authorize(Roles = "Fleet Administrator")]
         // GET: Vehicles/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             ViewData["PageTitle"] = "Vehicles";
+
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
 
             return View();
         }
 
         // POST: Vehicles/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
 
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
+
             if (ModelState.IsValid)
             {
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
-                    Directory.CreateDirectory(uploadsFolder); // Ensure directory exists
+                    Directory.CreateDirectory(uploadsFolder);
 
                     var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -94,11 +123,11 @@ namespace SmartFleet.Controllers
                         await imageFile.CopyToAsync(fileStream);
                     }
 
-                    vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName; // Store relative path
+                    vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
                 }
                 else
                 {
-                    vehicle.VehicleImageUrl = "/assets/images/icons/download.png"; // Default image
+                    vehicle.VehicleImageUrl = "/assets/images/icons/download.png";
                 }
 
                 _context.Add(vehicle);
@@ -108,12 +137,17 @@ namespace SmartFleet.Controllers
             return View(vehicle);
         }
 
-
-
         // GET: Vehicles/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             ViewData["PageTitle"] = "Vehicles";
+
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
 
             if (id == null)
             {
@@ -129,13 +163,18 @@ namespace SmartFleet.Controllers
         }
 
         // POST: Vehicles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt,VehicleImageUrl")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
+
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
 
             if (id != vehicle.Id)
             {
@@ -149,7 +188,7 @@ namespace SmartFleet.Controllers
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
-                        Directory.CreateDirectory(uploadsFolder); // Ensure directory exists
+                        Directory.CreateDirectory(uploadsFolder);
 
                         var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
                         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -186,6 +225,13 @@ namespace SmartFleet.Controllers
         {
             ViewData["PageTitle"] = "Vehicles";
 
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
+
             if (id == null)
             {
                 return NotFound();
@@ -206,6 +252,12 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
+                return RedirectToAction("Index", "Home");
+            }
 
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle != null)

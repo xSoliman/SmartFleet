@@ -41,12 +41,12 @@
 
             <div class="details-display-group">
                 <label class="details-display-label">Trip Start Location</label>
-                <div class="details-display-value">@Model.TripStartLocation</div>
+                <div class="details-display-value">@Model.StartLocation</div>
             </div>
 
             <div class="details-display-group">
                 <label class="details-display-label">Trip End Location</label>
-                <div class="details-display-value">@Model.TripEndLocation</div>
+                <div class="details-display-value">@Model.Destination</div>
             </div>
 
             <div class="details-display-group">
@@ -77,7 +77,51 @@
 
         <!-- Buttons -->
         <div class="details-button-group">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
+            @if (ViewBag.IsCommissioner)
+            {
+                <!-- Commissioner can only approve/reject pending orders -->
+                @if (Model.Status == SmartFleet.Models.OrderState.Pending)
+                {
+                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        <button type="submit" class="details-primary-button btn-success" 
+                                onclick="return confirm('Are you sure you want to approve this order?')">
+                            <i class="fas fa-check"></i> Approve Order
+                        </button>
+                    </form>
+                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                        <button type="submit" class="details-primary-button btn-danger" 
+                                onclick="return confirm('Are you sure you want to reject this order?')">
+                            <i class="fas fa-times"></i> Reject Order
+                        </button>
+                    </form>
+                }
+            }
+            else if (ViewBag.IsFleetManager)
+            {
+                <!-- FleetManager can only create trips for approved orders -->
+                @if (Model.Status == SmartFleet.Models.OrderState.Approved)
+                {
+                    @if (Model.Trip != null)
+                    {
+                        <!-- Trip already exists -->
+                        <span class="details-primary-button btn-secondary disabled">
+                            <i class="fas fa-check-circle"></i> Trip Created
+                        </span>
+                    }
+                    else
+                    {
+                        <!-- No trip exists, can create one -->
+                        <a asp-action="CreateTrip" asp-route-id="@Model.Id" class="details-primary-button btn-success">
+                            <i class="fas fa-route"></i> Create Trip
+                        </a>
+                    }
+                }
+            }
+            else
+            {
+                <!-- Other roles can edit orders -->
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
+            }
         </div>
 
     </div>

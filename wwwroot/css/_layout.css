@@ -5,12 +5,12 @@
 }
 
 .icon-btn {
-    padding: 12px 55px; /* Larger padding for bigger buttons */
-    font-size: 16px; /* Larger text */
-    border-radius: 25px; /* Rounded corners for buttons */
+    padding: 6px 35px; /* Further reduced from 8px 40px */
+    font-size: 18px; /* Increased from 16px */
+    border-radius: 18px; /* Reduced from 20px */
     display: flex;
     align-items: center; /* Aligns text and icon */
-    gap: 8px; /* Space between icon and text */
+    gap: 6px; /* Reduced from 8px */
     transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
@@ -19,11 +19,13 @@
     }
 
     .icon-btn i {
-        font-size: 18px; /* Larger icon size */
+        font-size: 20px; /* Increased from 18px */
     }
 
 .navbar-nav .nav-item {
     position: relative;
+    white-space: nowrap;
+    margin: 0 3px; /* Decreased from 5px */
 }
 
 .navbar-nav .nav-link {
@@ -36,6 +38,12 @@
     .navbar-nav .nav-link.active {
         color: var(--bs-primary);
     }
+
+.navbar-light .navbar-nav .nav-link {
+    color: var(--bs-dark);
+    padding: 6px 0; /* Further reduced from 8px */
+    transition: 0.3s;
+}
 
 .navbar-light .navbar-nav .nav-link:hover {
     color: var(--bs-primary);
@@ -65,7 +73,7 @@
 /* Adjust logo and navbar */
 .navbar-light .navbar-nav .nav-link {
     color: var(--bs-dark);
-    padding: 12px 0;
+    padding: 8px 0; /* Reduced from 12px */
     transition: 0.3s;
 }
 
@@ -105,12 +113,12 @@
 
 /* Adjust the icon buttons */
 .icon-btn {
-    padding: 12px 55px; /* Larger padding for bigger buttons */
-    font-size: 16px; /* Larger text */
-    border-radius: 25px; /* Rounded corners for buttons */
+    padding: 6px 35px; /* Further reduced from 8px 40px */
+    font-size: 18px; /* Increased from 16px */
+    border-radius: 18px; /* Reduced from 20px */
     display: flex;
     align-items: center; /* Aligns text and icon */
-    gap: 8px; /* Space between icon and text */
+    gap: 6px; /* Reduced from 8px */
     transition: background-color 0.3s; /* Smooth transition for hover effect */
 }
 
@@ -119,7 +127,7 @@
     }
 
     .icon-btn i {
-        font-size: 18px; /* Larger icon size */
+        font-size: 20px; /* Increased from 18px */
     }
 
 nav {
@@ -148,4 +156,479 @@ nav {
 
 .nav-auto {
     width: 100%;
+}
+
+/* Role-based navigation layout fixes */
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 0; /* Allow flex item to shrink */
+}
+
+.navbar-nav .nav-item {
+    white-space: nowrap;
+    margin: 0 3px; /* Decreased from 5px */
+}
+
+/* Ensure logo stays fixed on the left */
+.navbar-brand {
+    flex-shrink: 0;
+    margin-right: 2rem;
+}
+
+/* Ensure right-side buttons stay fixed on the right */
+.d-flex.align-items-center.ms-auto {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* Unauthenticated navigation styling */
+.navbar-nav .nav-link.text-muted {
+    color: #6c757d !important;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.navbar-nav .nav-link.text-muted:hover {
+    color: #6c757d !important;
+    opacity: 0.9;
+}
+
+.navbar-nav .dropdown-menu .dropdown-item.text-muted {
+    color: #6c757d !important;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.navbar-nav .dropdown-menu .dropdown-item.text-muted:hover {
+    color: #6c757d !important;
+    opacity: 0.9;
+    background-color: #f8f9fa;
+}
+
+.navbar-nav .nav-link .fas.fa-lock {
+    color: #6c757d;
+    opacity: 0.8;
+}
+
+/* Responsive adjustments for role-based navigation */
+@media (max-width: 1200px) {
+    .navbar-nav {
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    
+    .navbar-nav::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .navbar-nav .nav-item {
+        margin: 2px 3px;
+    }
+}
+
+/* === Scoped Smart Fleet Header & Footer Styles (from layout-header-footer.css) === */
+
+#sf-header {
+    width: 100%;
+    z-index: 1000;
+}
+
+.sf-navbar {
+    min-height: 15px !important; /* Further reduced from 20px */
+    background: var(--bs-white);
+    padding-top: 0.02rem !important; /* Further reduced from 0.05rem */
+    padding-bottom: 0.02rem !important; /* Further reduced from 0.05rem */
+}
+
+.sf-navbar .navbar-brand h1 {
+    font-size: 2.2rem; /* Increased from 1.8rem */
+    margin: 0;
+}
+
+.sf-navbar .notification-bell {
+    color: #000 !important;
+    font-size: 1.2rem; /* Decreased from 1.6rem */
+}
+
+.sf-navbar .notification-badge {
+    background-color: #dc3545 !important;
+    font-size: 0.6rem; /* Decreased from 0.8rem */
+    transform: translate(-50%, -50%) !important;
+    top: 0 !important;
+    right: -5px !important;
+    left: auto !important;
+}
+
+.sf-navbar .btn-lg {
+    padding: 0.25rem 0.5rem !important; /* Increased from 0.2rem 0.4rem */
+    font-size: 1rem !important; /* Increased from 0.9rem */
+    white-space: nowrap;
+}
+
+.sf-navbar .btn-success.btn-lg, .sf-navbar .btn-primary.btn-lg:not(.my-account-btn) {
+    padding: 0.3rem 0.7rem !important; /* Increased from 0.25rem 0.6rem */
+    font-size: 1.1rem !important; /* Increased from 1rem */
+    font-weight: 500;
+}
+
+.sf-navbar .btn-primary {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: #fff !important;
+}
+
+.sf-navbar .btn-primary:hover {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    opacity: 0.9;
+}
+
+.sf-navbar .btn-warning.btn-lg {
+    padding: 0.3rem 0.7rem !important; /* Increased from 0.25rem 0.6rem */
+    font-size: 1rem !important; /* Increased from 0.95rem */
+    font-weight: 500;
+}
+
+.sf-navbar .my-account-btn {
+    padding: 0.25rem 0.7rem !important; /* Increased from 0.2rem 0.6rem */
+    font-size: 1rem !important; /* Increased from 0.9rem */
+    font-weight: 500;
+}
+
+.sf-navbar .navbar-collapse {
+    justify-content: space-between;
+}
+
+.sf-navbar .navbar-collapse .d-flex.align-items-center.ms-auto {
+    margin-right: 0;
+    width: auto;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+.sf-navbar .btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+.sf-navbar .btn-outline-warning:hover {
+    color: #000;
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.sf-navbar .btn-outline-primary {
+    color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.sf-navbar .btn-outline-primary:hover {
+    color: #fff;
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.sf-navbar .btn-outline-success {
+    color: #198754;
+    border-color: #198754;
+}
+
+.sf-navbar .btn-outline-success:hover {
+    color: #fff;
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.sf-navbar .btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.sf-navbar .btn-outline-danger:hover {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+#sf-footer {
+    color: #fff;
+    padding: 1.5rem 0 0.5rem 0;
+    font-size: 1rem;
+}
+#sf-footer .container-fluid.copyright {
+    background: var(--bs-dark, #000C21);
+    color: #fff;
+}
+#sf-footer .copyright {
+    background: transparent;
+    color: #fff;
+    font-size: 1rem;
+}
+#sf-footer a {
+    color: #fff;
+    text-decoration: underline;
+}
+#sf-footer a:hover {
+    color: var(--bs-primary);
+}
+
+/* === Scoped layout-relevant styles from home.css for header/footer === */
+
+#sf-header .nav-bar {
+    background: var(--bs-white) !important;
+}
+
+#sf-header .sticky-top {
+    transition: 1s;
+}
+
+#sf-header .navbar-light .navbar-nav .nav-link {
+    position: relative;
+    margin-right: 12px; /* Decreased from 18px */
+    padding: 12px 0 !important; /* Reduced from 20px for compactness */
+    letter-spacing: 1px;
+    color: var(--bs-dark) !important;
+    font-size: 20px !important; /* Increased from 18px */
+    font-weight: bold;
+    outline: none;
+    transition: .5s;
+}
+
+#sf-header .sticky-top .navbar-light .navbar-nav .nav-link {
+    padding: 6px 0 !important; /* Reduced from 8px */
+    color: var(--bs-dark) !important;
+}
+
+#sf-header .navbar-light .navbar-nav .nav-link:hover,
+#sf-header .navbar-light .navbar-nav .nav-link.active {
+    color: var(--bs-primary) !important;
+}
+
+#sf-header .navbar-light .navbar-brand img {
+    max-height: 45px;
+    transition: .5s;
+}
+
+#sf-header .sticky-top .navbar-light .navbar-brand img {
+    max-height: 35px;
+}
+
+#sf-header .navbar .dropdown-toggle::after {
+    border: none;
+    content: "\f107";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 600;
+    vertical-align: middle;
+    margin-left: 8px;
+}
+
+#sf-header .dropdown .dropdown-menu a:hover {
+    background: var(--bs-primary) !important;
+    color: var(--bs-white) !important;
+}
+
+#sf-header .navbar .nav-item:hover .dropdown-menu {
+    transform: rotateX(0deg);
+    visibility: visible;
+    margin-top: 8px !important;
+    background: var(--bs-light) !important;
+    transition: .5s;
+    opacity: 1;
+}
+
+#sf-header .nav-right {
+    margin-right: 20px !important;
+    width: 300px;
+}
+
+#sf-header .d-flex {
+    margin-left: -80px !important;
+    margin-right: 30px !important;
+}
+
+#sf-header .d-flex.align-items-center.ms-auto {
+    margin-left: 40px !important;
+    width: auto;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+@media (min-width: 992px) {
+    #sf-header .navbar .nav-item .dropdown-menu {
+        display: block;
+        visibility: hidden;
+        top: 100%;
+        transform: rotateX(-75deg);
+        transform-origin: 0% 0%;
+        border: 0;
+        border-radius: 10px;
+        margin-top: 8px !important;
+        transition: .5s;
+        opacity: 0;
+    }
+}
+
+@media (max-width: 991px) {
+    #sf-header .navbar.navbar-expand-lg .navbar-toggler {
+        padding: 8px 15px;
+        border: 1px solid var(--bs-primary);
+        color: var(--bs-primary);
+    }
+    #sf-header .sticky-top .navbar-light .navbar-nav .nav-link {
+        padding: 12px 0 !important;
+    }
+}
+
+/* === Scoped layout-relevant styles from main1.css for header/footer and layout === */
+
+/* Reset and box-sizing for layout containers */
+#sf-header, #sf-footer, .sf-navbar, .container, .row {
+    box-sizing: border-box !important;
+}
+
+#sf-header, #sf-footer, .sf-navbar {
+    margin: 0 !important;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+
+.container {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.row > * {
+    box-sizing: border-box !important;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Responsive container width overrides */
+@media screen and (max-width: 1680px) {
+    .container {
+        width: 100% !important;
+        max-width: 100rem !important;
+        min-width: 80rem !important;
+    }
+}
+@media screen and (max-width: 1280px) {
+    .container {
+        width: 100% !important;
+        max-width: 81.25rem !important;
+        min-width: 65rem !important;
+    }
+}
+@media screen and (max-width: 980px) {
+    .container {
+        width: 90% !important;
+        max-width: 112.5% !important;
+        min-width: 90% !important;
+    }
+}
+@media screen and (max-width: 736px) {
+    .container {
+        width: 90% !important;
+        max-width: 112.5% !important;
+        min-width: 90% !important;
+    }
+}
+@media screen and (max-width: 480px) {
+    .container {
+        width: 90% !important;
+        max-width: 112.5% !important;
+        min-width: 90% !important;
+    }
+}
+
+/* === Navigation Lock Styles === */
+
+/* Locked navigation items */
+.navbar-nav .nav-link.text-muted {
+    color: #6c757d !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.navbar-nav .nav-link.text-muted:hover {
+    color: #6c757d !important;
+    opacity: 0.7;
+    text-decoration: none;
+}
+
+/* Locked dropdown items */
+.navbar-nav .dropdown-menu .dropdown-item.text-muted {
+    color: #6c757d !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.navbar-nav .dropdown-menu .dropdown-item.text-muted:hover {
+    color: #6c757d !important;
+    opacity: 0.7;
+    background-color: transparent;
+    text-decoration: none;
+}
+
+/* Lock icon styling */
+.navbar-nav .nav-link .fas.fa-lock {
+    color: #6c757d;
+    opacity: 0.8;
+}
+
+/* Disable dropdown functionality for locked items */
+.navbar-nav .nav-item.dropdown .nav-link.text-muted + .dropdown-menu {
+    pointer-events: none;
+}
+
+.navbar-nav .nav-item.dropdown .nav-link.text-muted:hover + .dropdown-menu {
+    display: none !important;
+}
+
+/* Tooltip styling for locked items */
+.navbar-nav .nav-link.text-muted[title] {
+    position: relative;
+}
+
+.navbar-nav .nav-link.text-muted[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
 }

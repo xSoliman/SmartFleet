@@ -4,6 +4,7 @@
     ViewData["Title"] = "Login";
     Layout = null;
     var email = User.FindFirst("Email");
+    var userEmail = User.FindFirst("Email");
 }
 
 <!DOCTYPE html>
@@ -19,7 +20,7 @@
 <body>
 
     <img src="~/assets/images/logos/logo-aun.png" class=" logo-assiut" />
-
+    
     <div class="login-container">
         <h1>Login</h1>
         <form asp-action="SaveLogin" method="post">

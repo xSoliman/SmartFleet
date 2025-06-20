@@ -34,126 +34,9 @@ namespace SmartFleet.Controllers
         {
             return View();
         }
-        /// <summary>
-        ///
-        //
-        [Authorize(Roles = "FleetManager , SysSupport")]
-        public async Task<IActionResult> Fleet_Manager()
-        {
-            var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
-
-            if (fleetManager == null)
-            {
-                fleetManager = new ApplicationUser
-                {
-                    Id = "5",
-                    UserName = "FleetManager",
-                    Email = "fleet@smartfleet.com",
-                    ProfileImageUrl = "Available"
-                };
-                _context.Users.Add(fleetManager);
-                await _context.SaveChangesAsync();
-            }
-
-            var pendingOrders = await _context.Orders
-                .Include(o => o.User)
-                .Where(o => o.Status == OrderState.approved && o.Trip == null)
-                .ToListAsync();
-
-            var viewModel = new FleetManagerViewModel
-            {
-                FleetManager = fleetManager,
-                PendingOrders = pendingOrders
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "FleetManager , SysSupport")]
-        public async Task<IActionResult> Fleet_Manager(FleetManagerViewModel model)
-        {
-            var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
-
-            if (fleetManager != null)
-            {
-                fleetManager.ProfileImageUrl = model.FleetManager.ProfileImageUrl;
-                _context.Users.Update(fleetManager);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Fleet_Manager));
-        }
-
-        [Authorize(Roles = "FleetManager , SysSupport")]
-        public async Task<IActionResult> Index()
-        {
-            var fleetManager = await _context.Users.FirstOrDefaultAsync(u => u.Id == "5");
-
-            if (fleetManager == null)
-            {
-                fleetManager = new ApplicationUser
-                {
-                    Id = "5",
-                    UserName = "FleetManager",
-                    Email = "fleet@smartfleet.com",
-                    ProfileImageUrl = "Available"
-                };
-                _context.Users.Add(fleetManager);
-                await _context.SaveChangesAsync();
-            }
-
-            var pendingOrders = await _context.Orders
-                .Include(o => o.User)
-                .Where(o => o.Status == OrderState.pending)
-                .ToListAsync();
-
-            var viewModel = new FleetManagerViewModel
-            {
-                FleetManager = fleetManager,
-                PendingOrders = pendingOrders
-            };
-
-            return View("Broker_Manager", viewModel); 
-        }
-
-
-        [HttpPost]
-        public async Task<IActionResult> Approve(int id)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            order.Status = OrderState.approved;
-            _context.Update(order);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Reject(int id)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            order.Status = OrderState.rejected;
-            _context.Update(order);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-
         public async Task<IActionResult> SaveRegister(RegisterViewModel User)
         {
             try
@@ -237,9 +120,11 @@ namespace SmartFleet.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
                 var identity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
-                await userManager.AddClaimsAsync(applicationUser, claims); 
+                await userManager.AddClaimsAsync(applicationUser, claims);
 
-                return RedirectToAction("Index", "Home");
+                // Role-based redirect after successful login
+                var primaryRole = roles.FirstOrDefault();
+                return RedirectToRoleBasedPage(primaryRole);
             }
             catch (Exception ex)
             {
@@ -248,7 +133,17 @@ namespace SmartFleet.Controllers
             }
         }
 
-
+        private IActionResult RedirectToRoleBasedPage(string? role)
+        {
+            return role?.ToLower() switch
+            {
+                "fleetmanager" or "syssupport" => RedirectToAction("Dashboard", "Home"),
+                "maintancemanager" => RedirectToAction("Index", "Maintenances"),
+                "commissioner" => RedirectToAction("Index", "Orders"),
+                "driver" => RedirectToAction("Index", "Trips"),
+                "normaluser" or _ => RedirectToAction("Index", "Home")
+            };
+        }
 
         public async Task<IActionResult> LogOut()
         {

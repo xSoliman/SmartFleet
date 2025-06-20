@@ -61,17 +61,24 @@
 }
 
 .edit-primary-button {
-    background: #00796b;
-    color: white;
+    background: #00796b !important;
+    color: white !important;
     border: none;
     padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
 }
 
-    .edit-primary-button:hover {
-        background: #004d40;
-    }
+.edit-primary-button:hover {
+    background: #004d40 !important;
+}
+
+input.edit-primary-button[type="submit"] {
+    color: white !important;
+}
 
 .edit-navigation {
     position: absolute;

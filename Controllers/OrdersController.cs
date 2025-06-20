@@ -3,49 +3,80 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.ViewModel;
 
 namespace SmartFleet.Controllers
 {
+    [Authorize]
     public class OrdersController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public OrdersController(SmartFleetContext context)
+        public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Orders
-
-        // search & filter
-        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchEndLocation, string typeFilter, OrderState? stateFilter)
+        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchDestination, 
+            VehicleType? typeFilter, OrderState? stateFilter, DateTime? startDate, DateTime? endDate)
         {
-            var orders = _context.Orders.Include(o => o.User).AsQueryable();
-
-            if (!string.IsNullOrEmpty(searchUserId))
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                orders = orders.Where(o => o.User.UserName.Contains(searchUserId));
+                return RedirectToAction("Login", "Account");
             }
 
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isCommissioner = userRoles.Contains("commissioner");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
+
+            var orders = _context.Orders.Include(o => o.User).AsQueryable();
+
+            // Role-based filtering
+            if (isFleetManager)
+            {
+                // FleetManager can only see pending and approved orders
+                orders = orders.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
+                // Include Trips for FleetManager to check if trip exists
+                orders = orders.Include(o => o.Trip);
+            }
+            else if (!isAdminUser)
+            {
+                // For NormalUser, Driver, MaintenanceManager - show only their own orders
+                orders = orders.Where(o => o.UserId == currentUser.Id);
+            }
+
+            // Original filters (only for admin users)
+            if (isAdminUser && !string.IsNullOrEmpty(searchUserId))
+            {
+                orders = orders.Where(o => o.User != null && o.User.UserName.Contains(searchUserId));
+            }
 
             if (!string.IsNullOrEmpty(searchStartLocation))
             {
-                orders = orders.Where(o => o.TripStartLocation.Contains(searchStartLocation));
+                orders = orders.Where(o => o.StartLocation.Contains(searchStartLocation));
             }
 
-            if (!string.IsNullOrEmpty(searchEndLocation))
+            if (!string.IsNullOrEmpty(searchDestination))
             {
-                orders = orders.Where(o => o.TripEndLocation.Contains(searchEndLocation));
+                orders = orders.Where(o => o.Destination.Contains(searchDestination));
             }
 
-            if (!string.IsNullOrEmpty(typeFilter) && Enum.TryParse<VehicleType>(typeFilter, out var parsedType))
+            if (isAdminUser && typeFilter.HasValue)
             {
-                orders = orders.Where(o => o.VehicleType == parsedType);
+                orders = orders.Where(o => o.VehicleType == typeFilter.Value);
             }
 
             if (stateFilter.HasValue)
@@ -53,9 +84,48 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.Status == stateFilter.Value);
             }
 
-            return View(await orders.ToListAsync());
-        }
+            // Date range filtering
+            if (startDate.HasValue)
+            {
+                orders = orders.Where(o => o.CreatedAt.Date >= startDate.Value.Date);
+            }
 
+            if (endDate.HasValue)
+            {
+                orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
+            }
+
+            // Sort by submission date in descending order (newest first)
+            // For FleetManager, also sort by status (Pending first, then Approved)
+            if (isFleetManager)
+            {
+                orders = orders.OrderByDescending(o => o.Status == OrderState.Approved && !_context.Trips.Any(t => t.OrderId == o.Id))
+                              .ThenBy(o => o.CreatedAt); // Oldest first for FleetManager
+            }
+            else
+            {
+                orders = orders.OrderByDescending(o => o.CreatedAt);
+            }
+
+            var viewModel = new OrderViewModel
+            {
+                Orders = await orders.ToListAsync(),
+                SearchUserId = searchUserId,
+                SearchStartLocation = searchStartLocation,
+                SearchDestination = searchDestination,
+                TypeFilter = typeFilter,
+                StateFilter = stateFilter,
+                StartDate = startDate,
+                EndDate = endDate,
+                IsAdminUser = isAdminUser,
+                IsCommissioner = isCommissioner,
+                IsFleetManager = isFleetManager,
+                IsSysSupport = isSysSupport,
+                CurrentUserId = currentUser.Id
+            };
+
+            return View(viewModel);
+        }
 
         // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -65,6 +135,18 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isCommissioner = userRoles.Contains("commissioner");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
+
             var order = await _context.Orders
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -73,23 +155,47 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            // Include Trip for FleetManager to check if trip exists
+            if (isFleetManager)
+            {
+                order = await _context.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Trip)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+            }
+
+            // Check if user has permission to view this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            ViewBag.IsCommissioner = isCommissioner;
+            ViewBag.IsFleetManager = isFleetManager;
+            ViewBag.IsSysSupport = isSysSupport;
+            ViewBag.IsAdminUser = isAdminUser;
+
             return View(order);
         }
 
         // GET: Orders/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.VehicleTypes = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Car", Text = "Car" },
-        new SelectListItem { Value = "Truck", Text = "Truck" },
-        new SelectListItem { Value = "Bus", Text = "Bus" },
-        new SelectListItem { Value = "Van", Text = "Van" },
-        new SelectListItem { Value = "Motorcycle", Text = "Motorcycle" },
-        new SelectListItem { Value = "Other", Text = "Other" }
-    };
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
-            ViewBag.UserId = Request.Cookies["UserId"];
+            ViewBag.VehicleTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Car", Text = "Car" },
+                new SelectListItem { Value = "Truck", Text = "Truck" },
+                new SelectListItem { Value = "Bus", Text = "Bus" },
+                new SelectListItem { Value = "Van", Text = "Van" },
+                new SelectListItem { Value = "Motorcycle", Text = "Motorcycle" },
+                new SelectListItem { Value = "Other", Text = "Other" }
+            };
 
             return View();
         }
@@ -97,12 +203,18 @@ namespace SmartFleet.Controllers
         // POST: Orders/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // POST: Orders/Create
-       
-        public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,TripStartLocation,TripEndLocation,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
+        public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,StartLocation,Destination,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
         {
-            order.Status = OrderState.pending; // Always set status to Pending
+            order.Status = OrderState.Pending; // Always set status to Pending
             order.UserId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            order.Status = OrderState.Pending; 
+            order.UserId = currentUser.Id;
 
             _context.Add(order);
             await _context.SaveChangesAsync();
@@ -116,11 +228,9 @@ namespace SmartFleet.Controllers
 
             Response.Cookies.Append("OrderId", order.Id.ToString(), option);
 
+
             return RedirectToAction(nameof(Index));
         }
-
-
-
 
         // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -130,11 +240,34 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
+
+            // Check if user has permission to edit this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            // For NormalUser, Driver, MaintenanceManager - only allow editing of pending orders
+            if (!isAdminUser && order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be edited.";
+                return RedirectToAction(nameof(Index));
+            }
+
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
             return View(order);
         }
@@ -149,6 +282,28 @@ namespace SmartFleet.Controllers
             if (id != order.Id)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+
+            // Check if user has permission to edit this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            // For NormalUser, Driver, MaintenanceManager - only allow editing of pending orders
+            if (!isAdminUser && order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be edited.";
+                return RedirectToAction(nameof(Index));
             }
 
             if (ModelState.IsValid)
@@ -183,12 +338,27 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+
             var order = await _context.Orders
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (order == null)
             {
                 return NotFound();
+            }
+
+            // Check if user has permission to delete this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
             }
 
             return View(order);
@@ -199,7 +369,27 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+
             var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user has permission to delete this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
             if (order != null)
             {
                 _context.Orders.Remove(order);
@@ -207,6 +397,220 @@ namespace SmartFleet.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Orders/Cancel/5
+        [HttpPost, ActionName("Cancel")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isSysSupport = userRoles.Contains("SysSupport");
+            var isFleetManager = userRoles.Contains("FleetManager");
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user has permission to cancel this order
+            if (!isAdminUser && order.UserId != currentUser.Id)
+            {
+                return Forbid();
+            }
+
+            // SysSupport can only cancel their own orders, not other users' orders
+            if (isSysSupport && order.UserId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only cancel your own orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Only allow cancellation of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be cancelled.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Update order status to cancelled
+            order.Status = OrderState.Cancelled;
+            
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Order has been cancelled successfully.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(order.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Orders/Approve/5
+        [HttpPost, ActionName("Approve")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isCommissioner = userRoles.Contains("commissioner");
+
+            if (!isCommissioner)
+            {
+                return Forbid();
+            }
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow approval of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be approved.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Update order status to approved
+            order.Status = OrderState.Approved;
+            
+            try
+            {
+                _context.Update(order);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Order has been approved successfully.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(order.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Orders/Reject/5
+        [HttpPost, ActionName("Reject")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(int id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isCommissioner = userRoles.Contains("commissioner");
+
+            if (!isCommissioner)
+            {
+                TempData["ErrorMessage"] = "Only commissioners can reject orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow rejecting pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be rejected.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            order.Status = OrderState.Rejected;
+            _context.Update(order);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Order rejected successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Orders/CreateTrip/5
+        public async Task<IActionResult> CreateTrip(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isFleetManager = userRoles.Contains("FleetManager");
+
+            if (!isFleetManager)
+            {
+                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Only allow creating trips for approved orders
+            if (order.Status != OrderState.Approved)
+            {
+                TempData["ErrorMessage"] = "Trips can only be created for approved orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Check if a trip already exists for this order
+            var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == order.Id);
+            if (existingTrip)
+            {
+                TempData["ErrorMessage"] = "A trip already exists for this order.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Redirect to Trips Create action with the order data
+            return RedirectToAction("Create", "Trips", new { id = order.Id, userId = order.UserId });
         }
 
         private bool OrderExists(int id)

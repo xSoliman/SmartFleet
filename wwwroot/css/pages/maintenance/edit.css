@@ -52,17 +52,19 @@
 }
 
 .edit-primary-button {
-    background: #00796b;
-    color: white;
+    background: #00796b !important;
+    color: white !important;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 12px; /* Match .edit-back-link */
     border-radius: 4px;
     cursor: pointer;
+    display: flex; /* Match .edit-back-link */
+    justify-content: space-around;
+    align-items: center;
 }
-
-    .edit-primary-button:hover {
-        background: #004d40;
-    }
+.edit-primary-button:hover {
+    background: #004d40 !important;
+}
 
 .edit-navigation {
     position: absolute;
@@ -98,4 +100,8 @@
 
 .edit-input-col {
     flex: 1;
+}
+
+input.edit-primary-button[type="submit"] {
+    color: white !important;
 }

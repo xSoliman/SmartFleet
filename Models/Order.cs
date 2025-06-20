@@ -4,12 +4,10 @@ namespace SmartFleet.Models
 {
     public enum OrderState
     {
-        pending,
-        in_progress,
-        approved,
-        cancelled,
-        rejected,
-        NULLL
+        Pending,
+        Approved,
+        Cancelled,
+        Rejected,
     }
 
     public class Order
@@ -21,8 +19,8 @@ namespace SmartFleet.Models
         public ApplicationUser User { get; set; }
         public VehicleType VehicleType { get; set; }
         public int PassengerCount { get; set; }
-        public string TripStartLocation { get; set; }
-        public string TripEndLocation { get; set; }
+        public string StartLocation { get; set; }
+        public string Destination { get; set; }
         public DateTime TripStartDate { get; set; }
         public DateTime TripEndDate { get; set; }
         public string Reason { get; set; }
