@@ -28,14 +28,16 @@ namespace SmartFleet.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate)
+        public async Task<IActionResult> Index(
+            string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate,
+            string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, DateTime? assignedStartDate, DateTime? assignedEndDate)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var userRoles = await _userManager.GetRolesAsync(currentUser);
 
             var isDriver = userRoles.Contains("Driver");
             var isFleetManager = userRoles.Contains("FleetManager");
-            var isSystemSupport = userRoles.Contains("SystemSupport");
+            var isSystemSupport = userRoles.Contains("SysSupport");
 
             IQueryable<Trip> tripsQuery = _context.Trips
                 .Include(t => t.Vehicle)
@@ -47,13 +49,39 @@ namespace SmartFleet.Controllers
 
             if (isFleetManager || isSystemSupport)
             {
-                // Fleet Managers and System Support see all trips
+                // Fleet Managers and System Support see all trips (do not filter by user)
+                // Do nothing here
             }
             else if (isDriver)
             {
                 // Drivers see trips assigned to them in a separate list
-                assignedTrips = await tripsQuery.Where(t => t.DriverId == currentUser.Id).ToListAsync();
-                
+                var assignedTripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
+                // Apply assigned trips filters
+                if (!string.IsNullOrEmpty(assignedDestination))
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.Destination.Contains(assignedDestination));
+                }
+                if (!string.IsNullOrEmpty(assignedSearchDriverName))
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Driver.UserName.Contains(assignedSearchDriverName));
+                }
+                if (assignedVehicleType.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Vehicle.Type == assignedVehicleType.Value);
+                }
+                if (assignedStateFilter.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Status == assignedStateFilter.Value);
+                }
+                if (assignedStartDate.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripStartDate >= assignedStartDate.Value);
+                }
+                if (assignedEndDate.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripEndDate <= assignedEndDate.Value);
+                }
+                assignedTrips = await assignedTripsQuery.ToListAsync();
                 // And also see trips from orders they created (if any)
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
             }
@@ -62,8 +90,8 @@ namespace SmartFleet.Controllers
                 // Other users see trips from orders they created
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
             }
-            
-            // Apply filters
+
+            // Now apply filters for ordered trips (for everyone)
             if (!string.IsNullOrEmpty(destination))
             {
                 tripsQuery = tripsQuery.Where(t => t.Order.Destination.Contains(destination));
@@ -110,9 +138,15 @@ namespace SmartFleet.Controllers
                 StateFilter = stateFilter,
                 StartDate = startDate,
                 EndDate = endDate,
+                AssignedDestination = assignedDestination,
+                AssignedSearchDriverName = assignedSearchDriverName,
+                AssignedVehicleType = assignedVehicleType,
+                AssignedStateFilter = assignedStateFilter,
+                AssignedStartDate = assignedStartDate,
+                AssignedEndDate = assignedEndDate,
                 IsDriver = isDriver,
                 IsFleetManager = isFleetManager,
-                IsSystemSupport = isSystemSupport,
+                IsSysSupport = isSystemSupport,
                 CurrentUserId = currentUser.Id
             };
 

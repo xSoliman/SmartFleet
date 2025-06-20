@@ -25,6 +25,112 @@
     </div>
 }
 
+@if (Model.IsDriver)
+{
+    <h3 class="assigned-trips-header">Assigned Trips</h3>
+    <div class="order-filter-bar">
+        <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
+            <div class="form-group mx-2">
+                <input type="text" name="assignedDestination" value="@Model.AssignedDestination" class="form-control form-control-sm" placeholder="Destination" />
+            </div>
+            <div class="form-group mx-2">
+                <input type="text" name="assignedSearchDriverName" value="@Model.AssignedSearchDriverName" class="form-control form-control-sm" placeholder="Driver Name" />
+            </div>
+            <div class="form-group mx-2">
+                <select name="assignedVehicleType" class="form-control form-control-sm">
+                    <option value="">All Vehicle Types</option>
+                    @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
+                    {
+                        <option value="@type" selected="@(Model.AssignedVehicleType == type ? "selected" : null)">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group mx-2">
+                <select name="assignedStateFilter" class="form-control form-control-sm">
+                    <option value="">All Statuses</option>
+                    @foreach (SmartFleet.Models.TripState state in Enum.GetValues(typeof(SmartFleet.Models.TripState)))
+                    {
+                        <option value="@state" selected="@(Model.AssignedStateFilter == state ? "selected" : null)">@state</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group mx-2 d-flex align-items-end gap-2">
+                <div>
+                    <label for="assignedStartDate" class="form-label">From:</label>
+                    <input type="date" name="assignedStartDate" value="@(Model.AssignedStartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                </div>
+                <div>
+                    <label for="assignedEndDate" class="form-label">To:</label>
+                    <input type="date" name="assignedEndDate" value="@(Model.AssignedEndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                </div>
+            </div>
+            <div class="order-filter-actions">
+                <button type="submit" class="btn btn-sm custom-btn">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
+            </div>
+            <!-- Keep ordered trips filters in hidden fields so they persist -->
+            <input type="hidden" name="destination" value="@Model.Destination" />
+            <input type="hidden" name="searchDriverName" value="@Model.SearchDriverName" />
+            <input type="hidden" name="vehicleType" value="@Model.VehicleType" />
+            <input type="hidden" name="stateFilter" value="@Model.StateFilter" />
+            <input type="hidden" name="startDate" value="@Model.StartDate" />
+            <input type="hidden" name="endDate" value="@Model.EndDate" />
+        </form>
+    </div>
+    <div class="table-responsive assigned-trips-table">
+        <table class="table table-order table-bordered">
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Trip Start Date</th>
+                    <th>Trip End Date</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (Model.AssignedTrips != null && Model.AssignedTrips.Any())
+            {
+                foreach (var item in Model.AssignedTrips)
+                {
+                    <tr>
+                        <td>@item.Vehicle.LicensePlate (@item.Vehicle.Type)</td>
+                        <td>@item.Order.TripStartDate.ToString("MM/dd/yyyy HH:mm")</td>
+                        <td>@item.Order.TripEndDate.ToString("MM/dd/yyyy HH:mm")</td>
+                        <td>@item.Order.Destination</td>
+                        <td>
+                            <span class="badge-status badge-@item.Status.ToString().ToLower()">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-sm">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted">No assigned trips found.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <hr class="trips-divider" />
+}
+
+@if (Model.IsDriver)
+{
+    <h3 class="ordered-trips-header">Trips I Ordered</h3>
+}
+
 <div class="order-filter-bar">
     <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
         <div class="form-group mx-2">
@@ -67,54 +173,15 @@
             </button>
             <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
         </div>
+        <!-- Keep assigned trips filters in hidden fields so they persist -->
+        <input type="hidden" name="assignedDestination" value="@Model.AssignedDestination" />
+        <input type="hidden" name="assignedSearchDriverName" value="@Model.AssignedSearchDriverName" />
+        <input type="hidden" name="assignedVehicleType" value="@Model.AssignedVehicleType" />
+        <input type="hidden" name="assignedStateFilter" value="@Model.AssignedStateFilter" />
+        <input type="hidden" name="assignedStartDate" value="@Model.AssignedStartDate" />
+        <input type="hidden" name="assignedEndDate" value="@Model.AssignedEndDate" />
     </form>
 </div>
-
-@if (Model.IsDriver && Model.AssignedTrips.Any())
-{
-    <h3 class="assigned-trips-header">Assigned Trips</h3>
-    <div class="table-responsive assigned-trips-table">
-        <table class="table table-order table-bordered">
-            <thead>
-                <tr>
-                    <th>Vehicle</th>
-                    <th>Trip Start Date</th>
-                    <th>Trip End Date</th>
-                    <th>Destination</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var item in Model.AssignedTrips)
-            {
-                <tr>
-                    <td>@item.Vehicle.LicensePlate (@item.Vehicle.Type)</td>
-                    <td>@item.Order.TripStartDate.ToString("MM/dd/yyyy HH:mm")</td>
-                    <td>@item.Order.TripEndDate.ToString("MM/dd/yyyy HH:mm")</td>
-                    <td>@item.Order.Destination</td>
-                    <td>
-                        <span class="badge-status badge-@item.Status.ToString().ToLower()">
-                            @item.Status
-                        </span>
-                    </td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-sm">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-    <hr class="trips-divider" />
-}
-
-@if (Model.IsDriver)
-{
-    <h3 class="ordered-trips-header">Trips I Ordered</h3>
-}
 
 <div class="table-responsive">
     <table class="table table-order table-bordered">
@@ -126,7 +193,7 @@
             <th>Trip End Date</th>
             <th>Destination</th>
             <th>Status</th>
-            @if (Model.IsFleetManager || Model.IsSystemSupport)
+            @if (Model.IsFleetManager || Model.IsSysSupport)
             {
                 <th>Ordered By</th>
             }
@@ -148,7 +215,7 @@
                     @item.Status
                 </span>
             </td>
-            @if (Model.IsFleetManager || Model.IsSystemSupport)
+            @if (Model.IsFleetManager || Model.IsSysSupport)
             {
                 <td>@item.CreatedByUser.UserName</td>
             }
@@ -157,14 +224,14 @@
                     <i class="fas fa-info-circle"></i> Details
                 </a>
 
-                @if (Model.IsFleetManager || Model.IsSystemSupport)
+                @if (Model.IsFleetManager || Model.IsSysSupport)
                 {
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
                         <i class="fas fa-edit edit-icon"></i> Edit
                     </a>
                 }
                 
-                @if (Model.IsSystemSupport)
+                @if (Model.IsSysSupport)
                 {
                     <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete btn-sm">
                         <i class="fas fa-trash-alt deleted_icon"></i> Delete

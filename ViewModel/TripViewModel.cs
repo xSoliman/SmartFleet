@@ -15,10 +15,18 @@ namespace SmartFleet.ViewModel
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         
+        // Filters for assigned trips (for drivers)
+        public string? AssignedDestination { get; set; }
+        public string? AssignedSearchDriverName { get; set; }
+        public VehicleType? AssignedVehicleType { get; set; }
+        public TripState? AssignedStateFilter { get; set; }
+        public DateTime? AssignedStartDate { get; set; }
+        public DateTime? AssignedEndDate { get; set; }
+        
         // Role-based properties
         public bool IsDriver { get; set; }
         public bool IsFleetManager { get; set; }
-        public bool IsSystemSupport { get; set; }
+        public bool IsSysSupport { get; set; }
         public string? CurrentUserId { get; set; }
     }
 } 
