@@ -11,66 +11,133 @@
         <a href="javascript:history.back()" class="create-back-link mb-3">
             <i class="fas fa-arrow-left"></i> Back
         </a>
+        
         <h1 class="create-heading">Create New Trip</h1>
-        <form asp-action="Create" class="create-custom-form needs-validation" novalidate>
-            <div asp-validation-summary="ModelOnly" class="create-validation-message"></div>
-            <div class="flex-row">
-                <div class="flex-col-2">
-                    <div class="create-input-group">
-                        <label asp-for="OrderId" class="create-input-label">Order ID</label>
-                        <input type="text" class="create-input-field" value="@ViewBag.OrderId" readonly />
-                        <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
+        
+        <form asp-action="Create" class="create-custom-form needs-validation" novalidate id="createTripForm">
+            <div asp-validation-summary="ModelOnly" class="create-validation-message alert alert-danger" role="alert"></div>
+            
+            <!-- Order Information Section -->
+            <div class="create-section">
+                <h3 class="section-title">
+                    <i class="fas fa-file-alt"></i> Order Information
+                </h3>
+                <div class="flex-row">
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label asp-for="OrderId" class="create-input-label">
+                                <i class="fas fa-hashtag"></i> Order ID
+                            </label>
+                            <input type="text" class="create-input-field" value="@ViewBag.OrderId" readonly />
+                            <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
+                            <small class="form-text text-muted">This is automatically assigned from the order</small>
+                        </div>
                     </div>
-                    <div class="create-input-group">
-                        <label asp-for="CreatedBy" class="create-input-label">Created By</label>
-                        <input type="text" class="create-input-field" value="@ViewBag.CreatedBy" readonly />
-                        <input type="hidden" asp-for="CreatedBy" value="@ViewBag.CreatedBy" />
-                    </div>
-                    <div class="create-input-group">
-                        <label asp-for="VehicleId" class="create-input-label">Vehicle</label>
-                        <select asp-for="VehicleId" class="create-dropdown" asp-items="@ViewBag.VehicleId" required>
-                            <option value="">-- Select Vehicle --</option>
-                        </select>
-                        <span asp-validation-for="VehicleId" class="create-validation-message"></span>
-                    </div>
-                    <div class="create-input-group">
-                        <label asp-for="DriverId" class="create-input-label">Driver</label>
-                        <select asp-for="DriverId" class="create-dropdown" asp-items="ViewBag.DriverId" required>
-                            <option value="">-- Select Driver --</option>
-                        </select>
-                        <span asp-validation-for="DriverId" class="create-validation-message"></span>
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label asp-for="CreatedBy" class="create-input-label">
+                                <i class="fas fa-user"></i> Ordered By
+                            </label>
+                            <input type="text" class="create-input-field" value="@ViewBag.CreatedByUserName" readonly />
+                            <input type="hidden" asp-for="CreatedBy" value="@ViewBag.CreatedBy" />
+                            <small class="form-text text-muted">User who created this order</small>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-col-2">
-                    <div class="create-input-group">
-                        <label asp-for="Status" class="create-input-label">Trip Status</label>
-                        <select asp-for="Status" class="create-dropdown" asp-items="Html.GetEnumSelectList<TripState>()" required>
-                            <option value="">-- Select Status --</option>
-                        </select>
-                        <span asp-validation-for="Status" class="create-validation-message"></span>
+                
+                <div class="flex-row">
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label class="create-input-label">
+                                <i class="fas fa-clock"></i> Start Time
+                            </label>
+                            <input type="text" class="create-input-field" value="@ViewBag.TripStartTime.ToString("dd/MM/yyyy HH:mm")" readonly />
+                            <small class="form-text text-muted">Scheduled start time from the order</small>
+                        </div>
                     </div>
-                    <div class="create-input-group">
-                        <label class="create-input-label">Start Location</label>
-                        <input class="create-input-field" value="@ViewBag.OrderStartLocation" readonly />
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label class="create-input-label">
+                                <i class="fas fa-clock"></i> End Time
+                            </label>
+                            <input type="text" class="create-input-field" value="@ViewBag.TripEndTime.ToString("dd/MM/yyyy HH:mm")" readonly />
+                            <small class="form-text text-muted">Scheduled end time from the order</small>
+                        </div>
                     </div>
-                    <div class="create-input-group">
-                        <label class="create-input-label">End Location</label>
-                        <input class="create-input-field" value="@ViewBag.OrderEndLocation" readonly />
+                </div>
+                
+                <!-- Route Information -->
+                <div class="create-input-group">
+                    <label class="create-input-label">
+                        <i class="fas fa-map-marker-alt"></i> Route Information
+                    </label>
+                    <div class="route-info">
+                        <div class="route-point">
+                            <span class="route-label">From:</span>
+                            <span class="route-value">@ViewBag.OrderStartLocation</span>
+                        </div>
+                        <div class="route-point">
+                            <span class="route-label">To:</span>
+                            <span class="route-value">@ViewBag.OrderEndLocation</span>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Trip Assignments Section -->
+            <div class="create-section">
+                <h3 class="section-title">
+                    <i class="fas fa-route"></i> Trip Assignments
+                </h3>
+                
+                <!-- Vehicle and Driver Assignments -->
+                <div class="flex-row">
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label asp-for="VehicleId" class="create-input-label">
+                                <i class="fas fa-truck"></i> Vehicle *
+                            </label>
+                            <select asp-for="VehicleId" class="create-dropdown" asp-items="@ViewBag.VehicleId" required>
+                                <option value="">-- Select Vehicle --</option>
+                            </select>
+                            <span asp-validation-for="VehicleId" class="create-validation-message"></span>
+                            <small class="form-text text-muted">Choose the vehicle for this trip</small>
+                        </div>
+                    </div>
+                    <div class="flex-col-2">
+                        <div class="create-input-group">
+                            <label asp-for="DriverId" class="create-input-label">
+                                <i class="fas fa-user-tie"></i> Driver *
+                            </label>
+                            <select asp-for="DriverId" class="create-dropdown" asp-items="ViewBag.DriverId" required>
+                                <option value="">-- Select Driver --</option>
+                            </select>
+                            <span asp-validation-for="DriverId" class="create-validation-message"></span>
+                            <small class="form-text text-muted">Assign a driver to this trip</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Box -->
             <div class="create-info-box">
                 <div class="info-icon">
                     <i class="fas fa-info-circle"></i>
                 </div>
                 <div class="info-content">
-                    <h4>Auto-Calculated Distance</h4>
-                    <p>The trip distance will be automatically calculated based on GPS tracking data when the trip is in progress. No manual input required.</p>
+                    <h4>Auto-Calculated distance</h4>
+                    <p>The trip distance will be automatically calculated based on GPS tracking data when the trip is in progress. Trip status is automatically managed based on start/end times.</p>
+           
                 </div>
             </div>
+
+            <!-- Form Actions -->
             <div class="create-button-group">
-                <button type="submit" class="create-primary-button">
-                    <i class="fas fa-save me-1"></i> Create Trip
+                <button type="button" class="create-secondary-button" onclick="resetForm()">
+                    <i class="fas fa-undo"></i> Reset Form
+                </button>
+                <button type="submit" class="create-primary-button" id="submitBtn">
+                    <i class="fas fa-save"></i> Create Trip
                 </button>
             </div>
         </form>
@@ -81,4 +148,99 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    <script>
+        // Enhanced form validation and user experience
+        $(document).ready(function() {
+            const form = $('#createTripForm');
+            const submitBtn = $('#submitBtn');
+            
+            // Real-time validation feedback
+            $('.create-dropdown').on('change', function() {
+                validateField($(this));
+            });
+            
+            // Form submission handling
+            form.on('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    showValidationMessage('Please correct the errors below.', 'error');
+                    return false;
+                }
+                
+                // Show loading state
+                submitBtn.prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin"></i> Creating Trip...');
+                
+                // Re-enable after 5 seconds as fallback
+                setTimeout(() => {
+                    submitBtn.prop('disabled', false)
+                        .html('<i class="fas fa-save"></i> Create Trip');
+                }, 5000);
+            });
+            
+            // Initialize tooltips for better UX
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+        
+        function validateField(field) {
+            const value = field.val();
+            const fieldName = field.attr('name');
+            const validationSpan = field.siblings('.create-validation-message');
+            
+            // Remove existing validation classes
+            field.removeClass('is-valid is-invalid');
+            
+            if (!value || value.trim() === '') {
+                field.addClass('is-invalid');
+                validationSpan.text('This field is required.');
+                return false;
+            } else {
+                field.addClass('is-valid');
+                validationSpan.text('');
+                return true;
+            }
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate all required fields
+            $('.create-dropdown[required]').each(function() {
+                if (!validateField($(this))) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+        
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+                $('#createTripForm')[0].reset();
+                $('.create-dropdown').removeClass('is-valid is-invalid');
+                $('.create-validation-message').text('');
+                showValidationMessage('Form has been reset.', 'success');
+            }
+        }
+        
+        function showValidationMessage(message, type) {
+            const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            $('.create-validation-message').first().after(alertHtml);
+            
+            // Auto-dismiss success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    $('.alert-success').fadeOut();
+                }, 3000);
+            }
+        }
+    </script>
 }
