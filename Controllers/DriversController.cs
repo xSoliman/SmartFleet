@@ -7,11 +7,13 @@ using SmartFleet.Models;
 using SmartFleet.ViewModel;
 using SmartFleet.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFleet.Controllers
 {
     // Optionally, add an authorization attribute if needed:
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "SysAdmin , Driver")]
     public class DriversController : Controller
     {
         private readonly SmartFleetContext _context;
@@ -28,7 +30,7 @@ namespace SmartFleet.Controllers
         }
         public async Task<IActionResult> DriverDashboard()
         {
-            string? driverId = Request.Cookies["UserId"];
+            string? driverId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
             if (string.IsNullOrEmpty(driverId))
                 return RedirectToAction("Login", "Account");
 
@@ -53,7 +55,6 @@ namespace SmartFleet.Controllers
 
 
         [HttpPost]
-
         public async Task<IActionResult> UpdateDriverStatus(string id, DriverState status)
         {
             var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == id);

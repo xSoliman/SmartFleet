@@ -3,6 +3,8 @@ using SmartFleet.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using SmartFleet.Hubs;
+using SmartFleet.Services;
 
 namespace SmartFleet
 {
@@ -33,11 +35,13 @@ namespace SmartFleet
             options.LoginPath = "/Account/Login";
             options.AccessDeniedPath = "/Account/AccessDenied";
                                      });
+
+            builder.Services.AddScoped<INotificationService, NotificationService>();
             // Database initializer 
             builder.Services.AddScoped<Dbinitializer>();
 
             var app = builder.Build();
-
+            builder.Services.AddSignalR();
             // initialize the database
             using (var scope = app.Services.CreateScope())
             {
@@ -52,6 +56,7 @@ namespace SmartFleet
 
             app.UseStaticFiles();
             app.UseRouting();
+            app.MapHub<NotificationHub>("/hubs/Notify");
             app.UseAuthentication(); 
             app.UseAuthorization();
 

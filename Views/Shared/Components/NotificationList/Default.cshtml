@@ -1,0 +1,49 @@
+@model List<SmartFleet.Models.Notification>
+
+<div class="dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-bell"></i>
+        <span class="badge bg-danger" id="notificationCount">@Model.Count(n => !n.IsRead)</span>
+    </a>
+    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
+        <div class="px-3 py-2 border-bottom">
+            <h6 class="mb-0">Notifications</h6>
+        </div>
+        <div id="notificationList">
+            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt).Take(10))
+            {
+                <div class="dropdown-item notification-item @(!notification.IsRead ? "unread" : "")" data-notification-id="@notification.Id">
+                    <h6 class="mb-1">@notification.Title</h6>
+                    <p class="mb-1 small">@notification.Message</p>
+                    <small class="text-muted">@notification.CreatedAt.ToLocalTime().ToString("g")</small>
+                </div>
+            }
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item text-center small text-muted" asp-controller="Notifications" asp-action="Index">View all notifications</a>
+    </div>
+</div>
+
+<style>
+    .notification-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    .notification-item.unread {
+        background-color: #f0f8ff;
+    }
+    .notification-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 350px;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>

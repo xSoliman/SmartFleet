@@ -1,22 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using SmartFleet.Data;
 using SmartFleet.Models;
-using System.Linq;
+using SmartFleet.Services;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Security.Claims;
 
 namespace SmartFleet.Controllers
 {
     public class NotificationsController : Controller
     {
-        private readonly SmartFleetContext _context;
+        private readonly INotificationService _notificationService;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public NotificationsController(SmartFleetContext context, UserManager<ApplicationUser> userManager)
+        public NotificationsController(INotificationService notificationService, UserManager<ApplicationUser> userManager)
         {
-            _context = context;
+            _notificationService = notificationService;
             _userManager = userManager;
         }
 
@@ -28,11 +27,7 @@ namespace SmartFleet.Controllers
                 return Json(new { success = false, message = "User not found" });
             }
 
-            var notifications = _context.Notifications
-                .Where(n => n.UserId == user.Id)
-                .OrderByDescending(n => n.CreatedAt)
-                .Take(10)
-                .ToList();
+            var notifications = await _notificationService.GetUserNotificationsAsync(user.Id);
 
             return Json(new { success = true, notifications });
         }
@@ -40,13 +35,8 @@ namespace SmartFleet.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAsRead(int id)
         {
-            var notification = await _context.Notifications.FindAsync(id);
-            if (notification != null)
-            {
-                notification.IsRead = true;
-                await _context.SaveChangesAsync();
-            }
-
+             await _notificationService.MarkNotificationAsReadAsync(id);
+            
             return Ok(new { success = true });
         }
 
@@ -55,17 +45,7 @@ namespace SmartFleet.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return BadRequest("User not found");
-
-            var notifications = _context.Notifications
-                .Where(n => n.UserId == userId && !n.IsRead)
-                .ToList();
-
-            foreach (var notification in notifications)
-            {
-                notification.IsRead = true;
-            }
-
-            await _context.SaveChangesAsync();
+            await _notificationService.MarkAllNotificationAsReadAsync( userId); 
             return Ok(new { success = true });
         }
     }

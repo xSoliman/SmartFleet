@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -101,17 +102,16 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,TripStartLocation,TripEndLocation,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
         {
             order.Status = OrderState.pending; // Always set status to Pending
-            order.UserId = Request.Cookies["UserId"];
+            order.UserId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
 
             _context.Add(order);
             await _context.SaveChangesAsync();
 
-            // إنشاء Cookie تحتوي على OrderId بعد الحفظ بنجاح
             CookieOptions option = new CookieOptions
             {
-                Expires = DateTime.UtcNow.AddHours(1), // صلاحية لمدة ساعة
-                HttpOnly = true, // تحسين الأمان
-                Secure = true // استخدام HTTPS فقط
+                Expires = DateTime.UtcNow.AddHours(1), 
+                HttpOnly = true, 
+                Secure = true
             };
 
             Response.Cookies.Append("OrderId", order.Id.ToString(), option);
