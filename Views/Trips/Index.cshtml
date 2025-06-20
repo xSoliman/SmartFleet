@@ -51,13 +51,15 @@
                 }
             </select>
         </div>
-        <div class="form-group mx-2">
-            <label for="startDate" class="form-label">From:</label>
-            <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
-        </div>
-        <div class="form-group mx-2">
-            <label for="endDate" class="form-label">To:</label>
-            <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+        <div class="form-group mx-2 d-flex align-items-end gap-2">
+            <div>
+                <label for="startDate" class="form-label">From:</label>
+                <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
+            <div>
+                <label for="endDate" class="form-label">To:</label>
+                <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
         </div>
         <div class="order-filter-actions">
             <button type="submit" class="btn btn-sm custom-btn">
@@ -76,11 +78,9 @@
                 <th>Driver</th>
                 <th>Trip Start Date</th>
                 <th>Trip End Date</th>
-                <th>Distance</th>
                 <th>Destination</th>
                 <th>Status</th>
-                <th>Created At</th>
-                <th>Created By</th>
+                <th>Ordered By</th>
                 <th>Actions</th>
         </tr>
     </thead>
@@ -89,27 +89,25 @@
 {
     foreach (var item in Model.Trips) {
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.Vehicle.Model) (@Html.DisplayFor(modelItem => item.Vehicle.Type))</td>
+            <td>@Html.DisplayFor(modelItem => item.Vehicle.LicensePlate) (@Html.DisplayFor(modelItem => item.Vehicle.Type))</td>
             <td>@Html.DisplayFor(modelItem => item.Driver.UserName)</td>
-            <td>@Html.DisplayFor(modelItem => item.Order.TripStartDate)</td>
-            <td>@Html.DisplayFor(modelItem => item.Order.TripEndDate)</td>
-            <td>@Html.DisplayFor(modelItem => item.Distance) km</td>
+            <td>@item.Order.TripStartDate.ToString("MM/dd/yyyy HH:mm")</td>
+            <td>@item.Order.TripEndDate.ToString("MM/dd/yyyy HH:mm")</td>
             <td>@Html.DisplayFor(modelItem => item.Order.Destination)</td>
             <td>
                 <span class="badge-status badge-@item.Status.ToString().ToLower()">
                     @item.Status
                 </span>
             </td>
-            <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
             <td>@Html.DisplayFor(modelItem => item.CreatedByUser.UserName)</td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
                     <i class="fas fa-edit edit-icon"></i> Edit
                 </a>
-                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-sm">
                     <i class="fas fa-info-circle"></i> Details
                 </a>
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete btn-sm">
                     <i class="fas fa-trash-alt deleted_icon"></i> Delete
                 </a>
                 
@@ -117,7 +115,7 @@
                 {
                     <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-warning" 
+                        <button type="submit" class="btn btn-warning btn-sm" 
                                 onclick="return confirm('Are you sure you want to cancel this trip?')">
                             <i class="fas fa-times"></i> Cancel
                         </button>

@@ -39,6 +39,12 @@
     display: inline-block;
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+}
+
 .btn-edit, .btn-details, .btn-delete {
     background-color: rgb(235, 235, 235);
     color: black;
@@ -105,13 +111,13 @@
     background: #f4f8fb;
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(22,180,22,0.07), 0 1.5px 4px rgba(0,0,0,0.03);
-    padding: 22px 28px 14px 28px;
-    margin: 0 auto 28px auto;
+    padding: 16px 28px 12px 28px;
+    margin: 0 auto 20px auto;
     max-width: 1200px;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 18px 24px;
+    gap: 12px 20px;
     border: 1px solid #e0e7ef;
     justify-content: center;
 }
@@ -122,18 +128,18 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-end;
-    gap: 16px 22px;
+    gap: 12px 18px;
     flex-direction: row;
     position: relative;
-    padding: 0 25px;
+    padding: 0 15px;
 }
 
 .order-filter-actions {
     width: 100%;
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-top: 14px;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .order-filter-bar label {
@@ -203,9 +209,11 @@
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
     box-shadow: 0 2px 8px rgba(108,117,125,0.08);
     transition: background 0.2s, box-shadow 0.2s;
+    min-width: 70px;
+    text-align: center;
 }
 
 .order-filter-bar .btn-secondary:hover {
