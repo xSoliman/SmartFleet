@@ -17,6 +17,20 @@
         <form asp-action="Create" class="create-custom-form needs-validation" novalidate id="createTripForm">
             <div asp-validation-summary="ModelOnly" class="create-validation-message alert alert-danger" role="alert"></div>
             
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <strong>Error:</strong> @TempData["ErrorMessage"]
+                </div>
+            }
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success" role="alert">
+                    <strong>Success:</strong> @TempData["SuccessMessage"]
+                </div>
+            }
+            
             <!-- Order Information Section -->
             <div class="create-section">
                 <h3 class="section-title">
@@ -102,6 +116,13 @@
                             </select>
                             <span asp-validation-for="VehicleId" class="create-validation-message"></span>
                             <small class="form-text text-muted">Choose the vehicle for this trip</small>
+                            
+                            @if (ViewBag.AvailableVehiclesCount != null)
+                            {
+                                <small class="form-text text-info">
+                                    Available vehicles: @ViewBag.AvailableVehiclesCount
+                                </small>
+                            }
                         </div>
                     </div>
                     <div class="flex-col-2">
@@ -114,6 +135,13 @@
                             </select>
                             <span asp-validation-for="DriverId" class="create-validation-message"></span>
                             <small class="form-text text-muted">Assign a driver to this trip</small>
+                            
+                            @if (ViewBag.AvailableDriversCount != null)
+                            {
+                                <small class="form-text text-info">
+                                    Available drivers: @ViewBag.AvailableDriversCount
+                                </small>
+                            }
                         </div>
                     </div>
                 </div>
@@ -162,11 +190,16 @@
             
             // Form submission handling
             form.on('submit', function(e) {
+                console.log('Form submission started');
+                
                 if (!validateForm()) {
                     e.preventDefault();
+                    console.log('Form validation failed');
                     showValidationMessage('Please correct the errors below.', 'error');
                     return false;
                 }
+                
+                console.log('Form validation passed, submitting...');
                 
                 // Show loading state
                 submitBtn.prop('disabled', true)

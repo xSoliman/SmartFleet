@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,13 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly ITripStateManagementService _tripStateService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService)
+        public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _tripStateService = tripStateService;
+            _userManager = userManager;
         }
 
         // GET: Trips
@@ -91,55 +94,250 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            // Check if user is Fleet Manager
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isFleetManager = userRoles.Contains("FleetManager");
+
+            if (!isFleetManager)
+            {
+                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                return RedirectToAction("Index", "Orders");
+            }
+
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
             }
 
+            // Only allow creating trips for approved orders
+            if (order.Status != OrderState.Approved)
+            {
+                TempData["ErrorMessage"] = "Trips can only be created for approved orders.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            // Check if a trip already exists for this order
+            var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == order.Id);
+            if (existingTrip)
+            {
+                TempData["ErrorMessage"] = "A trip already exists for this order.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            // Get the user who created the order
+            var orderUser = await _userManager.FindByIdAsync(userId);
+            var createdByUserName = orderUser?.UserName ?? "Unknown User";
+
             // Pass StartLocation and Destination to the view
             ViewBag.OrderStartLocation = order.StartLocation;
             ViewBag.OrderEndLocation = order.Destination;
+            ViewBag.TripStartTime = order.TripStartDate;
+            ViewBag.TripEndTime = order.TripEndDate;
 
-            // فلترة المركبات حسب النوع ومتاحة فقط
-            var filteredVehicles = await _context.Vehicles
-                .Where(v => v.Type == order.VehicleType && v.Status == VehicleState.available)
+            // Get all available vehicles (not filtering by type to show all options)
+            var availableVehicles = await _context.Vehicles
+                .Where(v => v.Status == VehicleState.available)
                 .ToListAsync();
 
-            // فلترة السائقين المتاحين فقط (DriverStatus = active)
+            // Debug: Log the count of available vehicles
+            var totalVehicles = await _context.Vehicles.CountAsync();
+            var availableCount = availableVehicles.Count;
+            
+            // Add debug information to ViewBag
+            ViewBag.TotalVehicles = totalVehicles;
+            ViewBag.AvailableVehiclesCount = availableCount;
+            ViewBag.AvailableVehicles = availableVehicles; // For debugging
+
+            // Get all active drivers
             var availableDrivers = await _context.Drivers
                 .Where(d => d.DriverStatus == DriverState.active)
                 .ToListAsync();
 
-            // عرض اسم المستخدم (UserName) بدلاً من Id
-            ViewBag.DriverId = new SelectList(availableDrivers, "Id", "UserName");
-            ViewBag.VehicleId = new SelectList(filteredVehicles, "Id", "Model"); // لو عايز تعرض اسم الموديل مثلاً
+            // Debug: Log the count of available drivers
+            var totalDrivers = await _context.Drivers.CountAsync();
+            var availableDriversCount = availableDrivers.Count;
+            
+            // Add debug information to ViewBag
+            ViewBag.TotalDrivers = totalDrivers;
+            ViewBag.AvailableDriversCount = availableDriversCount;
+            ViewBag.AvailableDrivers = availableDrivers; // For debugging
+
+            // Display detailed driver information
+            var driverSelectList = availableDrivers.Select(d => new SelectListItem
+            {
+                Value = d.Id,
+                Text = $"{d.UserName} - {d.LicenseNumber} (Active)"
+            }).ToList();
+            
+            ViewBag.DriverId = new SelectList(driverSelectList, "Value", "Text");
+            
+            // Create custom display format for vehicles (License Plate - Model)
+            var vehicleSelectList = availableVehicles.Select(v => new SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type})"
+            }).ToList();
+            
+            ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text");
             ViewBag.OrderId = id;
             ViewBag.CreatedBy = userId;
+            ViewBag.CreatedByUserName = createdByUserName;
 
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,Status,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,CreatedBy")] Trip trip)
         {
-            // التحقق من عدم وجود رحلة لهذا الطلب مسبقاً
+            // Debug: Log the received data
+            TempData["DebugInfo"] = $"Received: VehicleId={trip.VehicleId}, OrderId={trip.OrderId}, DriverId={trip.DriverId}, CreatedBy={trip.CreatedBy}";
+            
+            // Check if user is Fleet Manager
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                TempData["ErrorMessage"] = "User not found.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isFleetManager = userRoles.Contains("FleetManager");
+
+            if (!isFleetManager)
+            {
+                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            // Validate that the order exists and is approved
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == trip.OrderId);
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Order not found.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            if (order.Status != OrderState.Approved)
+            {
+                TempData["ErrorMessage"] = "Trips can only be created for approved orders.";
+                return RedirectToAction("Index", "Orders");
+            }
+
+            // Check if a trip already exists for this order
             var existingTrip = await _context.Trips.AnyAsync(t => t.OrderId == trip.OrderId);
             if (existingTrip)
             {
-                ModelState.AddModelError("OrderId", "يوجد رحلة مسجلة لهذا الطلب بالفعل");
+                ModelState.AddModelError("OrderId", "A trip already exists for this order.");
             }
 
-            trip.CreatedAt = DateTime.Now;
-            trip.Distance = 0; // Initialize distance to 0, will be calculated automatically
-            _context.Add(trip);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // Validate that the vehicle exists and is available
+            var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == trip.VehicleId);
+            if (vehicle == null)
+            {
+                ModelState.AddModelError("VehicleId", "Selected vehicle not found.");
+            }
+            else if (vehicle.Status != VehicleState.available)
+            {
+                ModelState.AddModelError("VehicleId", "Selected vehicle is not available.");
+            }
 
-            // إعادة تحميل بيانات العرض في حالة الخطأ
-            ViewBag.DriverId = new SelectList(_context.Drivers, "Id", "UserName", trip.DriverId);
-            ViewBag.VehicleId = new SelectList(_context.Vehicles, "Id", "Model", trip.VehicleId);
+            // Validate that the driver exists and is active
+            var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == trip.DriverId);
+            if (driver == null)
+            {
+                ModelState.AddModelError("DriverId", "Selected driver not found.");
+            }
+            else if (driver.DriverStatus != DriverState.active)
+            {
+                ModelState.AddModelError("DriverId", "Selected driver is not active.");
+            }
+
+            // Clear navigation property errors since we're only binding IDs
+            ModelState.Remove("Order");
+            ModelState.Remove("Driver");
+            ModelState.Remove("Vehicle");
+            ModelState.Remove("CreatedByUser");
+
+            // Debug: Log ModelState errors
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                TempData["DebugInfo"] += $"; ModelState Errors: {errors}";
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    trip.CreatedAt = DateTime.Now;
+                    trip.Distance = 0; // Initialize distance to 0, will be calculated automatically
+                    trip.Status = TripState.Scheduled; // Automatically set status to Scheduled
+                    _context.Add(trip);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Trip created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = $"Error creating trip: {ex.Message}";
+                    // Continue to reload the form with error
+                }
+            }
+
+            // Reload data for the form (in case of validation errors)
+            var orderUser = await _userManager.FindByIdAsync(trip.CreatedBy);
+            var createdByUserName = orderUser?.UserName ?? "Unknown User";
+            
+            // Reload available vehicles and drivers
+            var availableVehicles = await _context.Vehicles
+                .Where(v => v.Status == VehicleState.available)
+                .ToListAsync();
+            
+            var availableDrivers = await _context.Drivers
+                .Where(d => d.DriverStatus == DriverState.active)
+                .ToListAsync();
+            
+            // Create detailed driver display format
+            var driverSelectList = availableDrivers.Select(d => new SelectListItem
+            {
+                Value = d.Id,
+                Text = $"{d.UserName} - {d.LicenseNumber} (Active)"
+            }).ToList();
+            
+            ViewBag.DriverId = new SelectList(driverSelectList, "Value", "Text", trip.DriverId);
+            
+            // Create custom display format for vehicles (License Plate - Model)
+            var vehicleSelectList = availableVehicles.Select(v => new SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type})"
+            }).ToList();
+            
+            ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
+            ViewBag.OrderId = trip.OrderId;
+            ViewBag.CreatedBy = trip.CreatedBy;
+            ViewBag.CreatedByUserName = createdByUserName;
+            ViewBag.OrderStartLocation = order.StartLocation;
+            ViewBag.OrderEndLocation = order.Destination;
+            ViewBag.TripStartTime = order.TripStartDate;
+            ViewBag.TripEndTime = order.TripEndDate;
+            
+            // Add debug information
+            ViewBag.TotalVehicles = availableVehicles.Count;
+            ViewBag.AvailableVehiclesCount = availableVehicles.Count;
+            ViewBag.TotalDrivers = availableDrivers.Count;
+            ViewBag.AvailableDriversCount = availableDrivers.Count;
+            
             return View(trip);
         }
 
