@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace SmartFleet.Controllers
 {
     // Optionally, add an authorization attribute if needed:
-    [Authorize(Roles = "SysAdmin , Driver")]
+    [Authorize(Roles = "SysSupport,FleetManager")]
     public class DriversController : Controller
     {
         private readonly SmartFleetContext _context;

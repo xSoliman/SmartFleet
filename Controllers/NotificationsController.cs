@@ -6,6 +6,8 @@ using SmartFleet.Services;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using SmartFleet.Hubs;
 
 namespace SmartFleet.Controllers
 {
@@ -14,12 +16,14 @@ namespace SmartFleet.Controllers
         private readonly INotificationService _notificationService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SmartFleetContext _context;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public NotificationsController(INotificationService notificationService, UserManager<ApplicationUser> userManager, SmartFleetContext context)
+        public NotificationsController(INotificationService notificationService, UserManager<ApplicationUser> userManager, SmartFleetContext context, IHubContext<NotificationHub> hubContext)
         {
             _notificationService = notificationService;
             _userManager = userManager;
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: Notifications
@@ -113,8 +117,18 @@ namespace SmartFleet.Controllers
                     return NotFound(new { success = false, message = "Notification not found" });
                 }
 
+                // Store the notification info before deletion for SignalR
+                var notificationInfo = new
+                {
+                    id = notification.Id,
+                    wasUnread = !notification.IsRead
+                };
+
                 _context.Notifications.Remove(notification);
                 await _context.SaveChangesAsync();
+
+                // Send real-time deletion notification via SignalR
+                await _hubContext.Clients.User(user.Id).SendAsync("NotificationDeleted", notificationInfo);
 
                 return Ok(new { success = true, message = "Notification deleted successfully" });
             }

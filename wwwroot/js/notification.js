@@ -57,13 +57,16 @@ connection.on("NotificationMarkedAsRead", (data) => {
     
     // Update the notification item in both dropdown and main list
     const notificationItems = document.querySelectorAll(`[data-notification-id="${data.id}"]`);
+    let wasUnread = false;
+    
     notificationItems.forEach(notificationItem => {
-    if (notificationItem && notificationItem.classList.contains('unread')) {
-        notificationItem.classList.remove('unread');
-        const badge = notificationItem.querySelector('.badge');
-        if (badge) badge.remove();
-        const title = notificationItem.querySelector('h6');
-        if (title) title.classList.remove('fw-bold');
+        if (notificationItem && notificationItem.classList.contains('unread')) {
+            wasUnread = true;
+            notificationItem.classList.remove('unread');
+            const badge = notificationItem.querySelector('.badge');
+            if (badge) badge.remove();
+            const title = notificationItem.querySelector('h6');
+            if (title) title.classList.remove('fw-bold');
             
             // Remove the "New" badge if it exists
             const newBadge = notificationItem.querySelector('.notification-new-badge');
@@ -78,20 +81,22 @@ connection.on("NotificationMarkedAsRead", (data) => {
             if (markReadBtn) markReadBtn.remove();
         }
     });
-        
-        // Update count
-        updateNotificationCount(-1);
     
-    // Update the notification count in the ViewComponent header
-    updateViewComponentNotificationCount();
+    // Update count only if the notification was actually unread
+    if (wasUnread) {
+        updateNotificationCount(-1);
+    }
 });
 
 // Handle all notifications marked as read
 connection.on("AllNotificationsMarkedAsRead", () => {
     console.log('All notifications marked as read');
     
-    // Update all notification items
+    // Count unread notifications before updating
     const unreadItems = document.querySelectorAll('.notification-item.unread');
+    const unreadCount = unreadItems.length;
+    
+    // Update all notification items
     unreadItems.forEach(item => {
         item.classList.remove('unread');
         const badge = item.querySelector('.badge');
@@ -112,28 +117,24 @@ connection.on("AllNotificationsMarkedAsRead", () => {
         if (markReadBtn) markReadBtn.remove();
     });
     
-    // Update notification count badge
-    const notificationCount = document.getElementById('notificationCount');
-    const notificationBell = document.querySelector('.notification-bell');
-    
-    if (notificationCount) {
-        notificationCount.textContent = '0';
-        notificationCount.style.display = 'none';
-        notificationCount.classList.add('no-unread');
+    // Update notification count using the proper function
+    if (unreadCount > 0) {
+        updateNotificationCount(-unreadCount);
     }
-    
-    // Update bell color
-    if (notificationBell) {
-        notificationBell.classList.remove('has-unread');
-        notificationBell.classList.add('no-unread');
-    }
-    
-    // Remove "Mark all as read" button
-    hideMarkAllAsReadButton();
 });
+
+// Global flag to prevent double updates
+let isUpdatingCounter = false;
 
 // Function to update notification count
 function updateNotificationCount(increment = 0) {
+    if (isUpdatingCounter) {
+        console.log('Counter update already in progress, skipping...');
+        return;
+    }
+    
+    isUpdatingCounter = true;
+    
     const notificationCount = document.getElementById('notificationCount');
     const notificationBell = document.querySelector('.notification-bell');
     
@@ -141,16 +142,18 @@ function updateNotificationCount(increment = 0) {
         const currentCount = parseInt(notificationCount.textContent || '0');
         const newCount = Math.max(0, currentCount + increment);
         
+        console.log(`Updating notification count: ${currentCount} + ${increment} = ${newCount}`);
+        
         notificationCount.textContent = newCount;
         
         // Show/hide badge based on count
         if (newCount > 0) {
-            notificationCount.style.display = 'flex';
+            notificationCount.style.setProperty('display', 'flex', 'important');
             notificationCount.classList.remove('no-unread');
             // Show "Mark all as read" button when there are unread notifications
             showMarkAllAsReadButton();
         } else {
-            notificationCount.style.display = 'none';
+            notificationCount.style.setProperty('display', 'none', 'important');
             notificationCount.classList.add('no-unread');
             // Hide "Mark all as read" button when there are no unread notifications
             hideMarkAllAsReadButton();
@@ -166,6 +169,23 @@ function updateNotificationCount(increment = 0) {
                 notificationBell.classList.add('no-unread');
             }
         }
+        
+        // Force a reflow to ensure the display change takes effect
+        notificationCount.offsetHeight;
+        
+        // Double-check the display state after a brief delay
+        setTimeout(() => {
+            if (newCount === 0 && notificationCount.style.display !== 'none') {
+                console.log('Forcing notification count to hide');
+                notificationCount.style.setProperty('display', 'none', 'important');
+            } else if (newCount > 0 && notificationCount.style.display !== 'flex') {
+                console.log('Forcing notification count to show');
+                notificationCount.style.setProperty('display', 'flex', 'important');
+            }
+            isUpdatingCounter = false;
+        }, 50);
+    } else {
+        isUpdatingCounter = false;
     }
 }
 
@@ -209,6 +229,12 @@ function addNotificationToList(notification) {
 // Function to mark notification as read
 async function markAsRead(notificationId) {
     try {
+        // Check if the notification is currently unread before making the request
+        const notificationItems = document.querySelectorAll(`[data-notification-id="${notificationId}"]`);
+        const wasUnread = Array.from(notificationItems).some(item => item.classList.contains('unread'));
+        
+        console.log(`Marking notification ${notificationId} as read. Was unread: ${wasUnread}`);
+        
         const response = await fetch('/Notifications/MarkAsRead', {
             method: 'POST',
             headers: {
@@ -220,14 +246,13 @@ async function markAsRead(notificationId) {
         
         if (response.ok) {
             // Update the notification item in both dropdown and main list
-            const notificationItems = document.querySelectorAll(`[data-notification-id="${notificationId}"]`);
             notificationItems.forEach(notificationItem => {
-            if (notificationItem && notificationItem.classList.contains('unread')) {
-                notificationItem.classList.remove('unread');
-                const badge = notificationItem.querySelector('.badge');
-                if (badge) badge.remove();
-                const title = notificationItem.querySelector('h6');
-                if (title) title.classList.remove('fw-bold');
+                if (notificationItem && notificationItem.classList.contains('unread')) {
+                    notificationItem.classList.remove('unread');
+                    const badge = notificationItem.querySelector('.badge');
+                    if (badge) badge.remove();
+                    const title = notificationItem.querySelector('h6');
+                    if (title) title.classList.remove('fw-bold');
                     
                     // Remove the "New" badge if it exists
                     const newBadge = notificationItem.querySelector('.notification-new-badge');
@@ -242,9 +267,14 @@ async function markAsRead(notificationId) {
                     if (markReadBtn) markReadBtn.remove();
                 }
             });
-                
-                // Update count only if the notification was unread
-                updateNotificationCount(-1);
+            
+            // Small delay to ensure DOM updates are processed before updating counter
+            setTimeout(() => {
+                // Update count only if the notification was actually unread
+                if (wasUnread) {
+                    updateNotificationCount(-1);
+                }
+            }, 10);
         } else {
             console.error('Failed to mark notification as read:', response.statusText);
         }
@@ -253,47 +283,13 @@ async function markAsRead(notificationId) {
     }
 }
 
-// Function to update the notification count in the ViewComponent header
-function updateViewComponentNotificationCount() {
-    const currentCount = parseInt(document.getElementById('notificationCount')?.textContent || '0');
-    const newCount = Math.max(0, currentCount - 1);
-    
-    const notificationCount = document.getElementById('notificationCount');
-    const notificationBell = document.querySelector('.notification-bell');
-    
-    if (notificationCount) {
-        notificationCount.textContent = newCount;
-        
-        if (newCount > 0) {
-            notificationCount.style.display = 'flex';
-            notificationCount.classList.remove('no-unread');
-        } else {
-            notificationCount.style.display = 'none';
-            notificationCount.classList.add('no-unread');
-        }
-    }
-    
-    if (notificationBell) {
-        if (newCount > 0) {
-            notificationBell.classList.remove('no-unread');
-            notificationBell.classList.add('has-unread');
-        } else {
-            notificationBell.classList.remove('has-unread');
-            notificationBell.classList.add('no-unread');
-        }
-    }
-    
-    // Handle "Mark all as read" button visibility
-    if (newCount === 0) {
-        hideMarkAllAsReadButton();
-    } else {
-        showMarkAllAsReadButton();
-    }
-}
-
 // Function to mark all notifications as read
 async function markAllAsRead() {
     try {
+        // Count unread notifications before updating
+        const unreadItems = document.querySelectorAll('.notification-item.unread');
+        const unreadCount = unreadItems.length;
+        
         const response = await fetch('/Notifications/MarkAllAsRead', {
             method: 'POST',
             headers: {
@@ -303,10 +299,6 @@ async function markAllAsRead() {
         });
         
         if (response.ok) {
-            // Count unread notifications before updating
-            const unreadItems = document.querySelectorAll('.notification-item.unread');
-            const unreadCount = unreadItems.length;
-            
             // Update all notification items
             unreadItems.forEach(item => {
                 item.classList.remove('unread');
@@ -328,24 +320,10 @@ async function markAllAsRead() {
                 if (markReadBtn) markReadBtn.remove();
             });
             
-            // Update notification count badge
-            const notificationCount = document.getElementById('notificationCount');
-            const notificationBell = document.querySelector('.notification-bell');
-            
-            if (notificationCount) {
-                notificationCount.textContent = '0';
-                notificationCount.style.display = 'none';
-                notificationCount.classList.add('no-unread');
+            // Update notification count badge by decrementing the actual unread count
+            if (unreadCount > 0) {
+                updateNotificationCount(-unreadCount);
             }
-            
-            // Update bell color
-            if (notificationBell) {
-                notificationBell.classList.remove('has-unread');
-                notificationBell.classList.add('no-unread');
-            }
-            
-            // Remove "Mark all as read" button
-            hideMarkAllAsReadButton();
         }
     } catch (error) {
         console.error('Error marking all notifications as read:', error);

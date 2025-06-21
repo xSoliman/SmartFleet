@@ -1,0 +1,39 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="card-title text-danger mb-3">Access Denied</h2>
+                    
+                    <p class="card-text text-muted mb-4">
+                        Sorry, you don't have permission to access this resource. 
+                        This could be due to insufficient privileges or role restrictions.
+                    </p>
+                    
+                    <div class="d-grid gap-2 d-md-block">
+                        <a href="javascript:history.back()" class="btn btn-primary me-md-2">
+                            <i class="fas fa-arrow-left me-2"></i>Go Back
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Go to Home
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            If you believe this is an error, please contact your system administrator.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
