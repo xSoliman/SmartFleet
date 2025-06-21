@@ -53,17 +53,27 @@ namespace SmartFleet.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> MarkAsRead(int id)
+        public async Task<IActionResult> MarkAsRead([FromBody] MarkAsReadRequest request)
         {
             try
             {
-                await _notificationService.MarkNotificationAsReadAsync(id);
+                if (request?.Id == null)
+                {
+                    return BadRequest(new { success = false, message = "Invalid request" });
+                }
+
+                await _notificationService.MarkNotificationAsReadAsync(request.Id);
                 return Ok(new { success = true });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+
+        public class MarkAsReadRequest
+        {
+            public int Id { get; set; }
         }
 
         [HttpPost]

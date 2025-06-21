@@ -59,7 +59,9 @@ namespace SmartFleet.Services
         {
             try
             {
-                var notification = await _context.Notifications.FindAsync(notificationId);
+                var notification = await _context.Notifications
+                    .FirstOrDefaultAsync(n => n.Id == notificationId);
+                    
                 if (notification != null)
                 {
                     notification.IsRead = true;

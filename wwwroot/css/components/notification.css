@@ -2,14 +2,12 @@
     padding: 1rem 1.25rem;
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
-    transition: all 0.2s ease;
     border-radius: 0;
     margin: 0;
 }
 
 .notification-item:hover {
     background-color: #f8f9fa;
-    transform: translateX(2px);
 }
 
 .notification-item.unread {
@@ -158,7 +156,6 @@
     padding: 0.5rem 0;
     color: #20B2AA !important;
     font-weight: 500;
-    transition: all 0.2s ease;
     text-decoration: none;
     border-radius: 6px;
     white-space: nowrap;
@@ -171,11 +168,9 @@
 }
 
 .notification-bell {
-    transition: all 0.2s ease;
 }
 
 .notification-bell:hover {
-    transform: scale(1.05);
 }
 
 .notification-toast {
@@ -192,18 +187,6 @@
     font-size: 1.15rem;
     font-weight: 500;
     color: #222;
-    animation: slideInRight 0.3s ease-out;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }
 
 .nav-item {

@@ -56,17 +56,34 @@ connection.on("NotificationMarkedAsRead", (data) => {
     console.log('Notification marked as read:', data);
     
     // Update the notification item in both dropdown and main list
-    const notificationItem = document.querySelector(`[data-notification-id="${data.id}"]`);
+    const notificationItems = document.querySelectorAll(`[data-notification-id="${data.id}"]`);
+    notificationItems.forEach(notificationItem => {
     if (notificationItem && notificationItem.classList.contains('unread')) {
         notificationItem.classList.remove('unread');
         const badge = notificationItem.querySelector('.badge');
         if (badge) badge.remove();
         const title = notificationItem.querySelector('h6');
         if (title) title.classList.remove('fw-bold');
+            
+            // Remove the "New" badge if it exists
+            const newBadge = notificationItem.querySelector('.notification-new-badge');
+            if (newBadge) newBadge.remove();
+            
+            // Remove the unread-badge if it exists
+            const unreadBadge = notificationItem.querySelector('.unread-badge');
+            if (unreadBadge) unreadBadge.remove();
+            
+            // Remove the mark-read button if it exists
+            const markReadBtn = notificationItem.querySelector('.action-btn.mark-read');
+            if (markReadBtn) markReadBtn.remove();
+        }
+    });
         
         // Update count
         updateNotificationCount(-1);
-    }
+    
+    // Update the notification count in the ViewComponent header
+    updateViewComponentNotificationCount();
 });
 
 // Handle all notifications marked as read
@@ -81,6 +98,18 @@ connection.on("AllNotificationsMarkedAsRead", () => {
         if (badge) badge.remove();
         const title = item.querySelector('h6');
         if (title) title.classList.remove('fw-bold');
+        
+        // Remove the "New" badge if it exists
+        const newBadge = item.querySelector('.notification-new-badge');
+        if (newBadge) newBadge.remove();
+        
+        // Remove the unread-badge if it exists
+        const unreadBadge = item.querySelector('.unread-badge');
+        if (unreadBadge) unreadBadge.remove();
+        
+        // Remove the mark-read button if it exists
+        const markReadBtn = item.querySelector('.action-btn.mark-read');
+        if (markReadBtn) markReadBtn.remove();
     });
     
     // Update notification count badge
@@ -99,7 +128,7 @@ connection.on("AllNotificationsMarkedAsRead", () => {
         notificationBell.classList.add('no-unread');
     }
     
-    // Hide "Mark all as read" button
+    // Remove "Mark all as read" button
     hideMarkAllAsReadButton();
 });
 
@@ -174,9 +203,6 @@ function addNotificationToList(notification) {
         if (noNotifications) {
             noNotifications.remove();
         }
-        
-        // Show "Mark all as read" button if it was hidden
-        showMarkAllAsReadButton();
     }
 }
 
@@ -193,37 +219,75 @@ async function markAsRead(notificationId) {
         });
         
         if (response.ok) {
-            // Update the notification item
-            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            // Update the notification item in both dropdown and main list
+            const notificationItems = document.querySelectorAll(`[data-notification-id="${notificationId}"]`);
+            notificationItems.forEach(notificationItem => {
             if (notificationItem && notificationItem.classList.contains('unread')) {
                 notificationItem.classList.remove('unread');
                 const badge = notificationItem.querySelector('.badge');
                 if (badge) badge.remove();
                 const title = notificationItem.querySelector('h6');
                 if (title) title.classList.remove('fw-bold');
+                    
+                    // Remove the "New" badge if it exists
+                    const newBadge = notificationItem.querySelector('.notification-new-badge');
+                    if (newBadge) newBadge.remove();
+                    
+                    // Remove the unread-badge if it exists
+                    const unreadBadge = notificationItem.querySelector('.unread-badge');
+                    if (unreadBadge) unreadBadge.remove();
+                    
+                    // Remove the mark-read button if it exists
+                    const markReadBtn = notificationItem.querySelector('.action-btn.mark-read');
+                    if (markReadBtn) markReadBtn.remove();
+                }
+            });
                 
                 // Update count only if the notification was unread
                 updateNotificationCount(-1);
-                
-                // Update the notification list in the dropdown to reflect the change
-                updateNotificationListAfterMarkAsRead(notificationId);
-            }
+        } else {
+            console.error('Failed to mark notification as read:', response.statusText);
         }
     } catch (error) {
         console.error('Error marking notification as read:', error);
     }
 }
 
-// Function to update notification list after marking as read
-function updateNotificationListAfterMarkAsRead(notificationId) {
-    // Find the notification item in the dropdown
-    const dropdownNotificationItem = document.querySelector(`#notificationDropdownMenu [data-notification-id="${notificationId}"]`);
-    if (dropdownNotificationItem && dropdownNotificationItem.classList.contains('unread')) {
-        dropdownNotificationItem.classList.remove('unread');
-        const badge = dropdownNotificationItem.querySelector('.badge');
-        if (badge) badge.remove();
-        const title = dropdownNotificationItem.querySelector('h6');
-        if (title) title.classList.remove('fw-bold');
+// Function to update the notification count in the ViewComponent header
+function updateViewComponentNotificationCount() {
+    const currentCount = parseInt(document.getElementById('notificationCount')?.textContent || '0');
+    const newCount = Math.max(0, currentCount - 1);
+    
+    const notificationCount = document.getElementById('notificationCount');
+    const notificationBell = document.querySelector('.notification-bell');
+    
+    if (notificationCount) {
+        notificationCount.textContent = newCount;
+        
+        if (newCount > 0) {
+            notificationCount.style.display = 'flex';
+            notificationCount.classList.remove('no-unread');
+        } else {
+            notificationCount.style.display = 'none';
+            notificationCount.classList.add('no-unread');
+        }
+    }
+    
+    if (notificationBell) {
+        if (newCount > 0) {
+            notificationBell.classList.remove('no-unread');
+            notificationBell.classList.add('has-unread');
+        } else {
+            notificationBell.classList.remove('has-unread');
+            notificationBell.classList.add('no-unread');
+        }
+    }
+    
+    // Handle "Mark all as read" button visibility
+    if (newCount === 0) {
+        hideMarkAllAsReadButton();
+    } else {
+        showMarkAllAsReadButton();
     }
 }
 
@@ -250,6 +314,18 @@ async function markAllAsRead() {
                 if (badge) badge.remove();
                 const title = item.querySelector('h6');
                 if (title) title.classList.remove('fw-bold');
+                
+                // Remove the "New" badge if it exists
+                const newBadge = item.querySelector('.notification-new-badge');
+                if (newBadge) newBadge.remove();
+                
+                // Remove the unread-badge if it exists
+                const unreadBadge = item.querySelector('.unread-badge');
+                if (unreadBadge) unreadBadge.remove();
+                
+                // Remove the mark-read button if it exists
+                const markReadBtn = item.querySelector('.action-btn.mark-read');
+                if (markReadBtn) markReadBtn.remove();
             });
             
             // Update notification count badge
@@ -268,7 +344,7 @@ async function markAllAsRead() {
                 notificationBell.classList.add('no-unread');
             }
             
-            // Hide "Mark all as read" button
+            // Remove "Mark all as read" button
             hideMarkAllAsReadButton();
         }
     } catch (error) {
@@ -303,7 +379,27 @@ function showNotificationToast(notification) {
 
 // Function to show "Mark all as read" button
 function showMarkAllAsReadButton() {
-    const markAllButton = document.querySelector('button[onclick="markAllAsRead()"]');
+    // Use a more specific selector to find existing button
+    let markAllButton = document.querySelector('#markAllAsReadButton');
+    
+    // If button doesn't exist, create it
+    if (!markAllButton) {
+        const headerSection = document.querySelector('.notification-header-section .d-flex');
+        if (headerSection) {
+            // Create the button
+            markAllButton = document.createElement('button');
+            markAllButton.id = 'markAllAsReadButton';
+            markAllButton.type = 'button';
+            markAllButton.className = 'btn btn-sm btn-outline-primary';
+            markAllButton.onclick = markAllAsRead;
+            markAllButton.textContent = 'Mark all as read';
+            
+            // Insert the button at the end of the flex container
+            headerSection.appendChild(markAllButton);
+        }
+    }
+    
+    // Show the button if it exists
     if (markAllButton) {
         markAllButton.style.display = 'block';
         markAllButton.style.visibility = 'visible';
@@ -312,10 +408,10 @@ function showMarkAllAsReadButton() {
 
 // Function to hide "Mark all as read" button
 function hideMarkAllAsReadButton() {
-    const markAllButton = document.querySelector('button[onclick="markAllAsRead()"]');
+    const markAllButton = document.querySelector('#markAllAsReadButton');
     if (markAllButton) {
-        markAllButton.style.display = 'none';
-        markAllButton.style.visibility = 'hidden';
+        // Remove the button entirely instead of just hiding it
+        markAllButton.remove();
     }
 }
 

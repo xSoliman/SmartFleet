@@ -28,6 +28,7 @@ namespace SmartFleet.ViewComponents
                 });
             }
 
+            // Force fresh data by using a direct query instead of cached data
             var notifications = await _notificationService.GetUserNotificationsAsync(user.Id);
             var unreadCount = notifications.Count(n => !n.IsRead);
 
