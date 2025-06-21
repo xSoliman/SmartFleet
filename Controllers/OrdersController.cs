@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.ViewModel;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
@@ -19,11 +20,16 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager)
+        public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager, 
+            INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
             _userManager = userManager;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         // GET: Orders
@@ -219,6 +225,9 @@ namespace SmartFleet.Controllers
             _context.Add(order);
             await _context.SaveChangesAsync();
 
+            // Send notifications to SysSupport, FleetManager, and Commissioner
+            await SendOrderCreationNotifications(order, currentUser);
+
             CookieOptions option = new CookieOptions
             {
                 Expires = DateTime.UtcNow.AddHours(1), 
@@ -228,8 +237,54 @@ namespace SmartFleet.Controllers
 
             Response.Cookies.Append("OrderId", order.Id.ToString(), option);
 
-
             return RedirectToAction(nameof(Index));
+        }
+
+        // Private method to send notifications for order creation
+        private async Task SendOrderCreationNotifications(Order order, ApplicationUser orderCreator)
+        {
+            try
+            {
+                // Get users with SysSupport role
+                var sysSupportUsers = await _userRoleService.GetUsersByRole("SysSupport");
+                
+                // Get users with FleetManager role
+                var fleetManagerUsers = await _userRoleService.GetUsersByRole("FleetManager");
+                
+                // Get users with commissioner role
+                var commissionerUsers = await _userRoleService.GetUsersByRole("commissioner");
+
+                // Combine all users who should receive notifications
+                var allNotificationUsers = new List<ApplicationUser>();
+                allNotificationUsers.AddRange(sysSupportUsers);
+                allNotificationUsers.AddRange(fleetManagerUsers);
+                allNotificationUsers.AddRange(commissionerUsers);
+
+                // Remove duplicates (in case a user has multiple roles)
+                var uniqueUsers = allNotificationUsers.GroupBy(u => u.Id).Select(g => g.First()).ToList();
+
+                // Create notification message
+                var notificationTitle = "New Order Created";
+                var notificationMessage = $"User {orderCreator.UserName} has created a new order (ID: {order.Id}) for {order.VehicleType} from {order.StartLocation} to {order.Destination}.";
+
+                // Send notification to each user
+                foreach (var user in uniqueUsers)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        user.Id,
+                        notificationTitle,
+                        notificationMessage,
+                        RelatedTable.Order,
+                        order.Id
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the order creation
+                // In a production environment, you might want to use a proper logging service
+                Console.WriteLine($"Error sending order creation notifications: {ex.Message}");
+            }
         }
 
         // GET: Orders/Edit/5
@@ -441,27 +496,11 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Update order status to cancelled
             order.Status = OrderState.Cancelled;
-            
-            try
-            {
-                _context.Update(order);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Order has been cancelled successfully.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(order.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Update(order);
+            await _context.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "Order cancelled successfully.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -478,10 +517,13 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isCommissioner = userRoles.Contains("commissioner");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
-            if (!isCommissioner)
+            // Only Commissioner and SysSupport can approve orders
+            if (!isCommissioner && !isSysSupport)
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "You don't have permission to approve orders.";
+                return RedirectToAction(nameof(Index));
             }
 
             var order = await _context.Orders.FindAsync(id);
@@ -497,27 +539,11 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Update order status to approved
             order.Status = OrderState.Approved;
-            
-            try
-            {
-                _context.Update(order);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Order has been approved successfully.";
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(order.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Update(order);
+            await _context.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "Order approved successfully.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -534,10 +560,12 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isCommissioner = userRoles.Contains("commissioner");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
-            if (!isCommissioner)
+            // Only Commissioner and SysSupport can reject orders
+            if (!isCommissioner && !isSysSupport)
             {
-                TempData["ErrorMessage"] = "Only commissioners can reject orders.";
+                TempData["ErrorMessage"] = "You don't have permission to reject orders.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -547,7 +575,7 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Only allow rejecting pending orders
+            // Only allow rejection of pending orders
             if (order.Status != OrderState.Pending)
             {
                 TempData["ErrorMessage"] = "Only pending orders can be rejected.";
@@ -565,11 +593,12 @@ namespace SmartFleet.Controllers
         // GET: Orders/CreateTrip/5
         public async Task<IActionResult> CreateTrip(int? id)
         {
-            if (id == null)
+            if (id == null || string.IsNullOrEmpty(User.FindFirstValue(ClaimTypes.NameIdentifier)))
             {
                 return NotFound();
             }
 
+            // Check if user is Fleet Manager
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -582,13 +611,10 @@ namespace SmartFleet.Controllers
             if (!isFleetManager)
             {
                 TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Orders");
             }
 
-            var order = await _context.Orders
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
@@ -598,7 +624,7 @@ namespace SmartFleet.Controllers
             if (order.Status != OrderState.Approved)
             {
                 TempData["ErrorMessage"] = "Trips can only be created for approved orders.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Orders");
             }
 
             // Check if a trip already exists for this order
@@ -606,11 +632,49 @@ namespace SmartFleet.Controllers
             if (existingTrip)
             {
                 TempData["ErrorMessage"] = "A trip already exists for this order.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index", "Orders");
             }
 
-            // Redirect to Trips Create action with the order data
-            return RedirectToAction("Create", "Trips", new { id = order.Id, userId = order.UserId });
+            // Get the user who created the order
+            var orderUser = await _userManager.FindByIdAsync(order.UserId);
+            var createdByUserName = orderUser?.UserName ?? "Unknown User";
+
+            // Pass StartLocation and Destination to the view
+            ViewBag.OrderStartLocation = order.StartLocation;
+            ViewBag.OrderEndLocation = order.Destination;
+            ViewBag.TripStartTime = order.TripStartDate;
+            ViewBag.TripEndTime = order.TripEndDate;
+
+            // Get available drivers
+            var drivers = await _context.Drivers
+                .Where(d => d.DriverStatus == DriverState.active)
+                .ToListAsync();
+
+            var driverSelectList = drivers.Select(d => new SelectListItem
+            {
+                Value = d.Id,
+                Text = $"{d.UserName} - {d.LicenseNumber}"
+            }).ToList();
+
+            ViewBag.DriverId = new SelectList(driverSelectList, "Value", "Text");
+
+            // Get available vehicles
+            var vehicles = await _context.Vehicles
+                .Where(v => v.Status == VehicleState.available)
+                .ToListAsync();
+
+            var vehicleSelectList = vehicles.Select(v => new SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type})"
+            }).ToList();
+            
+            ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text");
+            ViewBag.OrderId = id;
+            ViewBag.CreatedBy = order.UserId;
+            ViewBag.CreatedByUserName = createdByUserName;
+
+            return View();
         }
 
         private bool OrderExists(int id)

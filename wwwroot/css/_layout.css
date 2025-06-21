@@ -258,17 +258,27 @@ nav {
 }
 
 .sf-navbar .notification-bell {
-    color: #000 !important;
     font-size: 1.2rem; /* Decreased from 1.6rem */
+    transition: color 0.2s ease;
+}
+
+.sf-navbar .notification-bell.has-unread {
+    color: #20B2AA !important;
+}
+
+.sf-navbar .notification-bell.no-unread {
+    color: #000000 !important;
 }
 
 .sf-navbar .notification-badge {
-    background-color: #dc3545 !important;
-    font-size: 0.6rem; /* Decreased from 0.8rem */
+    font-size: 0.75rem; /* Increased from 0.6rem */
+    min-width: 20px; /* Decreased from 24px */
+    height: 20px; /* Decreased from 24px */
     transform: translate(-50%, -50%) !important;
     top: 0 !important;
     right: -5px !important;
     left: auto !important;
+    border-radius: 50%;
 }
 
 .sf-navbar .btn-lg {

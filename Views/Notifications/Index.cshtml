@@ -1,71 +1,140 @@
 ﻿@model IEnumerable<SmartFleet.Models.Notification>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "My Notifications";
 }
 
-<h1>Index</h1>
+<div class="container-fluid py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6 text-primary">
+                        <i class="fas fa-bell me-2"></i>My Notifications
+                    </h1>
+                    <div>
+                        <button type="button" class="btn btn-outline-warning me-2" onclick="createTestNotification()">
+                            <i class="fas fa-plus me-2"></i>Test Notification
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" onclick="markAllAsRead()">
+                            <i class="fas fa-check-double me-2"></i>Mark All as Read
+                        </button>
+                    </div>
+                </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Message)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RelatedTable)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RelatedId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsRead)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Message)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RelatedTable)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RelatedId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsRead)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+                @if (Model.Any())
+                {
+                    <div class="row">
+                        @foreach (var notification in Model)
+                        {
+                            <div class="col-12 mb-3">
+                                <div class="card @(!notification.IsRead ? "border-primary" : "") shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <h5 class="card-title mb-0 @(!notification.IsRead ? "fw-bold text-primary" : "")">
+                                                        @notification.Title
+                                                    </h5>
+                                                    @if (!notification.IsRead)
+                                                    {
+                                                        <span class="badge bg-primary ms-2">New</span>
+                                                    }
+                                                </div>
+                                                <p class="card-text text-muted">@notification.Message</p>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        @notification.CreatedAt.ToLocalTime().ToString("g")
+                                                    </small>
+                                                    @if (notification.RelatedTable != SmartFleet.Models.RelatedTable.None)
+                                                    {
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-link me-1"></i>
+                                                            Related to: @notification.RelatedTable
+                                                        </small>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div class="ms-3">
+                                                <div class="btn-group-vertical">
+                                                    <a asp-action="Details" asp-route-id="@notification.Id" 
+                                                       class="btn btn-sm btn-outline-info" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    @if (!notification.IsRead)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-success" 
+                                                                onclick="markAsRead(@notification.Id)" title="Mark as Read">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                        <h3 class="text-muted">No notifications yet</h3>
+                        <p class="text-muted">You'll see notifications here when they arrive.</p>
+                        <button type="button" class="btn btn-primary" onclick="createTestNotification()">
+                            <i class="fas fa-plus me-2"></i>Create Test Notification
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/notification.js"></script>
+    <script>
+        async function createTestNotification() {
+            try {
+                const response = await fetch('/Notifications/CreateTestNotification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show';
+                    alert.innerHTML = `
+                        <i class="fas fa-check-circle me-2"></i>
+                        ${result.message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    
+                    const container = document.querySelector('.container');
+                    container.insertBefore(alert, container.firstChild);
+                    
+                    // Remove alert after 3 seconds
+                    setTimeout(() => {
+                        if (alert.parentElement) {
+                            alert.remove();
+                        }
+                    }, 3000);
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error creating test notification:', error);
+                alert('Error creating test notification');
+            }
+        }
+    </script>
 }
-    </tbody>
-</table>

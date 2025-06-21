@@ -13,6 +13,7 @@ namespace SmartFleet.Services
         Task<bool> HasAccessToTracking(ApplicationUser user);
         Task<bool> HasAccessToDashboard(ApplicationUser user);
         Task<List<string>> GetUserRoles(ApplicationUser user);
+        Task<List<ApplicationUser>> GetUsersByRole(string roleName);
     }
 
     public class UserRoleService : IUserRoleService
@@ -28,6 +29,11 @@ namespace SmartFleet.Services
         {
             if (user == null) return new List<string>();
             return (await _userManager.GetRolesAsync(user)).ToList();
+        }
+
+        public async Task<List<ApplicationUser>> GetUsersByRole(string roleName)
+        {
+            return (await _userManager.GetUsersInRoleAsync(roleName)).ToList();
         }
 
         public async Task<bool> HasAccessToVehicles(ApplicationUser user)

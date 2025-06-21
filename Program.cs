@@ -52,8 +52,11 @@ namespace SmartFleet
             // Background service for automatic trip state updates
             builder.Services.AddHostedService<TripStateBackgroundService>();
 
-            var app = builder.Build();
+            // Add SignalR services
             builder.Services.AddSignalR();
+
+            var app = builder.Build();
+
             // initialize the database
             using (var scope = app.Services.CreateScope())
             {

@@ -1,49 +1,61 @@
-@model List<SmartFleet.Models.Notification>
+@model SmartFleet.ViewComponents.NotificationListViewModel
 
-<div class="dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="fas fa-bell"></i>
-        <span class="badge bg-danger" id="notificationCount">@Model.Count(n => !n.IsRead)</span>
-    </a>
-    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
-        <div class="px-3 py-2 border-bottom">
-            <h6 class="mb-0">Notifications</h6>
-        </div>
-        <div id="notificationList">
-            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt).Take(10))
-            {
-                <div class="dropdown-item notification-item @(!notification.IsRead ? "unread" : "")" data-notification-id="@notification.Id">
-                    <h6 class="mb-1">@notification.Title</h6>
-                    <p class="mb-1 small">@notification.Message</p>
-                    <small class="text-muted">@notification.CreatedAt.ToLocalTime().ToString("g")</small>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="nav-item me-3">
+        <a class="nav-link position-relative notification-bell @(Model.UnreadCount > 0 ? "has-unread" : "no-unread")" href="#" id="notificationDropdown" role="button">
+            <i class="fas fa-bell fa-lg"></i>
+            <span id="notificationCount" class="badge position-absolute top-0 start-100 translate-middle rounded-pill notification-badge @(Model.UnreadCount > 0 ? "" : "no-unread")" style="display: @(Model.UnreadCount > 0 ? "flex" : "none");">
+                @Model.UnreadCount
+            </span>
+        </a>
+        <div class="notification-dropdown" id="notificationDropdownMenu">
+            <div class="notification-header-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                    @if (Model.UnreadCount > 0)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="markAllAsRead()">
+                            Mark all as read
+                        </button>
+                    }
                 </div>
-            }
+            </div>
+            <div id="notificationList" class="notification-list-container">
+                @if (Model.Notifications.Any())
+                {
+                    @foreach (var notification in Model.Notifications.OrderByDescending(n => n.CreatedAt).Take(10))
+                    {
+                        <div class="dropdown-item notification-item @(!notification.IsRead ? "unread" : "")" 
+                             data-notification-id="@notification.Id" 
+                             onclick="markAsRead(@notification.Id)">
+                            <div class="notification-content">
+                                <div class="notification-header">
+                                    <h6 class="notification-title @(!notification.IsRead ? "fw-bold" : "")">@notification.Title</h6>
+                                    @if (!notification.IsRead)
+                                    {
+                                        <span class="badge notification-new-badge">New</span>
+                                    }
+                                </div>
+                                <p class="notification-message">@notification.Message</p>
+                                <small class="notification-time">@notification.CreatedAt.ToLocalTime().ToString("g")</small>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="dropdown-item text-center text-muted py-4">
+                        <i class="fas fa-bell-slash fa-2x mb-3 text-muted"></i>
+                        <p class="mb-0">No notifications</p>
+                    </div>
+                }
+            </div>
+            <div class="notification-footer-section">
+                <a class="dropdown-item text-center notification-view-all" asp-controller="Notifications" asp-action="Index">
+                    <i class="fas fa-list me-2"></i>View all notifications
+                </a>
+            </div>
         </div>
-        <div class="dropdown-divider"></div>
-        <a class="dropdown-item text-center small text-muted" asp-controller="Notifications" asp-action="Index">View all notifications</a>
     </div>
-</div>
-
-<style>
-    .notification-item {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #eee;
-        cursor: pointer;
-    }
-    .notification-item:hover {
-        background-color: #f8f9fa;
-    }
-    .notification-item.unread {
-        background-color: #f0f8ff;
-    }
-    .notification-toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1050;
-        max-width: 350px;
-        background: white;
-        border-radius: 4px;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-</style>
+}
