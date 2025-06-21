@@ -19,19 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
             
-            // Toggle dropdown visibility
-            const isVisible = dropdownMenu.style.display === 'block';
-            if (isVisible) {
-                dropdownMenu.style.display = 'none';
-            } else {
-                dropdownMenu.style.display = 'block';
-            }
+            // Toggle dropdown visibility using CSS class
+            dropdownMenu.classList.toggle('show');
         });
         
         // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!notificationDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                dropdownMenu.style.display = 'none';
+                dropdownMenu.classList.remove('show');
             }
         });
         
@@ -56,6 +51,58 @@ connection.on("ReceiveNotification", (notification) => {
     showNotificationToast(notification);
 });
 
+// Handle notification marked as read
+connection.on("NotificationMarkedAsRead", (data) => {
+    console.log('Notification marked as read:', data);
+    
+    // Update the notification item in both dropdown and main list
+    const notificationItem = document.querySelector(`[data-notification-id="${data.id}"]`);
+    if (notificationItem && notificationItem.classList.contains('unread')) {
+        notificationItem.classList.remove('unread');
+        const badge = notificationItem.querySelector('.badge');
+        if (badge) badge.remove();
+        const title = notificationItem.querySelector('h6');
+        if (title) title.classList.remove('fw-bold');
+        
+        // Update count
+        updateNotificationCount(-1);
+    }
+});
+
+// Handle all notifications marked as read
+connection.on("AllNotificationsMarkedAsRead", () => {
+    console.log('All notifications marked as read');
+    
+    // Update all notification items
+    const unreadItems = document.querySelectorAll('.notification-item.unread');
+    unreadItems.forEach(item => {
+        item.classList.remove('unread');
+        const badge = item.querySelector('.badge');
+        if (badge) badge.remove();
+        const title = item.querySelector('h6');
+        if (title) title.classList.remove('fw-bold');
+    });
+    
+    // Update notification count badge
+    const notificationCount = document.getElementById('notificationCount');
+    const notificationBell = document.querySelector('.notification-bell');
+    
+    if (notificationCount) {
+        notificationCount.textContent = '0';
+        notificationCount.style.display = 'none';
+        notificationCount.classList.add('no-unread');
+    }
+    
+    // Update bell color
+    if (notificationBell) {
+        notificationBell.classList.remove('has-unread');
+        notificationBell.classList.add('no-unread');
+    }
+    
+    // Hide "Mark all as read" button
+    hideMarkAllAsReadButton();
+});
+
 // Function to update notification count
 function updateNotificationCount(increment = 0) {
     const notificationCount = document.getElementById('notificationCount');
@@ -71,9 +118,13 @@ function updateNotificationCount(increment = 0) {
         if (newCount > 0) {
             notificationCount.style.display = 'flex';
             notificationCount.classList.remove('no-unread');
+            // Show "Mark all as read" button when there are unread notifications
+            showMarkAllAsReadButton();
         } else {
             notificationCount.style.display = 'none';
             notificationCount.classList.add('no-unread');
+            // Hide "Mark all as read" button when there are no unread notifications
+            hideMarkAllAsReadButton();
         }
         
         // Update bell color
@@ -123,6 +174,9 @@ function addNotificationToList(notification) {
         if (noNotifications) {
             noNotifications.remove();
         }
+        
+        // Show "Mark all as read" button if it was hidden
+        showMarkAllAsReadButton();
     }
 }
 
@@ -150,10 +204,26 @@ async function markAsRead(notificationId) {
                 
                 // Update count only if the notification was unread
                 updateNotificationCount(-1);
+                
+                // Update the notification list in the dropdown to reflect the change
+                updateNotificationListAfterMarkAsRead(notificationId);
             }
         }
     } catch (error) {
         console.error('Error marking notification as read:', error);
+    }
+}
+
+// Function to update notification list after marking as read
+function updateNotificationListAfterMarkAsRead(notificationId) {
+    // Find the notification item in the dropdown
+    const dropdownNotificationItem = document.querySelector(`#notificationDropdownMenu [data-notification-id="${notificationId}"]`);
+    if (dropdownNotificationItem && dropdownNotificationItem.classList.contains('unread')) {
+        dropdownNotificationItem.classList.remove('unread');
+        const badge = dropdownNotificationItem.querySelector('.badge');
+        if (badge) badge.remove();
+        const title = dropdownNotificationItem.querySelector('h6');
+        if (title) title.classList.remove('fw-bold');
     }
 }
 
@@ -199,10 +269,7 @@ async function markAllAsRead() {
             }
             
             // Hide "Mark all as read" button
-            const markAllButton = document.querySelector('button[onclick="markAllAsRead()"]');
-            if (markAllButton) {
-                markAllButton.style.display = 'none';
-            }
+            hideMarkAllAsReadButton();
         }
     } catch (error) {
         console.error('Error marking all notifications as read:', error);
@@ -232,6 +299,24 @@ function showNotificationToast(notification) {
             toast.remove();
         }
     }, 5000);
+}
+
+// Function to show "Mark all as read" button
+function showMarkAllAsReadButton() {
+    const markAllButton = document.querySelector('button[onclick="markAllAsRead()"]');
+    if (markAllButton) {
+        markAllButton.style.display = 'block';
+        markAllButton.style.visibility = 'visible';
+    }
+}
+
+// Function to hide "Mark all as read" button
+function hideMarkAllAsReadButton() {
+    const markAllButton = document.querySelector('button[onclick="markAllAsRead()"]');
+    if (markAllButton) {
+        markAllButton.style.display = 'none';
+        markAllButton.style.visibility = 'hidden';
+    }
 }
 
 // Make functions globally available

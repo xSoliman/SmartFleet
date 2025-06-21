@@ -4,137 +4,139 @@
     ViewData["Title"] = "My Notifications";
 }
 
-<div class="container-fluid py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="display-6 text-primary">
-                        <i class="fas fa-bell me-2"></i>My Notifications
-                    </h1>
-                    <div>
-                        <button type="button" class="btn btn-outline-warning me-2" onclick="createTestNotification()">
-                            <i class="fas fa-plus me-2"></i>Test Notification
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" onclick="markAllAsRead()">
-                            <i class="fas fa-check-double me-2"></i>Mark All as Read
-                        </button>
-                    </div>
-                </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/notifications.css" />
+}
 
-                @if (Model.Any())
+<div class="notifications-container">
+    <div class="notifications-header">
+        <div class="header-content">
+            <div class="header-title">
+                <i class="fas fa-bell"></i>
+                <h1>My Notifications</h1>
+                <span class="notification-count">@Model.Count()</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="btn btn-primary" onclick="markAllAsRead()">
+                <i class="fas fa-check-double"></i>
+                Mark All as Read
+            </button>
+        </div>
+    </div>
+
+    <div class="notifications-content">
+        @if (Model.Any())
+        {
+            <div class="notifications-list">
+                @foreach (var notification in Model)
                 {
-                    <div class="row">
-                        @foreach (var notification in Model)
-                        {
-                            <div class="col-12 mb-3">
-                                <div class="card @(!notification.IsRead ? "border-primary" : "") shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <h5 class="card-title mb-0 @(!notification.IsRead ? "fw-bold text-primary" : "")">
-                                                        @notification.Title
-                                                    </h5>
-                                                    @if (!notification.IsRead)
-                                                    {
-                                                        <span class="badge bg-primary ms-2">New</span>
-                                                    }
-                                                </div>
-                                                <p class="card-text text-muted">@notification.Message</p>
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-clock me-1"></i>
-                                                        @notification.CreatedAt.ToLocalTime().ToString("g")
-                                                    </small>
-                                                    @if (notification.RelatedTable != SmartFleet.Models.RelatedTable.None)
-                                                    {
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-link me-1"></i>
-                                                            Related to: @notification.RelatedTable
-                                                        </small>
-                                                    }
-                                                </div>
-                                            </div>
-                                            <div class="ms-3">
-                                                <div class="btn-group-vertical">
-                                                    <a asp-action="Details" asp-route-id="@notification.Id" 
-                                                       class="btn btn-sm btn-outline-info" title="View Details">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    @if (!notification.IsRead)
-                                                    {
-                                                        <button type="button" class="btn btn-sm btn-outline-success" 
-                                                                onclick="markAsRead(@notification.Id)" title="Mark as Read">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div class="notification-item @(!notification.IsRead ? "unread" : "")" data-notification-id="@notification.Id">
+                        <div class="notification-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        
+                        <div class="notification-body">
+                            <div class="notification-header">
+                                <h3 class="notification-title">@notification.Title</h3>
+                                @if (!notification.IsRead)
+                                {
+                                    <span class="unread-badge">New</span>
+                                }
                             </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
-                        <h3 class="text-muted">No notifications yet</h3>
-                        <p class="text-muted">You'll see notifications here when they arrive.</p>
-                        <button type="button" class="btn btn-primary" onclick="createTestNotification()">
-                            <i class="fas fa-plus me-2"></i>Create Test Notification
-                        </button>
+                            
+                            <p class="notification-message">@notification.Message</p>
+                            
+                            <div class="notification-meta">
+                                <span class="notification-time">
+                                    <i class="fas fa-clock"></i>
+                                    @notification.CreatedAt.ToLocalTime().ToString("g")
+                                </span>
+                                @if (notification.RelatedTable != SmartFleet.Models.RelatedTable.None)
+                                {
+                                    <span class="notification-related">
+                                        <i class="fas fa-link"></i>
+                                        @notification.RelatedTable
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="notification-actions">
+                            @if (!notification.IsRead)
+                            {
+                                <button type="button" class="action-btn mark-read" 
+                                        onclick="markAsRead(@notification.Id)" title="Mark as Read">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            }
+                            <button type="button" class="action-btn delete" 
+                                    onclick="deleteNotification(@notification.Id)" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 }
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-bell-slash"></i>
+                </div>
+                <h2>No notifications yet</h2>
+                <p>You'll see notifications here when they arrive from the system.</p>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script src="~/js/notification.js"></script>
     <script>
-        async function createTestNotification() {
-            try {
-                const response = await fetch('/Notifications/CreateTestNotification', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    }
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Show success message
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show';
-                    alert.innerHTML = `
-                        <i class="fas fa-check-circle me-2"></i>
-                        ${result.message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    
-                    const container = document.querySelector('.container');
-                    container.insertBefore(alert, container.firstChild);
-                    
-                    // Remove alert after 3 seconds
-                    setTimeout(() => {
-                        if (alert.parentElement) {
-                            alert.remove();
+        async function deleteNotification(notificationId) {
+            if (confirm('Are you sure you want to delete this notification?')) {
+                try {
+                    const response = await fetch(`/Notifications/Delete/${notificationId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                         }
-                    }, 3000);
-                } else {
-                    alert('Error: ' + result.message);
+                    });
+                    
+                    if (response.ok) {
+                        // Refresh the page immediately
+                        location.reload();
+                    } else {
+                        showAlert('Error deleting notification', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error deleting notification:', error);
+                    showAlert('Error deleting notification', 'danger');
                 }
-            } catch (error) {
-                console.error('Error creating test notification:', error);
-                alert('Error creating test notification');
             }
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.notifications-container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 3000);
         }
     </script>
 }

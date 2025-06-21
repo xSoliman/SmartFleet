@@ -64,6 +64,13 @@ namespace SmartFleet.Services
                 {
                     notification.IsRead = true;
                     await _context.SaveChangesAsync();
+                    
+                    // Send real-time update to the client
+                    await _hubContext.Clients.User(notification.UserId).SendAsync("NotificationMarkedAsRead", new
+                    {
+                        id = notification.Id,
+                        isRead = notification.IsRead
+                    });
                 }
             }
             catch (Exception ex)
@@ -86,6 +93,9 @@ namespace SmartFleet.Services
                 }
                 
                 await _context.SaveChangesAsync();
+                
+                // Send real-time update to the client
+                await _hubContext.Clients.User(userId).SendAsync("AllNotificationsMarkedAsRead");
             }
             catch (Exception ex)
             {
