@@ -20,14 +20,17 @@ namespace SmartFleet.Controllers
         private readonly SmartFleetContext _context;
         private readonly ITripStateManagementService _tripStateService;
         private readonly IDriverStatusManagementService _driverStatusService;
+        private readonly IVehicleStateManagementService _vehicleStateService;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
-            IDriverStatusManagementService driverStatusService, UserManager<ApplicationUser> userManager)
+            IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _tripStateService = tripStateService;
             _driverStatusService = driverStatusService;
+            _vehicleStateService = vehicleStateService;
             _userManager = userManager;
         }
 
@@ -384,6 +387,9 @@ namespace SmartFleet.Controllers
                     // Update driver status to OnTrip
                     await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
                     
+                    // Update vehicle state to on_scheduled_trip
+                    await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    
                     TempData["SuccessMessage"] = "Trip created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -497,22 +503,26 @@ namespace SmartFleet.Controllers
                         (originalStatus != TripState.Completed && originalStatus != TripState.Cancelled))
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
                     }
                     // Update driver status if trip status changed from completed/cancelled to scheduled
                     else if ((originalStatus == TripState.Completed || originalStatus == TripState.Cancelled) && 
                              trip.Status == TripState.Scheduled)
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     }
                     // Update driver status if trip status changed from scheduled to in-progress
                     else if (originalStatus == TripState.Scheduled && trip.Status == TripState.InProgress)
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     }
                     // Update driver status if trip status changed from in-progress to scheduled
                     else if (originalStatus == TripState.InProgress && trip.Status == TripState.Scheduled)
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     }
                 }
                 catch (DbUpdateConcurrencyException)
@@ -569,11 +579,15 @@ namespace SmartFleet.Controllers
             if (trip != null)
             {
                 var driverId = trip.DriverId;
+                var vehicleId = trip.VehicleId;
                 _context.Trips.Remove(trip);
                 await _context.SaveChangesAsync();
                 
                 // Update driver status after trip deletion
                 await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(driverId);
+                
+                // Update vehicle state after trip deletion
+                await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(vehicleId);
             }
 
             return RedirectToAction(nameof(Index));
@@ -687,6 +701,9 @@ namespace SmartFleet.Controllers
             
             // Update driver status after trip cancellation
             await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
+            
+            // Update vehicle state after trip cancellation
+            await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
 
             TempData["SuccessMessage"] = "Trip cancelled successfully.";
             return RedirectToAction(nameof(Index));

@@ -52,11 +52,17 @@ namespace SmartFleet
             // Driver Status Management Service
             builder.Services.AddScoped<IDriverStatusManagementService, DriverStatusManagementService>();
 
+            // Vehicle State Management Service
+            builder.Services.AddScoped<IVehicleStateManagementService, VehicleStateManagementService>();
+
             // Background service for automatic trip state updates
             builder.Services.AddHostedService<TripStateBackgroundService>();
 
             // Background service for automatic driver status updates
             builder.Services.AddHostedService<DriverStatusBackgroundService>();
+
+            // Background service for automatic vehicle state updates
+            builder.Services.AddHostedService<VehicleStateBackgroundService>();
 
             // Add SignalR services
             builder.Services.AddSignalR();
