@@ -132,6 +132,8 @@ namespace SmartFleet.Controllers
 
                 vehicle.CreatedAt = DateTime.Now;
                 vehicle.UpdatedAt = DateTime.Now;
+                // The user-entered TotalDistanceTraveled is treated as the initial distance
+                // and becomes the starting total distance for the new vehicle
 
                 _context.Add(vehicle);
                 await _context.SaveChangesAsync();
@@ -188,6 +190,14 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the existing vehicle to preserve the current total distance
+                    var existingVehicle = await _context.Vehicles.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+                    if (existingVehicle != null)
+                    {
+                        // Add the user-entered initial distance to the existing total distance
+                        vehicle.TotalDistanceTraveled = existingVehicle.TotalDistanceTraveled + vehicle.TotalDistanceTraveled;
+                    }
+
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
@@ -277,6 +287,90 @@ namespace SmartFleet.Controllers
         private bool VehicleExists(int id)
         {
             return _context.Vehicles.Any(e => e.Id == id);
+        }
+
+        // GET: Vehicles/Maintenance/5
+        public async Task<IActionResult> Maintenance(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.Maintenances)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
+        }
+
+        // GET: Vehicles/SimCard/5
+        public async Task<IActionResult> SimCard(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle simcard.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
+        }
+
+        // GET: Vehicles/Tracking/5
+        public async Task<IActionResult> Tracking(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle tracking.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.VehicleLocations)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
         }
     }
 }

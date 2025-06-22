@@ -1,0 +1,102 @@
+@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle Tracking";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+</head>
+
+<div class="main-container">
+    <!-- Left Section: Tracking Information -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
+
+        <!-- Vehicle Info Header -->
+        <div class="vehicle-container">
+            <h1 class="vehicle-heading">Vehicle Tracking - @Model.Model</h1>
+            <div class="vehicle-details">
+                <div class="vehicle-item">
+                    <span class="vehicle-label">License Plate:</span>
+                    <span>@Model.LicensePlate</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Status:</span>
+                    <span>
+                        @{
+                            var statusText = Model.Status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Total Distance:</span>
+                    <span>@Model.TotalDistanceTraveled.ToString("F2") km</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tracking Information -->
+        <div class="tracking-container">
+            <h2>Location History</h2>
+            @if (Model.VehicleLocations != null && Model.VehicleLocations.Any())
+            {
+                <div class="tracking-list">
+                    @foreach (var location in Model.VehicleLocations.OrderByDescending(l => l.Timestamp).Take(10))
+                    {
+                        <div class="tracking-item">
+                            <div class="tracking-header">
+                                <h3>Location Update</h3>
+                                <span class="tracking-date">@location.Timestamp.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="tracking-details">
+                                <p><strong>Latitude:</strong> @location.Latitude.ToString("F6")</p>
+                                <p><strong>Longitude:</strong> @location.Longitude.ToString("F6")</p>
+                                <p><strong>Speed:</strong> @location.Speed.ToString("F1") km/h</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-content-message">
+                    <p>No location data available for this vehicle.</p>
+                    <p>This could be due to:</p>
+                    <ul>
+                        <li>No SimCard assigned to the vehicle</li>
+                        <li>SimCard is inactive</li>
+                        <li>No recent GPS data received</li>
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right Sidebar Section -->
+    <div class="right-container">
+        <h2>Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+        </ul>
+    </div>
+</div> 

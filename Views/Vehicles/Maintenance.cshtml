@@ -1,0 +1,108 @@
+@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle Maintenance";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+</head>
+
+<div class="main-container">
+    <!-- Left Section: Maintenance Records -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
+
+        <!-- Vehicle Info Header -->
+        <div class="vehicle-container">
+            <h1 class="vehicle-heading">Maintenance Records - @Model.Model</h1>
+            <div class="vehicle-details">
+                <div class="vehicle-item">
+                    <span class="vehicle-label">License Plate:</span>
+                    <span>@Model.LicensePlate</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Status:</span>
+                    <span>
+                        @{
+                            var statusText = Model.Status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Records -->
+        <div class="maintenance-container">
+            <h2>Maintenance History</h2>
+            @if (Model.Maintenances != null && Model.Maintenances.Any())
+            {
+                <div class="maintenance-list">
+                    @foreach (var maintenance in Model.Maintenances.OrderByDescending(m => m.CreatedAt))
+                    {
+                        <div class="maintenance-item">
+                            <div class="maintenance-header">
+                                <h3>Maintenance Record #@maintenance.Id</h3>
+                                <span class="maintenance-date">@maintenance.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="maintenance-details">
+                                <p><strong>Issue Description:</strong> @maintenance.IssueDescription</p>
+                                <p><strong>Priority:</strong> 
+                                    <span class="badge-status badge-@maintenance.Priority.ToString().ToLower()">
+                                        @maintenance.Priority.ToString().Replace("_", " ")
+                                    </span>
+                                </p>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge-status badge-@maintenance.RepairStatus.ToString().ToLower()">
+                                        @maintenance.RepairStatus.ToString().Replace("_", " ")
+                                    </span>
+                                </p>
+                                @if (maintenance.RepairedAt.HasValue)
+                                {
+                                    <p><strong>Repaired At:</strong> @maintenance.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                                }
+                                @if (!string.IsNullOrEmpty(maintenance.ReportedBy))
+                                {
+                                    <p><strong>Reported By:</strong> @maintenance.ReportedBy</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-content-message">
+                    <p>No maintenance records found for this vehicle.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right Sidebar Section -->
+    <div class="right-container">
+        <h2>Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+        </ul>
+    </div>
+</div> 

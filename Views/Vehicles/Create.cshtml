@@ -27,34 +27,34 @@
             </div>
 
             <div class="create-input-row">
-                <div class="create-input-group">
+                    <div class="create-input-group">
                     <label asp-for="Type" class="create-input-label">Vehicle Type</label>
-                    <select asp-for="Type" class="create-dropdown">
+                        <select asp-for="Type" class="create-dropdown">
                         <option value="Car">Car</option>
                         <option value="Truck">Truck</option>
                         <option value="Bus">Bus</option>
                         <option value="Van">Van</option>
                         <option value="Motorcycle">Motorcycle</option>
                         <option value="Other">Other</option>
-                    </select>
-                    <span asp-validation-for="Type" class="create-validation-message"></span>
+                        </select>
+                        <span asp-validation-for="Type" class="create-validation-message"></span>
                 </div>
-                <div class="create-input-group">
+                    <div class="create-input-group">
                     <label asp-for="Capacity" class="create-input-label">Capacity</label>
                     <input asp-for="Capacity" class="create-input-field" placeholder="Enter capacity" />
-                    <span asp-validation-for="Capacity" class="create-validation-message"></span>
+                        <span asp-validation-for="Capacity" class="create-validation-message"></span>
                 </div>
             </div>
 
             <div class="create-input-row">
-                <div class="create-input-group">
+                    <div class="create-input-group">
                     <label asp-for="LicensePlate" class="create-input-label">License Plate</label>
                     <input asp-for="LicensePlate" class="create-input-field" placeholder="Enter license plate" />
-                    <span asp-validation-for="LicensePlate" class="create-validation-message"></span>
+                        <span asp-validation-for="LicensePlate" class="create-validation-message"></span>
                 </div>
-                <div class="create-input-group">
+                    <div class="create-input-group">
                     <label asp-for="Status" class="create-input-label">Vehicle Status</label>
-                    <select asp-for="Status" class="create-dropdown">
+                        <select asp-for="Status" class="create-dropdown">
                         @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
                         {
                             var statusText = status.ToString();
@@ -70,15 +70,15 @@
                             
                             <option value="@status">@statusText</option>
                         }
-                    </select>
-                    <span asp-validation-for="Status" class="create-validation-message"></span>
+                        </select>
+                        <span asp-validation-for="Status" class="create-validation-message"></span>
                 </div>
             </div>
 
             <div class="create-input-row">
                 <div class="create-input-group">
-                    <label asp-for="TotalDistanceTraveled" class="create-input-label">Total Distance Traveled (km)</label>
-                    <input asp-for="TotalDistanceTraveled" class="create-input-field" value="0.0" placeholder="Enter initial distance" />
+                    <label asp-for="TotalDistanceTraveled" class="create-input-label">Initial Distance Traveled (km)</label>
+                    <input asp-for="TotalDistanceTraveled" class="create-input-field" value="0.00" placeholder="Enter initial distance" step="0.01" />
                     <span asp-validation-for="TotalDistanceTraveled" class="create-validation-message"></span>
                 </div>
                 <div class="create-input-group">

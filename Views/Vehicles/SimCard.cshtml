@@ -1,0 +1,103 @@
+@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle SimCard";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+</head>
+
+<div class="main-container">
+    <!-- Left Section: SimCard Information -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
+
+        <!-- Vehicle Info Header -->
+        <div class="vehicle-container">
+            <h1 class="vehicle-heading">SimCard Information - @Model.Model</h1>
+            <div class="vehicle-details">
+                <div class="vehicle-item">
+                    <span class="vehicle-label">License Plate:</span>
+                    <span>@Model.LicensePlate</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Status:</span>
+                    <span>
+                        @{
+                            var statusText = Model.Status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SimCard Details -->
+        <div class="simcard-container">
+            <h2>SimCard Details</h2>
+            @if (Model.SimCard != null)
+            {
+                <div class="simcard-info">
+                    <div class="simcard-item">
+                        <span class="simcard-label">Sim Number:</span>
+                        <span class="simcard-value">@Model.SimCard.SimNumber</span>
+                    </div>
+                    <div class="simcard-item">
+                        <span class="simcard-label">Carrier:</span>
+                        <span class="simcard-value">@Model.SimCard.Carrier</span>
+                    </div>
+                    <div class="simcard-item">
+                        <span class="simcard-label">Status:</span>
+                        <span class="simcard-value">
+                            <span class="badge-status badge-@Model.SimCard.Status.ToString().ToLower()">
+                                @Model.SimCard.Status.ToString().Replace("_", " ")
+                            </span>
+                        </span>
+                    </div>
+                    <div class="simcard-item">
+                        <span class="simcard-label">Activated At:</span>
+                        <span class="simcard-value">@Model.SimCard.ActivatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="simcard-item">
+                        <span class="simcard-label">Created At:</span>
+                        <span class="simcard-value">@Model.SimCard.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="no-content-message">
+                    <p>No SimCard is currently assigned to this vehicle.</p>
+                    <p>Please assign a SimCard to enable tracking functionality.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right Sidebar Section -->
+    <div class="right-container">
+        <h2>Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+        </ul>
+    </div>
+</div> 

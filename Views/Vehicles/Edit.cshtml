@@ -82,10 +82,18 @@
 
             <div class="edit-input-row">
                 <div class="edit-input-group">
-                    <label asp-for="TotalDistanceTraveled" class="edit-input-label">Total Distance Traveled (km)</label>
-                    <input asp-for="TotalDistanceTraveled" class="edit-input-field" placeholder="Enter distance" />
+                    <label class="edit-input-label">Current Total Distance (km)</label>
+                    <input value="@Model.TotalDistanceTraveled.ToString("F2")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                    <span class="edit-readonly-label">readonly</span>
+                </div>
+                <div class="edit-input-group">
+                    <label asp-for="TotalDistanceTraveled" class="edit-input-label">Additional Initial Distance (km)</label>
+                    <input asp-for="TotalDistanceTraveled" class="edit-input-field" value="0.00" placeholder="Enter additional distance" step="0.01" />
                     <span asp-validation-for="TotalDistanceTraveled" class="edit-validation-message"></span>
                 </div>
+            </div>
+
+            <div class="edit-input-row">
                 <div class="edit-input-group">
                     <label asp-for="RegistrationExpiryDate" class="edit-input-label">Registration Expiry Date</label>
                     <input asp-for="RegistrationExpiryDate" type="date" class="edit-input-field" />
