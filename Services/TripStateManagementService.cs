@@ -17,11 +17,14 @@ namespace SmartFleet.Services
     {
         private readonly SmartFleetContext _context;
         private readonly ILogger<TripStateManagementService> _logger;
+        private readonly IVehicleStateManagementService _vehicleStateService;
 
-        public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger)
+        public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger, 
+            IVehicleStateManagementService vehicleStateService)
         {
             _context = context;
             _logger = logger;
+            _vehicleStateService = vehicleStateService;
         }
 
         /// <summary>
@@ -46,6 +49,9 @@ namespace SmartFleet.Services
                     {
                         trip.Status = newStatus;
                         _logger.LogInformation($"Trip {trip.Id} status changed from {originalStatus} to {newStatus}");
+                        
+                        // Update vehicle state when trip status changes
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     }
                 }
 
@@ -89,6 +95,9 @@ namespace SmartFleet.Services
                     trip.Status = newStatus;
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Trip {tripId} status changed from {originalStatus} to {newStatus}");
+                    
+                    // Update vehicle state when trip status changes
+                    await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                 }
             }
             catch (Exception ex)
