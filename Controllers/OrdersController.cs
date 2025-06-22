@@ -246,7 +246,6 @@ namespace SmartFleet.Controllers
             try
             {
                 // Get users with SysSupport role
-                var sysSupportUsers = await _userRoleService.GetUsersByRole("SysSupport");
                 
                 // Get users with FleetManager role
                 var fleetManagerUsers = await _userRoleService.GetUsersByRole("FleetManager");
@@ -256,7 +255,6 @@ namespace SmartFleet.Controllers
 
                 // Combine all users who should receive notifications
                 var allNotificationUsers = new List<ApplicationUser>();
-                allNotificationUsers.AddRange(sysSupportUsers);
                 allNotificationUsers.AddRange(fleetManagerUsers);
                 allNotificationUsers.AddRange(commissionerUsers);
 

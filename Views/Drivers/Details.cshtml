@@ -4,26 +4,38 @@
 }
 
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/driver/details.css">
-    
 </head>
 <div class="details-layout-container">
     <div class="details-form-wrapper">
         <!-- Navigation Back Button -->
         <div class="details-navigation">
             <a asp-action="Index" class="details-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Drivers
             </a>
         </div>
 
         <!-- Heading -->
         <h1 class="details-heading">Driver Details</h1>
 
+        <!-- Profile Image Section at Top -->
+        <div class="profile-image-section">
+            @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+            {
+                <img src="@Model.ProfileImageUrl" alt="Profile Image" class="profile-image" />
+            }
+            else
+            {
+                <div class="profile-image-placeholder">
+                    <i class="fas fa-user" style="font-size: 80px; color: #ccc;"></i>
+                </div>
+            }
+        </div>
+
         <!-- Display Data -->
         <div class="details-display-group">
-            <label class="details-display-label">UserName</label>
+            <label class="details-display-label">Username</label>
             <div class="details-display-value">@Model.UserName</div>
         </div>
 
@@ -40,6 +52,11 @@
         <div class="details-display-group">
             <label class="details-display-label">License Expiry Date</label>
             <div class="details-display-value">@Model.LicenseExpiryDate.ToShortDateString()</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Number of Trips</label>
+            <div class="details-display-value">@(Model.Trips?.Count ?? 0) trips completed</div>
         </div>
 
         <div class="details-display-group">
@@ -60,18 +77,6 @@
                     @statusText
                 </span>
             </div>
-        </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">Profile Image</label>
-            @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
-            {
-                <img src="@Model.ProfileImageUrl" alt="Profile Image" class="profile-image" />
-            }
-            else
-            {
-                <span class="details-display-value">No image available</span>
-            }
         </div>
 
         <!-- Button Group -->
