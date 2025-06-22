@@ -78,7 +78,22 @@
                 <div class="edit-input-col">
                     <div class="edit-input-group">
                         <label asp-for="DriverStatus" class="edit-input-label"></label>
-                        <select asp-for="DriverStatus" class="edit-dropdown" asp-items="Html.GetEnumSelectList<SmartFleet.Models.DriverState>()"></select>
+                        <select asp-for="DriverStatus" class="edit-dropdown">
+                            @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.DriverState)))
+                            {
+                                var statusText = status.ToString();
+                                // Add spaces before capital letters for better readability
+                                statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
+                                
+                                // Use shorter text for the long status
+                                if (statusText == "Assigned On Scheduled Trip")
+                                {
+                                    statusText = "Scheduled Trip";
+                                }
+                                
+                                <option value="@status" selected="@(status.Equals(Model.DriverStatus) ? "selected" : null)">@statusText</option>
+                            }
+                        </select>
                         <span asp-validation-for="DriverStatus" class="edit-validation-message"></span>
                     </div>
                 </div>

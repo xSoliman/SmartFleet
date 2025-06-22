@@ -49,8 +49,14 @@ namespace SmartFleet
             // Trip State Management Service
             builder.Services.AddScoped<ITripStateManagementService, TripStateManagementService>();
 
+            // Driver Status Management Service
+            builder.Services.AddScoped<IDriverStatusManagementService, DriverStatusManagementService>();
+
             // Background service for automatic trip state updates
             builder.Services.AddHostedService<TripStateBackgroundService>();
+
+            // Background service for automatic driver status updates
+            builder.Services.AddHostedService<DriverStatusBackgroundService>();
 
             // Add SignalR services
             builder.Services.AddSignalR();

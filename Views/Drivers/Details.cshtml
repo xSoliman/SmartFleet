@@ -44,7 +44,22 @@
 
         <div class="details-display-group">
             <label class="details-display-label">Status</label>
-            <div class="details-display-value">@Model.DriverStatus</div>
+            <div class="details-display-value">
+                @{
+                    var statusText = Model.DriverStatus.ToString();
+                    // Add spaces before capital letters for better readability
+                    statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
+                    
+                    // Use shorter text for the long status
+                    if (statusText == "Assigned On Scheduled Trip")
+                    {
+                        statusText = "Scheduled Trip";
+                    }
+                }
+                <span class="badge-status badge-@Model.DriverStatus.ToString().ToLower()">
+                    @statusText
+                </span>
+            </div>
         </div>
 
         <div class="details-display-group">

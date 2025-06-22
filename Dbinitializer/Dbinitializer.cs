@@ -163,7 +163,7 @@ namespace SmartFleet
                         Email = "driver@smartfleet.com",
                         LicenseNumber = "AB12345",
                         LicenseExpiryDate = DateTime.Now.AddYears(2),
-                        DriverStatus = DriverState.active,
+                        DriverStatus = DriverState.Available,
                         ProfileImageUrl = "https://example.com/driver.jpg",
                         CreatedAt = DateTime.Now,
                         EmailConfirmed = true
@@ -331,6 +331,15 @@ namespace SmartFleet
                     await _db.Trips.AddAsync(trip);
                     await _db.SaveChangesAsync();
                     _logger.LogInformation("Trip seeded successfully.");
+
+                    // Update driver status to reflect the assigned trip
+                    var driver = await _db.Drivers.FirstOrDefaultAsync(d => d.Id == "2");
+                    if (driver != null)
+                    {
+                        driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("Driver status updated to AssignedOnScheduledTrip due to scheduled trip assignment.");
+                    }
                 }
                 else
                 {

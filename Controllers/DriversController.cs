@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SmartFleet.Controllers
 {
-    // Optionally, add an authorization attribute if needed:
-    [Authorize(Roles = "SysSupport,FleetManager")]
+    // Add authorization attribute to restrict access to FleetManager and SysSupport roles only
+    [Authorize(Roles = "FleetManager,SysSupport")]
     public class DriversController : Controller
     {
         private readonly SmartFleetContext _context;
@@ -28,6 +28,8 @@ namespace SmartFleet.Controllers
             _userManager = userManager;
             _env = env;  
         }
+
+        [Authorize(Roles = "Driver")]
         public async Task<IActionResult> DriverDashboard()
         {
             string? driverId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
@@ -50,10 +52,7 @@ namespace SmartFleet.Controllers
             return View(driver);
         }
 
-
-
-
-
+        [Authorize(Roles = "FleetManager,SysSupport")]
         [HttpPost]
         public async Task<IActionResult> UpdateDriverStatus(string id, DriverState status)
         {
@@ -66,11 +65,29 @@ namespace SmartFleet.Controllers
 
             return RedirectToAction("DriverDashboard");
         }
+
         // GET: Drivers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchUserName, string searchLicense, DriverState? statusFilter)
         {
-            // Retrieve all drivers. Adjust as needed for filtering.
-            var drivers = await _context.Users.OfType<Driver>().ToListAsync();
+            var driversQuery = _context.Users.OfType<Driver>().AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchUserName))
+            {
+                driversQuery = driversQuery.Where(d => d.UserName.Contains(searchUserName));
+            }
+
+            if (!string.IsNullOrEmpty(searchLicense))
+            {
+                driversQuery = driversQuery.Where(d => d.LicenseNumber.Contains(searchLicense));
+            }
+
+            if (statusFilter.HasValue)
+            {
+                driversQuery = driversQuery.Where(d => d.DriverStatus == statusFilter.Value);
+            }
+
+            var drivers = await driversQuery.ToListAsync();
             return View(drivers);
         }
 
@@ -276,7 +293,6 @@ namespace SmartFleet.Controllers
             }
             return View(model);
         }
-
 
         // GET: Drivers/Delete/5
         public async Task<IActionResult> Delete(string id)

@@ -107,7 +107,42 @@
     border-radius: 12px;
     font-size: 0.95em;
     font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
 }
+
+/* New driver status badges with proper colors and spacing */
+.badge-available { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border: 1px solid #b3e6b3;
+}
+
+.badge-notavailable { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border: 1px solid #ffb3b3;
+}
+
+.badge-assignedonscheduledtrip { 
+    background: #fff3e6; 
+    color: #ff8c00; 
+    border: 1px solid #ffd699;
+    font-size: 0.90em;
+    padding: 0.2em 0.5em;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-ontrip { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border: 1px solid #ffe066;
+}
+
+/* Legacy badge styles for backward compatibility */
 .badge-active { background: #e6f9e6; color: #16b416; }
 .badge-inactive { background: #ffeaea; color: #e63946; }
 .badge-on_trip { background: #fffbe6; color: #e6b800; }

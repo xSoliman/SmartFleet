@@ -28,7 +28,17 @@
                 <option value="">All Statuses</option>
                 @foreach (SmartFleet.Models.DriverState state in Enum.GetValues(typeof(SmartFleet.Models.DriverState)))
                 {
-                    <option value="@state" selected="@(Context.Request.Query["statusFilter"] == state.ToString() ? "selected" : null)">@state</option>
+                    var statusText = state.ToString();
+                    // Add spaces before capital letters for better readability
+                    statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
+                    
+                    // Use shorter text for the long status
+                    if (statusText == "Assigned On Scheduled Trip")
+                    {
+                        statusText = "Scheduled Trip";
+                    }
+                    
+                    <option value="@state" selected="@(Context.Request.Query["statusFilter"] == state.ToString() ? "selected" : null)">@statusText</option>
                 }
             </select>
         </div>
@@ -45,7 +55,6 @@
     <table class="table table-driver table-bordered">
         <thead>
             <tr>
-            <th>Profile Image</th>
             <th>UserName</th>
             <th>Email</th>
             <th>License Number</th>
@@ -58,19 +67,25 @@
         @foreach (var driver in Model)
         {
             <tr>
-                <td>
-                    @if (!string.IsNullOrEmpty(driver.ProfileImageUrl))
-                    {
-                        <img src="@driver.ProfileImageUrl" alt="Profile Image" width="50" height="50" />
-                    }
-                </td>
+   
                 <td>@driver.UserName</td>
                 <td>@driver.Email</td>
                 <td>@driver.LicenseNumber</td>
                 <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
                 <td>
                     <span class="badge-status badge-@driver.DriverStatus.ToString().ToLower()">
-                        @driver.DriverStatus
+                        @{
+                            var statusText = driver.DriverStatus.ToString();
+                            // Add spaces before capital letters for better readability
+                            statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
+                            
+                            // Use shorter text for the long status
+                            if (statusText == "Assigned On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        @statusText
                     </span>
                 </td>
        
