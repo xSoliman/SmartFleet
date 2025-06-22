@@ -24,6 +24,7 @@
         <form asp-action="Edit" class="edit-custom-form" enctype="multipart/form-data">
             <div asp-validation-summary="All" class="edit-validation-message"></div>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="SimCardId" />
 
             <div class="edit-input-group">
                 <label asp-for="Model" class="edit-input-label">Vehicle Model</label>
@@ -99,6 +100,27 @@
                     <input asp-for="RegistrationExpiryDate" type="date" class="edit-input-field" />
                     <span asp-validation-for="RegistrationExpiryDate" class="edit-validation-message"></span>
                 </div>
+                <div class="edit-input-group">
+                    <label class="edit-input-label">SimCard Assignment</label>
+                    <div class="simcard-assignment-display">
+                        @if (Model.SimCard != null)
+                        {
+                            <div class="current-simcard-info">
+                                <span class="simcard-number">@Model.SimCard.SimNumber</span>
+                                <span class="simcard-status badge-@Model.SimCard.Status.ToString().ToLower()">
+                                    @Model.SimCard.Status.ToString().Replace("_", " ")
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="no-simcard">No SimCard Assigned</span>
+                        }
+                    </div>
+                    <button type="button" class="edit-simcard-btn" onclick="openSimCardModal()">
+                        <i class="fas fa-sim-card"></i> Manage SimCard
+                    </button>
+                </div>
             </div>
 
             <div class="edit-input-group">
@@ -128,6 +150,61 @@
     </div>
 </div>
 
+<!-- SimCard Assignment Modal -->
+<div id="simCardModal" class="edit-modal" style="display: none;">
+    <div class="edit-modal-content">
+        <div class="edit-modal-header">
+            <h3>Manage SimCard Assignment</h3>
+            <span class="edit-modal-close" onclick="closeSimCardModal()">&times;</span>
+        </div>
+        <div class="edit-modal-body">
+            <div class="current-assignment">
+                <h4>Current Assignment</h4>
+                @if (Model.SimCard != null)
+                {
+                    <div class="current-simcard-details">
+                        <p><strong>Sim Number:</strong> @Model.SimCard.SimNumber</p>
+                        <p><strong>Carrier:</strong> @Model.SimCard.Carrier</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge-status badge-@Model.SimCard.Status.ToString().ToLower()">
+                                @Model.SimCard.Status.ToString().Replace("_", " ")
+                            </span>
+                        </p>
+                    </div>
+                    <button type="button" class="edit-modal-btn edit-modal-btn-danger" onclick="removeSimCard()">
+                        <i class="fas fa-unlink"></i> Remove SimCard
+                    </button>
+                }
+                else
+                {
+                    <p class="no-assignment">No SimCard is currently assigned to this vehicle.</p>
+                }
+            </div>
+            
+            <div class="assign-new-simcard">
+                <h4>Assign New SimCard</h4>
+                <form id="assignSimCardForm">
+                    <input type="hidden" id="vehicleId" value="@Model.Id" />
+                    <div class="edit-input-group">
+                        <label for="simCardSelect">Select SimCard:</label>
+                        <select id="simCardSelect" class="edit-dropdown" required>
+                            <option value="">-- Select a SimCard --</option>
+                        </select>
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="submit" class="edit-modal-btn edit-modal-btn-success">
+                            <i class="fas fa-check"></i> Assign SimCard
+                        </button>
+                        <button type="button" class="edit-modal-btn edit-modal-btn-secondary" onclick="closeSimCardModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts Section -->
 @section Scripts {
     @{
@@ -135,4 +212,96 @@
     }
 
     <script src="~/js/vehicle/edit.js"></script>
+    
+    <script>
+        function openSimCardModal() {
+            document.getElementById('simCardModal').style.display = 'block';
+            loadAvailableSimCards();
+        }
+
+        function closeSimCardModal() {
+            document.getElementById('simCardModal').style.display = 'none';
+        }
+
+        function loadAvailableSimCards() {
+            fetch('/api/simcards/available')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('simCardSelect');
+                    select.innerHTML = '<option value="">-- Select a SimCard --</option>';
+                    
+                    data.forEach(simCard => {
+                        const option = document.createElement('option');
+                        option.value = simCard.id;
+                        option.textContent = `${simCard.simNumber} (${simCard.carrier})`;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading SimCards:', error);
+                });
+        }
+
+        function removeSimCard() {
+            if (confirm('Are you sure you want to remove the SimCard from this vehicle? GPS tracking will stop working.')) {
+                fetch('/Vehicles/RemoveSimCard/@Model.Id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Error removing SimCard');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error removing SimCard');
+                });
+            }
+        }
+
+        document.getElementById('assignSimCardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const vehicleId = document.getElementById('vehicleId').value;
+            const simCardId = document.getElementById('simCardSelect').value;
+            
+            if (!simCardId) {
+                alert('Please select a SimCard');
+                return;
+            }
+            
+            fetch('/Vehicles/AssignSimCard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `vehicleId=${vehicleId}&simCardId=${simCardId}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    closeSimCardModal();
+                    location.reload();
+                } else {
+                    alert('Error assigning SimCard to vehicle');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error assigning SimCard to vehicle');
+            });
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('simCardModal');
+            if (event.target == modal) {
+                closeSimCardModal();
+            }
+        }
+    </script>
 }

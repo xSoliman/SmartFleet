@@ -210,14 +210,234 @@
 /* Ensure readonly fields have the same styling as regular input fields */
 .edit-input-field[readonly] {
     background-color: #f8f9fa;
-    color: #495057;
+    color: #6c757d;
     cursor: not-allowed;
+}
+
+/* SimCard Assignment Styles */
+.simcard-assignment-display {
+    padding: 12px;
     border: 1px solid #dee2e6;
-    width: 100%;
-    padding: 12px 16px;
     border-radius: 6px;
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.current-simcard-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.simcard-number {
+    font-weight: 600;
+    color: #212529;
     font-size: 16px;
+}
+
+.simcard-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-active {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.badge-inactive {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.no-simcard {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.edit-simcard-btn {
+    background-color: #6c757d;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
     font-weight: 500;
-    line-height: 1.5;
-    box-sizing: border-box;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edit-simcard-btn:hover {
+    background-color: #5a6268;
+}
+
+/* Modal Styles */
+.edit-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.edit-modal-content {
+    background-color: #ffffff;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.edit-modal-header h3 {
+    margin: 0;
+    color: #212529;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.edit-modal-close {
+    color: #6c757d;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.edit-modal-close:hover {
+    color: #212529;
+}
+
+.edit-modal-body {
+    padding: 24px;
+}
+
+.current-assignment,
+.assign-new-simcard {
+    margin-bottom: 24px;
+}
+
+.current-assignment h4,
+.assign-new-simcard h4 {
+    margin: 0 0 12px 0;
+    color: #212529;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.current-simcard-details p {
+    margin: 8px 0;
+    color: #495057;
+    font-size: 14px;
+}
+
+.no-assignment {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.edit-modal-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.edit-modal-btn-success {
+    background-color: #28a745;
+    color: #ffffff;
+}
+
+.edit-modal-btn-success:hover {
+    background-color: #218838;
+}
+
+.edit-modal-btn-danger {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.edit-modal-btn-danger:hover {
+    background-color: #c82333;
+}
+
+.edit-modal-btn-secondary {
+    background-color: #6c757d;
+    color: #ffffff;
+}
+
+.edit-modal-btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .edit-modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .edit-modal-actions {
+        flex-direction: column;
+    }
+    
+    .current-simcard-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
 }

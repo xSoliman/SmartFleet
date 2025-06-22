@@ -84,6 +84,7 @@ namespace SmartFleet
             app.UseStaticFiles();
             app.UseRouting();
             app.MapHub<NotificationHub>("/hubs/Notify");
+            app.MapHub<TrackingHub>("/hubs/Tracking");
             app.UseAuthentication(); 
             app.UseAuthorization();
 

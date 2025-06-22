@@ -7,6 +7,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 
 <div class="main-container">
@@ -21,15 +23,21 @@
 
         <!-- Vehicle Info Header -->
         <div class="vehicle-container">
-            <h1 class="vehicle-heading">Vehicle Tracking - @Model.Model</h1>
+            <h1 class="vehicle-heading">Vehicle Tracking - <span id="vehicle-model">@Model.Model</span></h1>
             <div class="vehicle-details">
                 <div class="vehicle-item">
                     <span class="vehicle-label">License Plate:</span>
-                    <span>@Model.LicensePlate</span>
+                    <span id="vehicle-plate">@Model.LicensePlate</span>
                 </div>
                 <div class="vehicle-item">
-                    <span class="vehicle-label">Status:</span>
-                    <span>
+                    <span class="vehicle-label">Movement Status:</span>
+                    <span id="movement-status">
+                        <span class="badge-status badge-loading">Loading...</span>
+                    </span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Trip Status:</span>
+                    <span id="trip-status">
                         @{
                             var statusText = Model.Status.ToString();
                             statusText = statusText.Replace("_", " ");
@@ -47,45 +55,36 @@
                 </div>
                 <div class="vehicle-item">
                     <span class="vehicle-label">Total Distance:</span>
-                    <span>@Model.TotalDistanceTraveled.ToString("F2") km</span>
+                    <span id="total-distance">@Model.TotalDistanceTraveled.ToString("F2") km</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Current Speed:</span>
+                    <span id="current-speed">N/A</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Last Update:</span>
+                    <span id="last-update">N/A</span>
                 </div>
             </div>
         </div>
 
-        <!-- Tracking Information -->
+        <!-- Live Map Section -->
+        <div class="map-container">
+            <h2>Live Location</h2>
+            <div id="vehicle-map" style="height: 300px; width: 100%; border-radius: 8px; margin-bottom: 20px;"></div>
+        </div>
+
+        <!-- Live Tracking Information -->
         <div class="tracking-container">
-            <h2>Location History</h2>
-            @if (Model.VehicleLocations != null && Model.VehicleLocations.Any())
-            {
-                <div class="tracking-list">
-                    @foreach (var location in Model.VehicleLocations.OrderByDescending(l => l.Timestamp).Take(10))
-                    {
-                        <div class="tracking-item">
-                            <div class="tracking-header">
-                                <h3>Location Update</h3>
-                                <span class="tracking-date">@location.Timestamp.ToString("dd/MM/yyyy HH:mm")</span>
-                            </div>
-                            <div class="tracking-details">
-                                <p><strong>Latitude:</strong> @location.Latitude.ToString("F6")</p>
-                                <p><strong>Longitude:</strong> @location.Longitude.ToString("F6")</p>
-                                <p><strong>Speed:</strong> @location.Speed.ToString("F1") km/h</p>
-                            </div>
-                        </div>
-                    }
+            <h2>Live Location Updates</h2>
+            <div id="tracking-list" class="tracking-list">
+                <div class="tracking-item loading">
+                    <div class="tracking-header">
+                        <h3>Loading live data...</h3>
+                        <span class="tracking-date">Please wait</span>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="no-content-message">
-                    <p>No location data available for this vehicle.</p>
-                    <p>This could be due to:</p>
-                    <ul>
-                        <li>No SimCard assigned to the vehicle</li>
-                        <li>SimCard is inactive</li>
-                        <li>No recent GPS data received</li>
-                    </ul>
-                </div>
-            }
+            </div>
         </div>
     </div>
 
@@ -98,5 +97,254 @@
             <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
             <li><a asp-action="Tracking" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
         </ul>
+        
+        <!-- Real-time Status -->
+        <div class="realtime-status">
+            <h3>Connection Status</h3>
+            <div id="connection-status" class="status-indicator">
+                <span class="status-dot connecting"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </div>
     </div>
-</div> 
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    // Vehicle tracking data
+    const vehicleId = @Model.Id;
+    let map;
+    let vehicleMarker;
+    let locationHistory = [];
+    
+    // Initialize map
+    function initializeMap() {
+        map = L.map('vehicle-map').setView([30.0444, 31.2357], 8);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+        
+        L.control.zoom({
+            position: 'topright'
+        }).addTo(map);
+    }
+    
+    // SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/Tracking")
+        .withAutomaticReconnect()
+        .build();
+    
+    // Connection status management
+    function updateConnectionStatus(status, text) {
+        const statusElement = document.getElementById('connection-status');
+        const statusDot = statusElement.querySelector('.status-dot');
+        const statusText = statusElement.querySelector('.status-text');
+        
+        statusDot.className = `status-dot ${status}`;
+        statusText.textContent = text;
+    }
+    
+    // Start SignalR connection
+    connection.start().then(function () {
+        console.log("Connected to tracking hub");
+        updateConnectionStatus('connected', 'Connected');
+    }).catch(function (err) {
+        console.error("Error connecting to tracking hub: ", err);
+        updateConnectionStatus('error', 'Connection Error');
+    });
+    
+    // Handle connection state changes
+    connection.onreconnecting(() => {
+        updateConnectionStatus('connecting', 'Reconnecting...');
+    });
+    
+    connection.onreconnected(() => {
+        updateConnectionStatus('connected', 'Connected');
+    });
+    
+    connection.onclose(() => {
+        updateConnectionStatus('disconnected', 'Disconnected');
+    });
+    
+    // Real-time vehicle location updates
+    connection.on("ReceiveVehicleLocationUpdate", function (vehicleData) {
+        if (vehicleData.vehicleId === vehicleId) {
+            updateVehicleData(vehicleData);
+        }
+    });
+    
+    // Update vehicle data with real-time information
+    function updateVehicleData(vehicleData) {
+        // Update vehicle details
+        document.getElementById('vehicle-model').textContent = vehicleData.vehicleModel;
+        document.getElementById('vehicle-plate').textContent = vehicleData.licensePlate;
+        document.getElementById('total-distance').textContent = vehicleData.totalDistanceTraveled.toFixed(2) + ' km';
+        
+        // Update movement status
+        const movementStatus = getMovementStatus(vehicleData);
+        const movementElement = document.getElementById('movement-status');
+        movementElement.innerHTML = `<span class="badge-status badge-${movementStatus.toLowerCase().replace(/ /g, '-')}">${movementStatus}</span>`;
+        
+        // Update trip status
+        const tripStatus = getTripStatus(vehicleData);
+        const tripElement = document.getElementById('trip-status');
+        tripElement.innerHTML = `<span class="badge-status badge-${tripStatus.toLowerCase().replace(/ /g, '-')}">${tripStatus}</span>`;
+        
+        // Update current speed and last update
+        if (vehicleData.latestLocation) {
+            document.getElementById('current-speed').textContent = vehicleData.latestLocation.speed + ' km/h';
+            document.getElementById('last-update').textContent = new Date(vehicleData.latestLocation.timestamp).toLocaleString();
+            
+            // Update map marker
+            updateMapMarker(vehicleData.latestLocation);
+            
+            // Add to location history
+            addToLocationHistory(vehicleData.latestLocation);
+        }
+    }
+    
+    // Get movement status
+    function getMovementStatus(vehicle) {
+        if (!vehicle.simCardNumber) {
+            return "No SimCard";
+        }
+        
+        if (vehicle.simCardStatus !== 1) {
+            return "SimCard Inactive";
+        }
+        
+        if (!vehicle.latestLocation) {
+            return "No GPS Signal";
+        }
+        
+        const lastUpdate = new Date(vehicle.latestLocation.timestamp);
+        const now = new Date();
+        const timeDiff = (now - lastUpdate) / (1000 * 60);
+        
+        if (timeDiff > 5) {
+            return "GPS Offline";
+        }
+        
+        const speed = vehicle.latestLocation.speed;
+        return speed > 0 ? "Moving" : "Stopped";
+    }
+    
+    // Get trip status
+    function getTripStatus(vehicle) {
+        switch(vehicle.status) {
+            case 0: return "Available";
+            case 1: return "In Use";
+            case 2: return "Maintenance";
+            case 3: return "Maintained";
+            case 4: return "On Trip";
+            case 5: return "Scheduled Trip";
+            default: return "Unknown";
+        }
+    }
+    
+    // Update map marker
+    function updateMapMarker(location) {
+        const lat = parseFloat(location.latitude);
+        const lon = parseFloat(location.longitude);
+        
+        if (isNaN(lat) || isNaN(lon)) return;
+        
+        if (vehicleMarker) {
+            vehicleMarker.setLatLng([lat, lon]);
+        } else {
+            vehicleMarker = L.marker([lat, lon], {
+                icon: L.divIcon({
+                    html: '<i class="fas fa-car" style="color: #3498db; font-size: 20px;"></i>',
+                    className: 'custom-vehicle-icon',
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                })
+            }).addTo(map);
+        }
+        
+        // Center map on vehicle
+        map.setView([lat, lon], 14);
+    }
+    
+    // Add location to history
+    function addToLocationHistory(location) {
+        const locationData = {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            speed: location.speed,
+            timestamp: location.timestamp
+        };
+        
+        locationHistory.unshift(locationData);
+        
+        // Keep only last 10 locations
+        if (locationHistory.length > 10) {
+            locationHistory = locationHistory.slice(0, 10);
+        }
+        
+        updateLocationHistoryDisplay();
+    }
+    
+    // Update location history display
+    function updateLocationHistoryDisplay() {
+        const trackingList = document.getElementById('tracking-list');
+        
+        if (locationHistory.length === 0) {
+            trackingList.innerHTML = `
+                <div class="tracking-item">
+                    <div class="tracking-header">
+                        <h3>No location data available</h3>
+                        <span class="tracking-date">Waiting for GPS signal</span>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        trackingList.innerHTML = locationHistory.map(location => `
+            <div class="tracking-item">
+                <div class="tracking-header">
+                    <h3>Location Update</h3>
+                    <span class="tracking-date">${new Date(location.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="tracking-details">
+                    <p><strong>Latitude:</strong> ${parseFloat(location.latitude).toFixed(6)}</p>
+                    <p><strong>Longitude:</strong> ${parseFloat(location.longitude).toFixed(6)}</p>
+                    <p><strong>Speed:</strong> ${location.speed} km/h</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Fetch initial vehicle data
+    function fetchInitialData() {
+        fetch(`/api/tracking/vehicle/${vehicleId}/details`)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    updateVehicleData(data);
+                    if (data.latestLocation) {
+                        updateMapMarker(data.latestLocation);
+                        addToLocationHistory(data.latestLocation);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching initial data:', error);
+                updateConnectionStatus('error', 'Data Error');
+            });
+    }
+    
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+        fetchInitialData();
+        
+        // Periodic refresh as fallback
+        setInterval(fetchInitialData, 30000);
+    });
+</script> 

@@ -22,10 +22,34 @@
         <!-- Sim Card Details -->
         <div class="sim-card-container">
             <div class="sim-card-data">
-                <h2>Sim Card Data</h2>
-                <p><strong>Sim Number:</strong> <span id="simNumber">@(Model.SimCard?.SimNumber ?? "Not assigned")</span></p>
-                <p><strong>Carrier:</strong> <span id="carrier">@(Model.SimCard?.Carrier ?? "Not assigned")</span></p>
-                <p><strong>Status:</strong> <span id="status">@(Model.SimCard?.Status.ToString() ?? "Not assigned")</span></p>
+                <h2><i class="fas fa-sim-card"></i> Sim Card</h2>
+                @if (Model.SimCard != null)
+                {
+                    <div class="sim-card-quick-info">
+                        <div class="sim-card-item">
+                            <span class="sim-card-label">Number:</span>
+                            <span class="sim-card-value">@Model.SimCard.SimNumber</span>
+                        </div>
+                        <div class="sim-card-item">
+                            <span class="sim-card-label">Status:</span>
+                            <span class="sim-card-value">
+                                <span class="badge-status badge-@Model.SimCard.Status.ToString().ToLower()">
+                                    @Model.SimCard.Status.ToString().Replace("_", " ")
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="sim-card-no-data">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p><strong>No SimCard Assigned</strong></p>
+                        <a asp-action="SimCard" asp-route-id="@Model.Id" class="sim-card-action-btn">
+                            <i class="fas fa-plus"></i> Assign SimCard
+                        </a>
+                    </div>
+                }
             </div>
             <div class="image-container">
                 @if (!string.IsNullOrEmpty(Model.VehicleImageUrl))
@@ -96,10 +120,6 @@
                     <span>@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                 </div>
             </div>
-
-            <div class="vehicle-actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="vehicle-button">Edit</a>
-            </div>
         </div>
     </div>
 
@@ -111,6 +131,7 @@
             <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
             <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
             <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+            <li><a asp-action="Edit" asp-route-id="@Model.Id"><i class="fa-solid fa-edit"></i> Edit</a></li>
         </ul>
     </div>
 </div>

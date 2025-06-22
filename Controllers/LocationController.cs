@@ -6,6 +6,8 @@ using System;
 using System.Threading.Tasks;
 using SmartFleet.Data;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
+using SmartFleet.Hubs;
 
 namespace SmartFleet.Controllers
 {
@@ -15,20 +17,24 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly IDistanceCalculationService _distanceService;
+        private readonly IHubContext<TrackingHub> _trackingHub;
 
-        public LocationController(SmartFleetContext context, IDistanceCalculationService distanceService)
+        public LocationController(SmartFleetContext context, IDistanceCalculationService distanceService, IHubContext<TrackingHub> trackingHub)
         {
             _context = context;
             _distanceService = distanceService;
+            _trackingHub = trackingHub;
         }
 
-        // Simple model to receive GPS data
+        // Simple GPS data model
         public class GpsDataDto
         {
-            public int VehicleId { get; set; }
+            public string SimCardNumber { get; set; }  // SimCard number instead of VehicleId
             public decimal Latitude { get; set; }
             public decimal Longitude { get; set; }
             public decimal Speed { get; set; }
+            public string? DeviceId { get; set; }      // Optional device identifier
+            public string? DeviceModel { get; set; }   // Optional device model
         }
 
         [HttpPost("update")]
@@ -36,19 +42,33 @@ namespace SmartFleet.Controllers
         {
             try
             {
+                // Find vehicle by SimCard number
+                var vehicle = await _context.Vehicles
+                    .Include(v => v.SimCard)
+                    .FirstOrDefaultAsync(v => v.SimCard.SimNumber == gpsData.SimCardNumber && 
+                                            v.SimCard.Status == SimCardStatus.Active);
+
+                if (vehicle == null)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Invalid SimCard number or SimCard not assigned to any vehicle" 
+                    });
+                }
+
                 // Create new location entry
                 var location = new VehicleLocation
                 {
-                    VehicleId = gpsData.VehicleId,
+                    VehicleId = vehicle.Id,
                     Latitude = gpsData.Latitude,
                     Longitude = gpsData.Longitude,
-                    Speed = gpsData.Speed, // Store the speed value from ESP
-                    Timestamp = DateTime.Now // Use server time for timestamp
+                    Speed = gpsData.Speed,
+                    Timestamp = DateTime.Now
                 };
 
                 // Get the last location for this vehicle
                 var lastLocation = await _context.VehicleLocations
-                    .Where(vl => vl.VehicleId == gpsData.VehicleId)
+                    .Where(vl => vl.VehicleId == vehicle.Id)
                     .OrderByDescending(vl => vl.Timestamp)
                     .FirstOrDefaultAsync();
 
@@ -57,8 +77,7 @@ namespace SmartFleet.Controllers
                 await _context.SaveChangesAsync();
 
                 // Update vehicle's total distance traveled
-                var vehicle = await _context.Vehicles.FindAsync(gpsData.VehicleId);
-                if (vehicle != null && lastLocation != null)
+                if (lastLocation != null)
                 {
                     var segmentDistance = _distanceService.CalculateDistance(
                         lastLocation.Latitude, lastLocation.Longitude,
@@ -71,14 +90,75 @@ namespace SmartFleet.Controllers
                 }
 
                 // Check if this vehicle is currently on a trip and update distance
-                await UpdateTripDistance(gpsData.VehicleId);
+                await UpdateTripDistance(vehicle.Id);
 
-                return Ok(new { success = true, message = "Location updated successfully" });
+                // Send real-time update to all connected tracking clients
+                var vehicleUpdateData = new
+                {
+                    vehicleId = vehicle.Id,
+                    vehicleModel = vehicle.Model,
+                    vehicleType = vehicle.Type,
+                    licensePlate = vehicle.LicensePlate,
+                    status = vehicle.Status,
+                    totalDistanceTraveled = vehicle.TotalDistanceTraveled,
+                    simCardNumber = vehicle.SimCard?.SimNumber,
+                    simCardStatus = vehicle.SimCard?.Status,
+                    latestLocation = new
+                    {
+                        latitude = gpsData.Latitude,
+                        longitude = gpsData.Longitude,
+                        speed = gpsData.Speed,
+                        timestamp = DateTime.Now
+                    }
+                };
+
+                await _trackingHub.Clients.Group("TrackingGroup").SendAsync("ReceiveVehicleLocationUpdate", vehicleUpdateData);
+
+                return Ok(new { 
+                    success = true, 
+                    message = "Location updated successfully",
+                    vehicleId = vehicle.Id,
+                    vehiclePlate = vehicle.LicensePlate
+                });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+
+        // Alternative endpoint for SimCard-based updates (more secure)
+        [HttpPost("update-by-simcard")]
+        public async Task<IActionResult> UpdateLocationBySimCard([FromBody] GpsDataDto gpsData)
+        {
+            return await UpdateLocation(gpsData);
+        }
+
+        // Endpoint to get vehicle information by SimCard number
+        [HttpGet("vehicle-by-simcard/{simCardNumber}")]
+        public async Task<IActionResult> GetVehicleBySimCard(string simCardNumber)
+        {
+            var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
+                .Where(v => v.SimCard.SimNumber == simCardNumber)
+                .Select(v => new
+                {
+                    v.Id,
+                    v.Model,
+                    v.LicensePlate,
+                    v.Type,
+                    v.Status,
+                    SimCardNumber = v.SimCard.SimNumber,
+                    SimCardStatus = v.SimCard.Status
+                })
+                .FirstOrDefaultAsync();
+
+            if (vehicle == null)
+            {
+                return NotFound(new { message = "Vehicle not found for this SimCard" });
+            }
+
+            return Ok(vehicle);
         }
 
         private async Task UpdateTripDistance(int vehicleId)
@@ -104,7 +184,6 @@ namespace SmartFleet.Controllers
             catch (Exception ex)
             {
                 // Log the error but don't fail the location update
-                // In a production environment, you'd want to use proper logging
                 Console.WriteLine($"Error updating trip distance: {ex.Message}");
             }
         }
