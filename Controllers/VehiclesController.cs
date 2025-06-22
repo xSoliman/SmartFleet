@@ -13,6 +13,7 @@ using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
+    [Authorize(Roles = "FleetManager,SysSupport")]
     public class VehiclesController : BaseController
     {
         private readonly SmartFleetContext _context;
@@ -31,8 +32,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var vehicles = _context.Vehicles.AsQueryable();
@@ -60,8 +60,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle details.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -87,8 +86,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             return View();
@@ -104,8 +102,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (ModelState.IsValid)
@@ -150,8 +147,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -177,8 +173,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id != vehicle.Id)
@@ -243,8 +238,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -270,8 +264,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var vehicle = await _context.Vehicles.FindAsync(id);
@@ -297,8 +290,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle maintenance.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -325,8 +317,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle simcard.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -353,8 +344,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle tracking.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
