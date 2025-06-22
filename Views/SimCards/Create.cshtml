@@ -24,11 +24,6 @@
         <form asp-action="Create" class="custom-form">
             <div asp-validation-summary="ModelOnly" class="validation-message"></div>
 
-            <div class="input-group">
-                <label asp-for="VehicleId" class="input-label"></label>
-                <select asp-for="VehicleId" class="custom-select" asp-items="ViewBag.VehicleId"></select>
-            </div>
-
             <div class="input-row">
                 <div class="input-col">
                     <div class="input-group">
@@ -50,22 +45,20 @@
                 <div class="input-col">
                     <div class="input-group">
                         <label asp-for="ActivatedAt" class="input-label"></label>
-                        <input asp-for="ActivatedAt" class="text-input" />
+                        <input asp-for="ActivatedAt" type="datetime-local" class="text-input" />
                         <span asp-validation-for="ActivatedAt" class="validation-message"></span>
                     </div>
                 </div>
                 <div class="input-col">
                     <div class="input-group">
                         <label asp-for="Status" class="input-label"></label>
-                        <input asp-for="Status" class="text-input" />
+                        <select asp-for="Status" class="custom-select">
+                            <option value="Inactive">Inactive</option>
+                            <option value="Active">Active</option>
+                        </select>
+                        <span asp-validation-for="Status" class="validation-message"></span>
                     </div>
                 </div>
-            </div>
-
-            <div class="input-group">
-                <label asp-for="CreatedAt" class="input-label"></label>
-                <input asp-for="CreatedAt" class="text-input" />
-                <span asp-validation-for="CreatedAt" class="validation-message"></span>
             </div>
 
             <div class="button-group">

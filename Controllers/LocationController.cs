@@ -5,6 +5,7 @@ using SmartFleet.Services;
 using System;
 using System.Threading.Tasks;
 using SmartFleet.Data;
+using System.Linq;
 
 namespace SmartFleet.Controllers
 {
@@ -45,9 +46,29 @@ namespace SmartFleet.Controllers
                     Timestamp = DateTime.Now // Use server time for timestamp
                 };
 
+                // Get the last location for this vehicle
+                var lastLocation = await _context.VehicleLocations
+                    .Where(vl => vl.VehicleId == gpsData.VehicleId)
+                    .OrderByDescending(vl => vl.Timestamp)
+                    .FirstOrDefaultAsync();
+
                 // Add to database
                 _context.VehicleLocations.Add(location);
                 await _context.SaveChangesAsync();
+
+                // Update vehicle's total distance traveled
+                var vehicle = await _context.Vehicles.FindAsync(gpsData.VehicleId);
+                if (vehicle != null && lastLocation != null)
+                {
+                    var segmentDistance = _distanceService.CalculateDistance(
+                        lastLocation.Latitude, lastLocation.Longitude,
+                        gpsData.Latitude, gpsData.Longitude
+                    );
+                    vehicle.TotalDistanceTraveled += segmentDistance;
+                    vehicle.UpdatedAt = DateTime.Now;
+                    _context.Vehicles.Update(vehicle);
+                    await _context.SaveChangesAsync();
+                }
 
                 // Check if this vehicle is currently on a trip and update distance
                 await UpdateTripDistance(gpsData.VehicleId);

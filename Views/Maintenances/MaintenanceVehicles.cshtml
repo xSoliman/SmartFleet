@@ -75,8 +75,18 @@
                             <select name="newStatus" class="form-select form-select-sm mb-1">
                                 @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
                                 {
+                                    var statusText = status.ToString();
+                                    // Add spaces before capital letters for better readability
+                                    statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
+                                    
+                                    // Use shorter text for the long status
+                                    if (statusText == "On Scheduled Trip")
+                                    {
+                                        statusText = "Scheduled Trip";
+                                    }
+                                    
                                     <option value="@status" selected="@(vehicle.Status == (VehicleState)status)">
-                                        @status
+                                        @statusText
                                     </option>
                                 }
                             </select>

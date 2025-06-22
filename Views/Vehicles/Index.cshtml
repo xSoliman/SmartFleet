@@ -8,6 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/list.css">
 </head>
+
+<!-- Hidden form for anti-forgery token -->
+<form id="antiForgeryForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
 <p class="add-vehicle">
     <a asp-action="Create" class="btn btn-add-car"><i class="fas fa-car car-icon"></i> Add Vehicle</a>
 </p>
@@ -33,7 +39,18 @@
                 <option value="">All Statuses</option>
                 @foreach (SmartFleet.Models.VehicleState state in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
                 {
-                    <option value="@state" selected="@(Context.Request.Query["stateFilter"] == state.ToString() ? "selected" : null)">@state</option>
+                    var statusText = state.ToString();
+                    // Replace underscores with spaces and capitalize first letter of each word
+                    statusText = statusText.Replace("_", " ");
+                    statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                    
+                    // Use shorter text for the long status
+                    if (statusText == "On Scheduled Trip")
+                    {
+                        statusText = "Scheduled Trip";
+                    }
+                    
+                    <option value="@state" selected="@(Context.Request.Query["stateFilter"] == state.ToString() ? "selected" : null)">@statusText</option>
                 }
             </select>
         </div>
@@ -49,12 +66,12 @@
     <table id="vehicle-table" class="table table-bordered align-middle">
         <thead>
             <tr>
-                <th>Image</th>
                 <th>@Html.DisplayNameFor(model => model.Model)</th>
                 <th>@Html.DisplayNameFor(model => model.Type)</th>
                 <th>@Html.DisplayNameFor(model => model.Capacity)</th>
                 <th>@Html.DisplayNameFor(model => model.LicensePlate)</th>
-                <th>@Html.DisplayNameFor(model => model.Distance)</th>
+                <th>@Html.DisplayNameFor(model => model.TotalDistanceTraveled)</th>
+                <th>@Html.DisplayNameFor(model => model.RegistrationExpiryDate)</th>
                 <th>@Html.DisplayNameFor(model => model.Status)</th>
                 <th>Actions</th>
             </tr>
@@ -63,20 +80,34 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>
-                        <img src="@(string.IsNullOrEmpty(item.VehicleImageUrl) ? Url.Content("~/assets/images/d1ab789c-8e81-4ee6-8ac0-c3868a02a4f8_car-4.png") : Url.Content(item.VehicleImageUrl))" class="vehicle-img-thumb" alt="Vehicle Image" />
-                    </td>
+    
                     <td>@Html.DisplayFor(modelItem => item.Model)</td>
                     <td>@Html.DisplayFor(modelItem => item.Type)</td>
                     <td>@Html.DisplayFor(modelItem => item.Capacity)</td>
                     <td>@Html.DisplayFor(modelItem => item.LicensePlate)</td>
                  
-                    <td>@Html.DisplayFor(modelItem => item.Distance)</td>
+                    <td>@(item.TotalDistanceTraveled.ToString("F1")) km</td>
+                     
+                    <td>@(item.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")</td>
+                   
                        <td>
                         <span class="badge-status badge-@item.Status.ToString().ToLower()">
-                            @Html.DisplayFor(modelItem => item.Status)
+                            @{
+                                var statusText = item.Status.ToString();
+                                // Replace underscores with spaces and capitalize first letter of each word
+                                statusText = statusText.Replace("_", " ");
+                                statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                                
+                                // Use shorter text for the long status
+                                if (statusText == "On Scheduled Trip")
+                                {
+                                    statusText = "Scheduled Trip";
+                                }
+                            }
+                            @statusText
                         </span>
                     </td>
+
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                             <i class="fas fa-edit"></i> Edit
@@ -84,13 +115,37 @@
                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
                             <i class="fas fa-info-circle"></i> Details
                         </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                        <button type="button" class="btn btn-delete" onclick="deleteVehicle('@item.Id', '@item.Model')">
                             <i class="fas fa-trash-alt deleted_icon"></i>
-                        </a>
+                        </button>
                     </td>
+
                 </tr>
             }
         </tbody>
     </table>
 </div>
 <br />
+
+@section Scripts {
+    <script>
+        function deleteVehicle(vehicleId, vehicleModel) {
+            if (confirm('Are you sure you want to delete vehicle "' + vehicleModel + '"? This action cannot be undone.')) {
+                // Create a form to submit the deletion
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/Vehicles/Delete/' + vehicleId;
+                
+                // Add anti-forgery token from hidden form
+                var token = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
+                if (token) {
+                    var newToken = token.cloneNode(true);
+                    form.appendChild(newToken);
+                }
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+}

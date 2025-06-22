@@ -43,7 +43,7 @@ namespace SmartFleet.Data
             .HasColumnType("decimal(9, 6)");
 
             modelBuilder.Entity<Vehicle>()
-            .Property(v => v.Distance)
+            .Property(v => v.TotalDistanceTraveled)
             .HasColumnType("decimal(9, 6)");
 
             modelBuilder.Entity<Driver>().ToTable("Drivers");

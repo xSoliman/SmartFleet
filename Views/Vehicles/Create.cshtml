@@ -3,81 +3,110 @@
     ViewData["Title"] = "Create Vehicle";
 }
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/create.css">
-    
 </head>
+
 <div class="create-layout-container">
     <div class="create-form-wrapper">
         <div class="create-navigation">
             <a href="javascript:history.back()" class="create-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
             </a>
         </div>
-        <h1 class="create-heading">Create Vehicle</h1>
+
+        <h1 class="create-heading">Create New Vehicle</h1>
+
         <form asp-action="Create" class="create-custom-form" enctype="multipart/form-data">
             <div asp-validation-summary="All" class="create-validation-message"></div>
+
             <div class="create-input-group">
-                <label asp-for="Model" class="create-input-label"></label>
-                <input asp-for="Model" class="create-input-field" />
+                <label asp-for="Model" class="create-input-label">Vehicle Model</label>
+                <input asp-for="Model" class="create-input-field" placeholder="Enter vehicle model" />
                 <span asp-validation-for="Model" class="create-validation-message"></span>
             </div>
+
             <div class="create-input-row">
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="Type" class="create-input-label"></label>
-                        <select asp-for="Type" class="create-dropdown">
-                            <option>Car</option>
-                        </select>
-                        <span asp-validation-for="Type" class="create-validation-message"></span>
-                    </div>
+                <div class="create-input-group">
+                    <label asp-for="Type" class="create-input-label">Vehicle Type</label>
+                    <select asp-for="Type" class="create-dropdown">
+                        <option value="Car">Car</option>
+                        <option value="Truck">Truck</option>
+                        <option value="Bus">Bus</option>
+                        <option value="Van">Van</option>
+                        <option value="Motorcycle">Motorcycle</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span asp-validation-for="Type" class="create-validation-message"></span>
                 </div>
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="Capacity" class="create-input-label"></label>
-                        <input asp-for="Capacity" class="create-input-field" />
-                        <span asp-validation-for="Capacity" class="create-validation-message"></span>
-                    </div>
+                <div class="create-input-group">
+                    <label asp-for="Capacity" class="create-input-label">Capacity</label>
+                    <input asp-for="Capacity" class="create-input-field" placeholder="Enter capacity" />
+                    <span asp-validation-for="Capacity" class="create-validation-message"></span>
                 </div>
             </div>
+
             <div class="create-input-row">
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="LicensePlate" class="create-input-label"></label>
-                        <input asp-for="LicensePlate" class="create-input-field" />
-                        <span asp-validation-for="LicensePlate" class="create-validation-message"></span>
-                    </div>
+                <div class="create-input-group">
+                    <label asp-for="LicensePlate" class="create-input-label">License Plate</label>
+                    <input asp-for="LicensePlate" class="create-input-field" placeholder="Enter license plate" />
+                    <span asp-validation-for="LicensePlate" class="create-validation-message"></span>
                 </div>
-                <div class="create-input-col">
-                    <div class="create-input-group">
-                        <label asp-for="Status" class="create-input-label"></label>
-                        <select asp-for="Status" class="create-dropdown">
-                            <option>Available</option>
-                        </select>
-                        <span asp-validation-for="Status" class="create-validation-message"></span>
-                    </div>
+                <div class="create-input-group">
+                    <label asp-for="Status" class="create-input-label">Vehicle Status</label>
+                    <select asp-for="Status" class="create-dropdown">
+                        @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                        {
+                            var statusText = status.ToString();
+                            // Replace underscores with spaces and capitalize first letter of each word
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            // Use shorter text for the long status
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                            
+                            <option value="@status">@statusText</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Status" class="create-validation-message"></span>
                 </div>
             </div>
-            <div class="create-input-group">
-                <label asp-for="Distance" class="create-input-label"></label>
-                <input asp-for="Distance" class="create-input-field" />
-                <span asp-validation-for="Distance" class="create-validation-message"></span>
+
+            <div class="create-input-row">
+                <div class="create-input-group">
+                    <label asp-for="TotalDistanceTraveled" class="create-input-label">Total Distance Traveled (km)</label>
+                    <input asp-for="TotalDistanceTraveled" class="create-input-field" value="0.0" placeholder="Enter initial distance" />
+                    <span asp-validation-for="TotalDistanceTraveled" class="create-validation-message"></span>
+                </div>
+                <div class="create-input-group">
+                    <label asp-for="RegistrationExpiryDate" class="create-input-label">Registration Expiry Date</label>
+                    <input asp-for="RegistrationExpiryDate" type="date" class="create-input-field" />
+                    <span asp-validation-for="RegistrationExpiryDate" class="create-validation-message"></span>
+                </div>
             </div>
+
             <div class="create-input-group">
-                <label asp-for="VehicleImageUrl" class="create-input-label"></label>
+                <label asp-for="VehicleImageUrl" class="create-input-label">Vehicle Image</label>
                 <input type="file" asp-for="VehicleImageUrl" name="imageFile" class="create-input-field" accept="image/*" onchange="previewImage(event)" />
                 <span asp-validation-for="VehicleImageUrl" class="create-validation-message"></span>
                 <div class="image-preview-container">
-                    <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+                    <img id="imagePreview" class="image-preview" src="" alt="Vehicle image preview" />
+                    <div id="noImageText" class="no-image-text">No image selected</div>
                 </div>
             </div>
+
             <div class="create-button-group">
-                <button type="submit" class="create-primary-button">Create</button>
+                <button type="submit" class="create-primary-button">
+                    <i class="fas fa-car"></i> Create Vehicle
+                </button>
             </div>
         </form>
     </div>
 </div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

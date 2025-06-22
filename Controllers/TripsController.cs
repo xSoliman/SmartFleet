@@ -238,7 +238,7 @@ namespace SmartFleet.Controllers
 
             // Get all available vehicles (not filtering by type to show all options)
             var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available)
+                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
                 .ToListAsync();
 
             // Debug: Log the count of available vehicles
@@ -340,9 +340,9 @@ namespace SmartFleet.Controllers
             {
                 ModelState.AddModelError("VehicleId", "Selected vehicle not found.");
             }
-            else if (vehicle.Status != VehicleState.available)
+            else if (vehicle.Status != VehicleState.available && vehicle.Status != VehicleState.maintained)
             {
-                ModelState.AddModelError("VehicleId", "Selected vehicle is not available.");
+                ModelState.AddModelError("VehicleId", "Selected vehicle is not available for trips.");
             }
 
             // Validate that the driver exists and is active
@@ -400,7 +400,7 @@ namespace SmartFleet.Controllers
             
             // Reload available vehicles and drivers
             var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available)
+                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
                 .ToListAsync();
             
             var availableDrivers = await _context.Drivers

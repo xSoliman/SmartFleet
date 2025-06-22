@@ -1,158 +1,187 @@
-.main-container {
-    width: 80%;
-    margin: auto;
+.details-layout-container {
     display: flex;
-    flex-direction: row;
-    background: #f9f9f9;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #f5f7fa;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    margin-bottom: 50px;
 }
 
-/* Left section - Vehicle details and Sim Card data */
-.left-container {
-    width: 70%; /* Adjusted width to make it smaller */
-}
-
-.vehicle-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.vehicle-heading {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.vehicle-details {
+.details-form-wrapper {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    max-width: 800px;
+    background: #fff;
+    padding: 32px 28px 24px 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-top: 15px;
+    margin-bottom: 40px;
+    position: relative;
 }
 
-.vehicle-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #ddd;
-}
-
-.vehicle-label {
-    font-weight: bold;
-}
-
-.vehicle-actions {
-    margin-top: 20px;
+.details-heading {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 28px;
     text-align: center;
+    color: #222;
 }
 
-.vehicle-button {
-    background: #00796b;
-    color: white;
+.details-navigation {
+    margin-bottom: 20px;
+}
+
+.details-back-link {
+    color: #495057;
     text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
     padding: 8px 12px;
     border-radius: 4px;
-    margin: 0 5px;
+    background-color: #e9ecef;
 }
 
-    .vehicle-button:hover {
-        background: #004d40;
-    }
-
-.sim-card-container {
-    margin-top: 30px;
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
+.details-back-link:hover {
+    color: #212529;
+    text-decoration: none;
+    background-color: #dee2e6;
 }
 
-.sim-card-data {
-    width: 40%;
-    background-color: #f4f7f6;
-    padding: 15px;
-    border-radius: 8px;
-}
-
-    .sim-card-data h2 {
-        color: #00796b;
-        margin-bottom: 15px;
-    }
-
-    .sim-card-data p {
-        font-size: 16px;
-        color: #333;
-        line-height: 1.5;
-    }
-
-        .sim-card-data p strong {
-            color: #000;
-        }
-
-.image-container {
-    width: 30%;
-}
-
-    .image-container img {
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-    }
-
-.no-content-message {
+/* Vehicle Image Section at Top */
+.profile-image-section {
     text-align: center;
-    font-size: 18px;
-    color: #888;
-    margin-top: 30px;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
 }
 
-/* Right sidebar - links section */
-.right-container {
-    width: 30%; /* Increased width */
-    padding: 20px;
-    background-color: #f4f7f6;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    margin-left: 20px; /* Space between left content and sidebar */
+.profile-image {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 12px;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-    .right-container h2 {
-        color: #00796b;
-        margin-bottom: 20px;
-    }
+.profile-image-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    height: 220px;
+    border-radius: 12px;
+    background: #f8f9fa;
+    border: 3px solid #e9ecef;
+    margin: 0 auto;
+}
 
-    .right-container ul {
-        list-style: none;
-        padding: 0;
-    }
+.details-display-group {
+    margin-bottom: 22px;
+}
 
-        .right-container ul li a {
-            text-decoration: none;
-            color: #333;
-            display: flex;
-            font-size: 20px;
-            align-items: center;
-            gap: 15px;
-            font-weight: bold;
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+.details-display-label {
+    font-weight: 600;
+    color: #444;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    display: block;
+}
 
-            .right-container ul li a:hover {
-                color: #ffffff;
-                background-color: #00796b;
-            }
+.details-display-value {
+    font-size: 1.15rem;
+    color: #222;
+    background: #f5f7fa;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 2px;
+    word-break: break-word;
+}
 
-            .right-container ul li a .icon {
-                font-size: 30px;
-                color: #00796b;
-                transition: color 0.3s ease;
-            }
+/* Status Badge Colors matching index view */
+.badge-status {
+    display: inline-block;
+    padding: 0.25em 0.7em;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
 
-            .right-container ul li a:hover .icon {
-                color: #ffffff;
-            }
+.badge-available { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border: 1px solid #b3e6b3;
+}
+
+.badge-need_maintenance { 
+    background: #fff3cd; 
+    color: #856404; 
+    border: 1px solid #ffeaa7;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+}
+
+.badge-under_maintenance { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border: 1px solid #ffb3b3;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+}
+
+.badge-maintained { 
+    background: #d1ecf1; 
+    color: #0c5460; 
+    border: 1px solid #a8e6cf;
+}
+
+.badge-on_trip { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border: 1px solid #ffe066;
+}
+
+.badge-on_scheduled_trip { 
+    background: #e2e3e5; 
+    color: #383d41; 
+    border: 1px solid #c6c8ca;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.details-button-group {
+    text-align: center;
+    margin-top: 32px;
+    padding-bottom: 16px;
+}
+
+.details-primary-button {
+    background: #20B2AA;
+    color: #fff;
+    border: none;
+    padding: 11px 28px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.details-primary-button:hover {
+    background: #178d87;
+    text-decoration: none;
+    color: #fff;
+}

@@ -23,7 +23,7 @@ namespace SmartFleet.Controllers
         //search & filter
         public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter)
         {
-            var simCards = _context.SimCards.Include(s => s.Vehicle).AsQueryable();
+            var simCards = _context.SimCards.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchSimNumber))
             {
@@ -52,7 +52,6 @@ namespace SmartFleet.Controllers
             }
 
             var simCard = await _context.SimCards
-                .Include(s => s.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (simCard == null)
             {
@@ -65,7 +64,6 @@ namespace SmartFleet.Controllers
         // GET: SimCards/Create
         public IActionResult Create()
         {
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id");
             return View();
         }
 
@@ -74,7 +72,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,VehicleId,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Create([Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
         {
             if (ModelState.IsValid)
             {
@@ -82,7 +80,6 @@ namespace SmartFleet.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -99,7 +96,6 @@ namespace SmartFleet.Controllers
             {
                 return NotFound();
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -108,7 +104,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
         {
             if (id != simCard.Id)
             {
@@ -135,7 +131,6 @@ namespace SmartFleet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -148,7 +143,6 @@ namespace SmartFleet.Controllers
             }
 
             var simCard = await _context.SimCards
-                .Include(s => s.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (simCard == null)
             {

@@ -5,80 +5,102 @@
 }
 
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
-   
 </head>
 
-    <div class="main-container">
-        <!-- Left Section: Sim Card Details and Vehicle Details -->
-        <div class="left-container">
-            <!-- Sim Card Details -->
-            <div class="sim-card-container">
-                <div class="sim-card-data">
-                    <h2>Sim Card Data</h2>
-                    <p><strong>Sim Number:</strong> <span id="simNumber"></span></p>
-                    <p><strong>Tracking Code:</strong> <span id="trackingCode"></span></p>
-                    <p><strong>Device Type:</strong> <span id="deviceType"></span></p>
-                </div>
-                <div class="image-container">
-                    @* <img src="~/assets/images/icons/download.png" alt="Sim Card Image"> *@
-                    <img src="@Model.VehicleImageUrl" alt="Vehcile Image">
+<div class="details-layout-container">
+    <div class="details-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
 
-                </div>
-            </div>
+        <!-- Heading -->
+        <h1 class="details-heading">Vehicle Details</h1>
 
-            <!-- Vehicle Details -->
-            <div class="vehicle-container">
-                <h1 class="vehicle-heading">Vehicle Details</h1>
-                <div class="vehicle-details">
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">Model:</span>
-                        <span>@Html.DisplayFor(model => model.Model)</span>
-                    </div>
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">Type:</span>
-                        <span>@Html.DisplayFor(model => model.Type)</span>
-                    </div>
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">Capacity:</span>
-                        <span>@Html.DisplayFor(model => model.Capacity)</span>
-                    </div>
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">License Plate:</span>
-                        <span>@Html.DisplayFor(model => model.LicensePlate)</span>
-                    </div>
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">Status:</span>
-                        <span>@Html.DisplayFor(model => model.Status)</span>
-                    </div>
-                    <div class="vehicle-item">
-                        <span class="vehicle-label">Distance:</span>
-                        <span>@Html.DisplayFor(model => model.Distance)</span>
-                    </div>
+        <!-- Vehicle Image Section at Top -->
+        <div class="profile-image-section">
+            @if (!string.IsNullOrEmpty(Model.VehicleImageUrl))
+            {
+                <img src="@Model.VehicleImageUrl" alt="Vehicle Image" class="profile-image" />
+            }
+            else
+            {
+                <div class="profile-image-placeholder">
+                    <i class="fas fa-car" style="font-size: 80px; color: #ccc;"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Display Data -->
+        <div class="details-display-group">
+            <label class="details-display-label">Model</label>
+            <div class="details-display-value">@Model.Model</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Type</label>
+            <div class="details-display-value">@Model.Type</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Capacity</label>
+            <div class="details-display-value">@Model.Capacity</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">License Plate</label>
+            <div class="details-display-value">@Model.LicensePlate</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Total Distance Traveled</label>
+            <div class="details-display-value">@Model.TotalDistanceTraveled.ToString("F1") km</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Registration Expiry Date</label>
+            <div class="details-display-value">@(Model.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Status</label>
+            <div class="details-display-value">
+                @{
+                    var statusText = Model.Status.ToString();
+                    // Replace underscores with spaces and capitalize first letter of each word
+                    statusText = statusText.Replace("_", " ");
+                    statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
                     
-                </div>
-
-                <div class="vehicle-actions">
-                    <a asp-action="Index" class="vehicle-button">Back to List</a>
-                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="vehicle-button">Edit</a>
-                    <a asp-action="Tracking" asp-route-id="@Model?.Id" class="vehicle-button">Tracking</a>
-                </div>
+                    // Use shorter text for the long status
+                    if (statusText == "On Scheduled Trip")
+                    {
+                        statusText = "Scheduled Trip";
+                    }
+                }
+                <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                    @statusText
+                </span>
             </div>
         </div>
 
-        <!-- Right Sidebar Section -->
-        <div class="right-container">
-            <h2>Details</h2>
-            <ul>
-                <li><a href="page1.html"><i class="fa-solid fa-info"></i> Information</a></li>
-                <li><a href="page2.html"><i class="fa-solid fa-car"></i> Details</a></li>
-                <li><a href="page3.html"><i class="fa-solid fa-diagram-project"></i> Structure</a></li>
-                <li><a href="page4.html"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
-                <li><a href="page5.html"><i class="fa-solid fa-gears"></i> Operations</a></li>
-                <li><a href="page6.html"><i class="fa-solid fa-triangle-exclamation"></i> Violations</a></li>
-            </ul>
+        <div class="details-display-group">
+            <label class="details-display-label">Created At</label>
+            <div class="details-display-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+
+        <div class="details-display-group">
+            <label class="details-display-label">Updated At</label>
+            <div class="details-display-value">@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
+
+        <!-- Button Group -->
+        <div class="details-button-group">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
         </div>
     </div>
+</div>
 

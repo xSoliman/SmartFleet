@@ -97,7 +97,7 @@ namespace SmartFleet.Controllers
         // POST: Vehicles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt")] Vehicle vehicle, IFormFile? imageFile)
+        public async Task<IActionResult> Create([Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
 
@@ -129,6 +129,9 @@ namespace SmartFleet.Controllers
                 {
                     vehicle.VehicleImageUrl = "/assets/images/icons/download.png";
                 }
+
+                vehicle.CreatedAt = DateTime.Now;
+                vehicle.UpdatedAt = DateTime.Now;
 
                 _context.Add(vehicle);
                 await _context.SaveChangesAsync();
@@ -165,7 +168,7 @@ namespace SmartFleet.Controllers
         // POST: Vehicles/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt,VehicleImageUrl")] Vehicle vehicle, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt,VehicleImageUrl")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
 
@@ -200,6 +203,8 @@ namespace SmartFleet.Controllers
 
                         vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
                     }
+
+                    vehicle.UpdatedAt = DateTime.Now;
 
                     _context.Update(vehicle);
                     await _context.SaveChangesAsync();

@@ -43,7 +43,6 @@
     <table id="simcard-table" class="table table-bordered align-middle">
         <thead>
             <tr>
-                <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
                 <th>@Html.DisplayNameFor(model => model.SimNumber)</th>
                 <th>@Html.DisplayNameFor(model => model.Carrier)</th>
                 <th>@Html.DisplayNameFor(model => model.ActivatedAt)</th>
@@ -56,7 +55,6 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@Html.DisplayFor(modelItem => item.Vehicle.Id)</td>
                     <td>@Html.DisplayFor(modelItem => item.SimNumber)</td>
                     <td>@Html.DisplayFor(modelItem => item.Carrier)</td>
                     <td>@Html.DisplayFor(modelItem => item.ActivatedAt)</td>
