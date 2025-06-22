@@ -111,7 +111,7 @@
                     else
                     {
                         <!-- No trip exists, can create one -->
-                        <a asp-action="CreateTrip" asp-route-id="@Model.Id" class="details-primary-button btn-success">
+                        <a asp-controller="Trips" asp-action="Create" asp-route-id="@Model.Id" asp-route-userId="@Model.UserId" class="details-primary-button btn-success">
                             <i class="fas fa-route"></i> Create Trip
                         </a>
                     }

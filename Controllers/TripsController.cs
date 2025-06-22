@@ -178,6 +178,7 @@ namespace SmartFleet.Controllers
             return View(trip);
         }
 
+        [Authorize(Roles = "FleetManager")]
         public async Task<IActionResult> Create(int? id, string? userId)
         {
             if (id == null || string.IsNullOrEmpty(userId))
@@ -286,6 +287,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "FleetManager")]
         public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,CreatedBy")] Trip trip)
         {
             // Debug: Log the received data
