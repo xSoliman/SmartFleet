@@ -4,68 +4,77 @@
     ViewData["Title"] = "Edit Trip";
 }
 
-<h1>Edit Trip</h1>
-
-<h4>Trip Information</h4>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/trip/edit.css">
+</head>
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="edit-navigation">
+            <a asp-action="Index" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Trips
+            </a>
+        </div>
+        <!-- Heading -->
+        <h1 class="edit-heading">Edit Trip</h1>
+        <!-- Form -->
+        <form asp-action="Edit" class="edit-custom-form">
+            <div asp-validation-summary="All" class="edit-validation-message"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="CreatedAt" />
             <input type="hidden" asp-for="CreatedBy" />
             <input type="hidden" asp-for="Distance" />
-            
-            <div class="form-group mb-3">
-                <label asp-for="VehicleId" class="control-label">Vehicle</label>
-                <select asp-for="VehicleId" class="form-control" asp-items="ViewBag.VehicleId"></select>
-                <span asp-validation-for="VehicleId" class="text-danger"></span>
+            <div class="edit-input-row">
+                <div class="edit-input-group">
+                    <label asp-for="VehicleId" class="edit-input-label">Vehicle</label>
+                    <select asp-for="VehicleId" class="edit-dropdown" asp-items="ViewBag.VehicleId"></select>
+                    <span asp-validation-for="VehicleId" class="edit-validation-message"></span>
+                </div>
+                <!-- Geofence Display Block -->
+                <div class="edit-input-group">
+                    @if (ViewBag.VehicleGeofence != null)
+                    {
+                        <span class="badge bg-info text-dark"><i class="fas fa-map-marker-alt"></i> Geofence: <b>@ViewBag.VehicleGeofence.Name</b> (@ViewBag.VehicleGeofence.Type)</span>
+                        <a href="/Geofences/Edit/@ViewBag.VehicleGeofence.Id" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="fas fa-edit"></i> Edit Geofence</a>
+                    }
+                    else
+                    {
+                        <span class="text-warning"><i class="fas fa-exclamation-circle"></i> No geofence assigned to this vehicle.</span>
+                    }
+                </div>
             </div>
-            
-            <div class="mb-3">
-                @if (ViewBag.VehicleGeofence != null)
-                {
-                    <span class="badge bg-info text-dark"><i class="fas fa-map-marker-alt"></i> Geofence: <b>@ViewBag.VehicleGeofence.Name</b> (@ViewBag.VehicleGeofence.Type)</span>
-                    <a href="/Geofences/Edit/@ViewBag.VehicleGeofence.Id" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="fas fa-edit"></i> Edit Geofence</a>
-                }
-                else
-                {
-                    <span class="text-warning"><i class="fas fa-exclamation-circle"></i> No geofence assigned to this vehicle.</span>
-                }
+            <div class="edit-input-row">
+                <div class="edit-input-group">
+                    <label asp-for="OrderId" class="edit-input-label">Order</label>
+                    <select asp-for="OrderId" class="edit-dropdown" asp-items="ViewBag.OrderId"></select>
+                    <span asp-validation-for="OrderId" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-group">
+                    <label asp-for="DriverId" class="edit-input-label">Driver</label>
+                    <select asp-for="DriverId" class="edit-dropdown" asp-items="ViewBag.DriverId"></select>
+                    <span asp-validation-for="DriverId" class="edit-validation-message"></span>
+                </div>
             </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="OrderId" class="control-label">Order</label>
-                <select asp-for="OrderId" class="form-control" asp-items="ViewBag.OrderId"></select>
-                <span asp-validation-for="OrderId" class="text-danger"></span>
+            <div class="edit-input-row">
+                <div class="edit-input-group">
+                    <label asp-for="Status" class="edit-input-label">Status</label>
+                    <select asp-for="Status" class="edit-dropdown" style="width: 100%" asp-items="Html.GetEnumSelectList<TripState>()"></select>
+                    <span asp-validation-for="Status" class="edit-validation-message"></span>
+                </div>
             </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="DriverId" class="control-label">Driver</label>
-                <select asp-for="DriverId" class="form-control" asp-items="ViewBag.DriverId"></select>
-                <span asp-validation-for="DriverId" class="text-danger"></span>
-            </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="Status" class="control-label">Status</label>
-                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<TripState>()"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-
-            <div class="alert alert-info">
+            <div class="alert alert-info mt-3">
                 <i class="fas fa-info-circle"></i>
                 <strong>Note:</strong> Trip dates are managed through the associated Order. Distance is automatically calculated based on GPS tracking data.
             </div>
-            
-            <div class="form-group">
-                <input type="submit" value="Save Changes" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            <div class="edit-button-group mt-3">
+                <button type="submit" class="edit-primary-button">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
         </form>
     </div>
-    
-    <div class="col-md-6">
+    <div class="edit-form-wrapper right-card-info">
         <div class="card">
             <div class="card-header">
                 <h5>Current Trip Information</h5>
@@ -74,10 +83,8 @@
                 <dl class="row">
                     <dt class="col-sm-4">Distance:</dt>
                     <dd class="col-sm-8">@Model.Distance km</dd>
-                    
                     <dt class="col-sm-4">Created:</dt>
                     <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
-                    
                     <dt class="col-sm-4">Status:</dt>
                     <dd class="col-sm-8">
                         <span class="badge badge-@Model.Status.ToString().ToLower()">
