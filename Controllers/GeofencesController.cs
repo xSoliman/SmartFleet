@@ -33,7 +33,7 @@ namespace SmartFleet.Controllers
         // POST: Geofences/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,CenterLat,CenterLng,RadiusMeters")] Geofence geofence)
+        public async Task<IActionResult> Create([Bind("Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson")] Geofence geofence)
         {
             if (ModelState.IsValid)
             {
@@ -56,7 +56,7 @@ namespace SmartFleet.Controllers
         // POST: Geofences/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CenterLat,CenterLng,RadiusMeters")] Geofence geofence)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson")] Geofence geofence)
         {
             if (id != geofence.Id) return NotFound();
             if (ModelState.IsValid)

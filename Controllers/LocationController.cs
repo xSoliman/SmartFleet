@@ -8,6 +8,7 @@ using SmartFleet.Data;
 using System.Linq;
 using Microsoft.AspNetCore.SignalR;
 using SmartFleet.Hubs;
+using Newtonsoft.Json;
 
 namespace SmartFleet.Controllers
 {
@@ -161,20 +162,35 @@ namespace SmartFleet.Controllers
                 // Geofence Breach Detection
                 if (vehicle.GeofenceId.HasValue && vehicle.Geofence != null)
                 {
-                    // Calculate distance between vehicle and geofence center (Haversine formula)
-                    double R = 6371000; // Earth radius in meters
-                    double lat1 = (double)vehicle.Geofence.CenterLat * Math.PI / 180.0;
-                    double lon1 = (double)vehicle.Geofence.CenterLng * Math.PI / 180.0;
-                    double lat2 = (double)gpsData.Latitude * Math.PI / 180.0;
-                    double lon2 = (double)gpsData.Longitude * Math.PI / 180.0;
-                    double dLat = lat2 - lat1;
-                    double dLon = lon2 - lon1;
-                    double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                               Math.Cos(lat1) * Math.Cos(lat2) *
-                               Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-                    double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-                    double distance = R * c;
-                    bool isInside = distance <= (double)vehicle.Geofence.RadiusMeters;
+                    bool isInside = false;
+                    if (vehicle.Geofence.Type == GeofenceType.Circle)
+                    {
+                        // Calculate distance between vehicle and geofence center (Haversine formula)
+                        double R = 6371000; // Earth radius in meters
+                        double lat1 = (double)vehicle.Geofence.CenterLat * Math.PI / 180.0;
+                        double lon1 = (double)vehicle.Geofence.CenterLng * Math.PI / 180.0;
+                        double lat2 = (double)gpsData.Latitude * Math.PI / 180.0;
+                        double lon2 = (double)gpsData.Longitude * Math.PI / 180.0;
+                        double dLat = lat2 - lat1;
+                        double dLon = lon2 - lon1;
+                        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                                   Math.Cos(lat1) * Math.Cos(lat2) *
+                                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+                        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                        double distance = R * c;
+                        isInside = distance <= (double)vehicle.Geofence.RadiusMeters;
+                    }
+                    else if (vehicle.Geofence.Type == GeofenceType.Polygon && !string.IsNullOrEmpty(vehicle.Geofence.PolygonJson))
+                    {
+                        // Parse polygon points from JSON
+                        var polygon = JsonConvert.DeserializeObject<List<List<double>>>(vehicle.Geofence.PolygonJson);
+                        if (polygon != null && polygon.Count > 2)
+                        {
+                            double lat = (double)gpsData.Latitude;
+                            double lng = (double)gpsData.Longitude;
+                            isInside = IsPointInPolygon(lat, lng, polygon);
+                        }
+                    }
 
                     // Only notify on transition from inside to outside
                     if ((vehicle.WasInsideGeofence == null || vehicle.WasInsideGeofence == true) && !isInside)
@@ -288,6 +304,23 @@ namespace SmartFleet.Controllers
                 // Log the error but don't fail the location update
                 Console.WriteLine($"Error updating trip distance: {ex.Message}");
             }
+        }
+
+        // Point-in-polygon algorithm (Ray Casting)
+        private bool IsPointInPolygon(double lat, double lng, List<List<double>> polygon)
+        {
+            int n = polygon.Count;
+            bool inside = false;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                double xi = polygon[i][0], yi = polygon[i][1];
+                double xj = polygon[j][0], yj = polygon[j][1];
+                bool intersect = ((yi > lng) != (yj > lng)) &&
+                    (lat < (xj - xi) * (lng - yi) / (yj - yi + 1e-12) + xi);
+                if (intersect)
+                    inside = !inside;
+            }
+            return inside;
         }
     }
 }
