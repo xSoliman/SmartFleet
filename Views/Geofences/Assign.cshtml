@@ -1,0 +1,34 @@
+@model IEnumerable<SmartFleet.Models.Vehicle>
+@{
+    var geofence = ViewBag.Geofence as SmartFleet.Models.Geofence;
+    ViewData["Title"] = $"Assign Vehicles to {geofence?.Name}";
+}
+<h1>Assign Vehicles to @geofence?.Name</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th>License Plate</th>
+            <th>Current Geofence</th>
+            <th>Assign</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var vehicle in Model)
+    {
+        <tr>
+            <td>@vehicle.Model</td>
+            <td>@vehicle.LicensePlate</td>
+            <td>@vehicle.Geofence?.Name ?? "None"</td>
+            <td>
+                <form asp-action="AssignVehicle" method="post" style="display:inline;">
+                    <input type="hidden" name="geofenceId" value="@geofence?.Id" />
+                    <input type="hidden" name="vehicleId" value="@vehicle.Id" />
+                    <button type="submit" class="btn btn-sm btn-success">Assign</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<a asp-action="Index" class="btn btn-secondary">Back to Geofences</a> 

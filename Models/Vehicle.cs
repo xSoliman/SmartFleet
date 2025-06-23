@@ -60,5 +60,9 @@ namespace SmartFleet.Models
         [ForeignKey("SimCardId")]
         public SimCard? SimCard { get; set; }
         public int? SimCardId { get; set; }
+        public int? GeofenceId { get; set; }
+        [ForeignKey("GeofenceId")]
+        public Geofence? Geofence { get; set; }
+        public bool? WasInsideGeofence { get; set; }
     }
 }

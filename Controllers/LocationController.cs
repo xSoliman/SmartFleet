@@ -49,6 +49,7 @@ namespace SmartFleet.Controllers
                 // Find vehicle by SimCard number
                 var vehicle = await _context.Vehicles
                     .Include(v => v.SimCard)
+                    .Include(v => v.Geofence)
                     .FirstOrDefaultAsync(v => v.SimCard.SimNumber == gpsData.SimCardNumber && 
                                             v.SimCard.Status == SimCardStatus.Active);
 
@@ -156,6 +157,40 @@ namespace SmartFleet.Controllers
                             await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.Vehicle, vehicle.Id);
                         }
                     }
+                }
+                // Geofence Breach Detection
+                if (vehicle.GeofenceId.HasValue && vehicle.Geofence != null)
+                {
+                    // Calculate distance between vehicle and geofence center (Haversine formula)
+                    double R = 6371000; // Earth radius in meters
+                    double lat1 = (double)vehicle.Geofence.CenterLat * Math.PI / 180.0;
+                    double lon1 = (double)vehicle.Geofence.CenterLng * Math.PI / 180.0;
+                    double lat2 = (double)gpsData.Latitude * Math.PI / 180.0;
+                    double lon2 = (double)gpsData.Longitude * Math.PI / 180.0;
+                    double dLat = lat2 - lat1;
+                    double dLon = lon2 - lon1;
+                    double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                               Math.Cos(lat1) * Math.Cos(lat2) *
+                               Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+                    double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+                    double distance = R * c;
+                    bool isInside = distance <= (double)vehicle.Geofence.RadiusMeters;
+
+                    // Only notify on transition from inside to outside
+                    if ((vehicle.WasInsideGeofence == null || vehicle.WasInsideGeofence == true) && !isInside)
+                    {
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        string title = "Geofence Breach";
+                        string message = $"Geofence breach detected for vehicle {vehicle.Model} ({vehicle.LicensePlate}). The vehicle has left the designated area.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.Vehicle, vehicle.Id);
+                        }
+                    }
+                    // Update last state
+                    vehicle.WasInsideGeofence = isInside;
+                    _context.Vehicles.Update(vehicle);
+                    await _context.SaveChangesAsync();
                 }
                 // --- End Notification Logic ---
 

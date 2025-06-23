@@ -1,0 +1,67 @@
+@model SmartFleet.Models.Geofence
+@{
+    ViewData["Title"] = "Create Geofence";
+}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<h1>Create Geofence</h1>
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label>Geofence Center (select on map)</label>
+        <div id="map" style="height: 350px;"></div>
+    </div>
+    <div class="form-group">
+        <label asp-for="CenterLat"></label>
+        <input asp-for="CenterLat" class="form-control" id="CenterLat" readonly />
+        <span asp-validation-for="CenterLat" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="CenterLng"></label>
+        <input asp-for="CenterLng" class="form-control" id="CenterLng" readonly />
+        <span asp-validation-for="CenterLng" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="RadiusMeters"></label>
+        <input asp-for="RadiusMeters" class="form-control" id="RadiusMeters" type="number" min="10" max="100000" step="10" />
+        <span asp-validation-for="RadiusMeters" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</form>
+<script>
+    // Default location (e.g., your city/campus)
+    var defaultLat = 27.18096;
+    var defaultLng = 31.18368;
+    var defaultRadius = 500;
+    var map = L.map('map').setView([defaultLat, defaultLng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    var marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+    var circle = L.circle([defaultLat, defaultLng], { radius: defaultRadius }).addTo(map);
+    document.getElementById('CenterLat').value = defaultLat;
+    document.getElementById('CenterLng').value = defaultLng;
+    document.getElementById('RadiusMeters').value = defaultRadius;
+    marker.on('drag', function (e) {
+        var latlng = marker.getLatLng();
+        document.getElementById('CenterLat').value = latlng.lat.toFixed(6);
+        document.getElementById('CenterLng').value = latlng.lng.toFixed(6);
+        circle.setLatLng(latlng);
+    });
+    document.getElementById('RadiusMeters').addEventListener('input', function () {
+        var r = parseFloat(this.value);
+        if (!isNaN(r)) circle.setRadius(r);
+    });
+    map.on('click', function (e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById('CenterLat').value = e.latlng.lat.toFixed(6);
+        document.getElementById('CenterLng').value = e.latlng.lng.toFixed(6);
+        circle.setLatLng(e.latlng);
+    });
+</script> 
