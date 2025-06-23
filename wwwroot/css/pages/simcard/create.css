@@ -164,8 +164,8 @@
 }
 
 .primary-button {
-    background: #00796b;
-    color: white;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     border: none;
     padding: 12px 24px;
     border-radius: 6px;
@@ -176,7 +176,7 @@
 }
 
 .primary-button:hover {
-    background: #004d40;
+    background-color: #1a9a94;
 }
 
 .secondary-button {

@@ -1,84 +1,157 @@
+/* Trip Details Page Styles */
 
-.details-heading {
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
+.details-container {
+    padding: 3rem 0;
+    background-color: #f8f9fa;
 }
 
-.details-layout-container {
+.details-back-section {
+    padding: 1rem 1.5rem 0;
+}
+
+.details-back-section .btn-success {
+    background-color: #008374;
+    border-color: #008374;
+    padding: 0.5rem 1.5rem;
+}
+
+.details-back-section .btn-success:hover {
+    background-color: #006c5f;
+    border-color: #006c5f;
+}
+
+.details-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 2rem;
+}
+
+.details-card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #fff;
+}
+
+.details-title {
+    font-size: 1.75rem;
+    color: #212529;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* Remove the old details-back-btn styles */
+.details-back-btn,
+.details-back-btn:hover {
+    display: none;
+}
+
+.details-card-body {
+    padding: 1.5rem;
+}
+
+.details-info-group {
+    margin-bottom: 1.5rem;
+}
+
+.details-label {
+    display: block;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.details-value {
+    color: #495057;
+    margin-bottom: 0;
+}
+
+.details-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.details-badge.scheduled {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.details-badge.inprogress {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.details-badge.completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.details-badge.cancelled {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.details-card-footer {
+    padding: 1.5rem;
+    background-color: #fff;
+    border-top: 1px solid #e9ecef;
+}
+
+.details-btn-group {
     display: flex;
+    gap: 0.5rem;
     justify-content: center;
 }
 
-.details-form-wrapper {
-    width: 50%;
-    min-height: 1100px;
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    position: relative;
-    margin-top: 20px;
-}
-
-.details-display-group {
-    margin-bottom: 15px;
-    margin-top: 20px;
-}
-
-.details-display-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #00796b;
-}
-
-.details-display-value {
-    padding: 8px;
-    background: #f9f9f9;
-    color: #555;
-}
-
-.details-navigation {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-}
-
-.details-back-link {
-    background: #00796b;
-    color: white;
-    text-decoration: none;
-    padding: 8px 12px;
+.details-btn {
+    padding: 0.5rem 1rem;
     border-radius: 4px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-
-    .details-back-link:hover {
-        text-decoration: none;
-        background: #004d40;
-    }
-
-    .details-back-link i {
-        margin-right: 5px;
-    }
-
-.details-button-group {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.details-primary-button {
-    background: #00796b;
-    color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
+    font-weight: 500;
     cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: opacity 0.3s ease;
 }
 
-    .details-primary-button:hover {
-        background: #004d40;
+.details-btn i {
+    margin-right: 0.5rem;
+}
+
+.details-btn:hover {
+    opacity: 0.9;
+}
+
+.details-btn.primary {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.details-btn.info {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.details-btn.warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .details-card {
+        margin: 1rem;
     }
+
+    .details-btn-group {
+        flex-direction: column;
+    }
+
+    .details-btn {
+        width: 100%;
+        justify-content: center;
+    }
+} 

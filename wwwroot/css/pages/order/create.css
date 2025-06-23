@@ -49,8 +49,8 @@
 }
 
 .order-primary-button {
-    background: #00796b;
-    color: white;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -58,7 +58,8 @@
 }
 
     .order-primary-button:hover {
-        background: #004d40;
+     background-color: #1a9a94;
+
     }
 
 .order-input-row {
@@ -77,8 +78,9 @@
 }
 
 .order-back-link {
-    background: #00796b;
-    color: white;
+    background-color: #20B2AA;
+    color: #ffffff !important;
+
     text-decoration: none;
     padding: 8px 12px;
     border-radius: 4px;
@@ -88,5 +90,5 @@
 }
 
     .order-back-link:hover {
-        background: #004d40;
+        background-color: #1a9a94;
     }
