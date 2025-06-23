@@ -22,16 +22,20 @@ namespace SmartFleet.Controllers
         private readonly IDriverStatusManagementService _driverStatusService;
         private readonly IVehicleStateManagementService _vehicleStateService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
         public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
             IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
             _tripStateService = tripStateService;
             _driverStatusService = driverStatusService;
             _vehicleStateService = vehicleStateService;
             _userManager = userManager;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         public async Task<IActionResult> Index(
@@ -504,6 +508,21 @@ namespace SmartFleet.Controllers
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
                         await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
+
+                        // Send notification to FleetManager
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        var notificationTitle = $"Trip Ended";
+                        var notificationMessage = $"Trip (ID: {trip.Id}) has ended (Status: {trip.Status}). The attached vehicle and driver are now free.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                user.Id,
+                                notificationTitle,
+                                notificationMessage,
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
                     }
                     // Update driver status if trip status changed from completed/cancelled to scheduled
                     else if ((originalStatus == TripState.Completed || originalStatus == TripState.Cancelled) && 
@@ -517,6 +536,21 @@ namespace SmartFleet.Controllers
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+
+                        // Send notification to FleetManager
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        var notificationTitle = $"Trip Started";
+                        var notificationMessage = $"Trip (ID: {trip.Id}) has started. Vehicle: {trip.Vehicle?.Model ?? "Unknown"}, Driver: {trip.DriverId}.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                user.Id,
+                                notificationTitle,
+                                notificationMessage,
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
                     }
                     // Update driver status if trip status changed from in-progress to scheduled
                     else if (originalStatus == TripState.InProgress && trip.Status == TripState.Scheduled)
@@ -704,6 +738,21 @@ namespace SmartFleet.Controllers
             
             // Update vehicle state after trip cancellation
             await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
+
+            // Send notification to FleetManager
+            var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+            var notificationTitle = $"Trip Ended";
+            var notificationMessage = $"Trip (ID: {trip.Id}) has ended (Status: Cancelled). The attached vehicle and driver are now free.";
+            foreach (var user in fleetManagers)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    user.Id,
+                    notificationTitle,
+                    notificationMessage,
+                    RelatedTable.Trip,
+                    trip.Id
+                );
+            }
 
             TempData["SuccessMessage"] = "Trip cancelled successfully.";
             return RedirectToAction(nameof(Index));

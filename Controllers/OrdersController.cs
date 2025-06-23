@@ -541,6 +541,21 @@ namespace SmartFleet.Controllers
             _context.Update(order);
             await _context.SaveChangesAsync();
 
+            // Send notification to FleetManager after approval
+            var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+            var notificationTitle = "Order Approved";
+            var notificationMessage = $"Order (ID: {order.Id}) has been approved. Please create a trip for this order.";
+            foreach (var user in fleetManagers)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    user.Id,
+                    notificationTitle,
+                    notificationMessage,
+                    RelatedTable.Order,
+                    order.Id
+                );
+            }
+
             TempData["SuccessMessage"] = "Order approved successfully.";
             return RedirectToAction(nameof(Index));
         }

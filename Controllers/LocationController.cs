@@ -18,12 +18,16 @@ namespace SmartFleet.Controllers
         private readonly SmartFleetContext _context;
         private readonly IDistanceCalculationService _distanceService;
         private readonly IHubContext<TrackingHub> _trackingHub;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public LocationController(SmartFleetContext context, IDistanceCalculationService distanceService, IHubContext<TrackingHub> trackingHub)
+        public LocationController(SmartFleetContext context, IDistanceCalculationService distanceService, IHubContext<TrackingHub> trackingHub, INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
             _distanceService = distanceService;
             _trackingHub = trackingHub;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         // Simple GPS data model
@@ -91,6 +95,69 @@ namespace SmartFleet.Controllers
 
                 // Check if this vehicle is currently on a trip and update distance
                 await UpdateTripDistance(vehicle.Id);
+
+                // --- Notification Logic ---
+                // 1. Speed Exceeded
+                decimal speedThreshold = 120; // kph
+                if (gpsData.Speed > speedThreshold)
+                {
+                    var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                    string title = "Speed Limit Exceeded";
+                    string message = $"Vehicle {vehicle.Model} ({vehicle.LicensePlate}) exceeded speed limit: {gpsData.Speed} kph.";
+                    foreach (var user in fleetManagers)
+                    {
+                        await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.Vehicle, vehicle.Id);
+                    }
+                }
+
+                // 2. SimCard/Signal Status
+                // SimCard inactive
+                if (vehicle.SimCard.Status != SimCardStatus.Active)
+                {
+                    var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                    string title = "SimCard Inactive";
+                    string message = $"SimCard for vehicle {vehicle.Model} ({vehicle.LicensePlate}) is inactive.";
+                    foreach (var user in fleetManagers)
+                    {
+                        await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.SimCard, vehicle.SimCard.Id);
+                    }
+                }
+                // GPS signal loss (no update for > 5 min)
+                if (lastLocation != null && (DateTime.Now - lastLocation.Timestamp).TotalMinutes > 5)
+                {
+                    var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                    string title = "GPS Signal Lost";
+                    string message = $"No GPS update for vehicle {vehicle.Model} ({vehicle.LicensePlate}) for over 5 minutes.";
+                    foreach (var user in fleetManagers)
+                    {
+                        await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.VehicleLocatoin, vehicle.Id);
+                    }
+                }
+                // Unauthorized Vehicle Use: Notify if vehicle is moving outside of scheduled trips or working hours
+                if (gpsData.Speed > 0)
+                {
+                    // Check if vehicle is on an active trip (Scheduled or InProgress)
+                    var now = DateTime.Now;
+                    var hasActiveTrip = await _context.Trips.AnyAsync(t => t.VehicleId == vehicle.Id && (t.Status == TripState.InProgress || t.Status == TripState.Scheduled)
+                        && t.Order.TripStartDate <= now && t.Order.TripEndDate >= now);
+
+                    // Define working hours (e.g., 7am to 7pm)
+                    var startHour = 7;
+                    var endHour = 19;
+                    var isWorkingHours = now.Hour >= startHour && now.Hour < endHour;
+
+                    if (!hasActiveTrip && !isWorkingHours)
+                    {
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        string title = "Unauthorized Vehicle Use";
+                        string message = $"Vehicle {vehicle.Model} ({vehicle.LicensePlate}) is moving outside of scheduled trips or working hours.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.Vehicle, vehicle.Id);
+                        }
+                    }
+                }
+                // --- End Notification Logic ---
 
                 // Send real-time update to all connected tracking clients
                 var vehicleUpdateData = new

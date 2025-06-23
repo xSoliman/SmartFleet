@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
             
             // Determine speed display
             let speedDisplay = 'N/A';
-            if (vehicle.latestLocation) {
+            if (vehicle.latestLocation && movementStatus !== 'GPS Offline' && movementStatus !== 'No GPS Signal') {
                 speedDisplay = `<strong>${vehicle.latestLocation.speed}</strong> kph`;
             }
             
@@ -511,17 +511,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updatePositionInfo(data) {
-        if (data.latestLocation) {
+        const movementStatus = data ? getMovementStatus(data) : null;
+        if (data && data.latestLocation && movementStatus !== 'GPS Offline' && movementStatus !== 'No GPS Signal') {
             const positionData = {
                 position: `${data.latestLocation.latitude}°, ${data.latestLocation.longitude}°`,
                 speed: `${data.latestLocation.speed} kph`,
                 timestamp: new Date(data.latestLocation.timestamp).toLocaleString()
             };
             updateInfoSection('position-info', positionData);
-        } else {
+        } else if (data) {
             const positionData = {
-                status: 'No GPS Signal',
+                status: movementStatus === 'GPS Offline' ? 'GPS Offline' : 'No GPS Signal',
                 message: data.simCardNumber ? 'GPS device not responding' : 'No SimCard attached',
+                speed: 'N/A',
                 last_known: 'No location data available'
             };
             updateInfoSection('position-info', positionData);

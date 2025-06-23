@@ -7,16 +7,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
     public class SimCardsController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public SimCardsController(SmartFleetContext context)
+        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         // GET: SimCards
@@ -115,8 +120,25 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the original SimCard from DB
+                    var originalSimCard = await _context.SimCards.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+                    bool statusChanged = originalSimCard != null && originalSimCard.Status != simCard.Status;
+
                     _context.Update(simCard);
                     await _context.SaveChangesAsync();
+
+                    // --- Notification Logic ---
+                    if (statusChanged)
+                    {
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        string title = "SimCard Status Changed";
+                        string message = $"SimCard {simCard.SimNumber} status changed to {simCard.Status}.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.SimCard, simCard.Id);
+                        }
+                    }
+                    // --- End Notification Logic ---
                 }
                 catch (DbUpdateConcurrencyException)
                 {
