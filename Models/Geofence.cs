@@ -22,5 +22,7 @@ namespace SmartFleet.Models
         public decimal RadiusMeters { get; set; }
         // Polygon (nullable, JSON array of [lat, lng] pairs)
         public string? PolygonJson { get; set; }
+        // Global default geofence flag
+        public bool IsDefault { get; set; } = false;
     }
 } 

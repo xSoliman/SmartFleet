@@ -1,0 +1,27 @@
+/* Geofence-specific action button styles */
+.geofence-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    font-size: 0.95em;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #f7f7f7;
+    color: #222;
+    border: 1px solid #e0e0e0;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    min-width: 60px;
+    transition: background 0.15s, color 0.15s;
+    text-decoration: none;
+    font-weight: 500;
+    justify-content: center;
+}
+.geofence-action-btn:last-child { margin-right: 0; }
+.geofence-action-edit:hover { background:  #e6f0ff; color:#1a73e8 ; border-color: #b3d1ff; }
+.geofence-action-delete:hover { background: #ffeaea; color: #e63946; border-color: #ffb3b3; }
+.geofence-action-assign:hover { background: #e6f9e6; color: #16b416; border-color: #b3e6b3; }
+.geofence-action-btn .deleted_icon { color: #e63946; }
+@media (max-width: 600px) {
+    .geofence-action-btn { font-size: 0.85em; padding: 2px 4px; min-width: 45px; }
+} 

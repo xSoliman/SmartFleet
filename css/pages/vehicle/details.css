@@ -1,0 +1,182 @@
+/* Geofence Info Styles */
+.geofence-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    font-size: 1.13rem;
+    font-weight: 500;
+}
+.geofence-item {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 1.18rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+.geofence-label {
+    font-weight: 700;
+    width: 130px;
+    color: #3f51b5;
+    font-size: 1.18rem;
+    letter-spacing: 0.01em;
+}
+.geofence-value {
+    color: #1a1a1a;
+    font-weight: 700;
+    font-size: 1.18rem;
+    margin-left: 8px;
+    letter-spacing: 0.01em;
+}
+.geofence-info h3,
+#geofence-assignment-container h2 {
+    font-size: 1.05rem !important;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 10px;
+    letter-spacing: 0.01em;
+}
+#geofence-assignment-container h2 {
+    font-size: 1.13rem !important;
+    font-weight: 600;
+    color: #3f51b5;
+    margin-bottom: 10px;
+}
+.geofence-action-buttons .simcard-btn,
+#assignment-form .simcard-btn,
+.geofence-action-buttons button,
+#assignment-form button,
+.geofence-action-buttons a,
+#assignment-form a {
+    color: #fff !important;
+    font-weight: 700 !important;
+    background-color: #3f51b5 !important;
+}
+.geofence-action-buttons .simcard-btn.simcard-btn-danger,
+#assignment-form .simcard-btn.simcard-btn-danger,
+.geofence-action-buttons button.simcard-btn-danger,
+#assignment-form button.simcard-btn-danger {
+    background-color: #e53935 !important;
+}
+.geofence-action-buttons .simcard-btn.simcard-btn-warning,
+#assignment-form .simcard-btn.simcard-btn-warning,
+.geofence-action-buttons button.simcard-btn-warning,
+#assignment-form button.simcard-btn-warning {
+    background-color: #ffb300 !important;
+}
+.geofence-action-buttons .simcard-btn.simcard-btn-success,
+#assignment-form .simcard-btn.simcard-btn-success,
+.geofence-action-buttons button.simcard-btn-success,
+#assignment-form button.simcard-btn-success {
+    background-color: #4caf50 !important;
+}
+.geofence-action-buttons .simcard-btn.simcard-btn-secondary,
+#assignment-form .simcard-btn.simcard-btn-secondary,
+.geofence-action-buttons button.simcard-btn-secondary,
+#assignment-form button.simcard-btn-secondary {
+    background-color: #bdbdbd !important;
+}
+.geofence-action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+.no-geofence {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    padding: 18px 16px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 1.13rem;
+    font-weight: 500;
+}
+.geofence-no-content-message {
+    color: #856404;
+    margin-bottom: 10px;
+    font-size: 1.13rem;
+    font-weight: 600;
+}
+.geofence-no-content-message i {
+    font-size: 2rem;
+    margin-bottom: 6px;
+}
+#assignment-form {
+    background: #f4f6fb;
+    border-radius: 8px;
+    padding: 18px 16px;
+    margin-top: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    font-size: 1.13rem;
+    font-weight: 500;
+}
+.simcard-form-group {
+    margin-bottom: 14px;
+}
+.simcard-form-control {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1.13rem;
+    font-weight: 500;
+}
+.simcard-form-actions {
+    display: flex;
+    gap: 10px;
+}
+.simcard-btn {
+    padding: 7px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.13rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn-primary {
+    background: #3f51b5;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn-success {
+    background: #4caf50;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn-danger {
+    background: #e53935;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn-warning {
+    background: #ffb300;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn-secondary {
+    background: #bdbdbd;
+    color: #fff !important;
+    font-weight: 700;
+}
+.simcard-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+@media (max-width: 900px) {
+    .main-container {
+        flex-direction: column;
+    }
+    .left-container, .right-container {
+        width: 100%;
+        margin: 0;
+    }
+    #vehicle-geofence-map {
+        height: 160px;
+    }
+} 

@@ -459,7 +459,10 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            var trip = await _context.Trips.FindAsync(id);
+            var trip = await _context.Trips
+                .Include(t => t.Vehicle)
+                .ThenInclude(v => v.Geofence)
+                .FirstOrDefaultAsync(t => t.Id == id);
             if (trip == null)
             {
                 return NotFound();
@@ -468,6 +471,7 @@ namespace SmartFleet.Controllers
             ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id", trip.OrderId);
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", trip.VehicleId);
             ViewData["CreatedBy"] = new SelectList(_context.Users, "Id", "Id", trip.CreatedBy);
+            ViewBag.VehicleGeofence = trip.Vehicle?.Geofence;
             return View(trip);
         }
 

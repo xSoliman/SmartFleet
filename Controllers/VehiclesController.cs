@@ -522,5 +522,65 @@ namespace SmartFleet.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        // API: Get geofence info for a vehicle
+        [HttpGet("api/vehicles/{id}/geofence")]
+        public async Task<IActionResult> GetVehicleGeofence(int id)
+        {
+            var vehicle = await _context.Vehicles.Include(v => v.Geofence).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehicle == null)
+                return NotFound();
+            if (vehicle.Geofence == null)
+                return Json(new { hasGeofence = false });
+            return Json(new {
+                hasGeofence = true,
+                geofence = new {
+                    id = vehicle.Geofence.Id,
+                    name = vehicle.Geofence.Name,
+                    type = vehicle.Geofence.Type.ToString(),
+                    centerLat = vehicle.Geofence.CenterLat,
+                    centerLng = vehicle.Geofence.CenterLng,
+                    radiusMeters = vehicle.Geofence.RadiusMeters,
+                    polygonJson = vehicle.Geofence.PolygonJson
+                }
+            });
+        }
+
+        // GET: Vehicles/Geofence/5
+        public async Task<IActionResult> Geofence(int? id)
+        {
+            if (id == null) return NotFound();
+            var vehicle = await _context.Vehicles.Include(v => v.Geofence).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehicle == null) return NotFound();
+            var geofences = await _context.Geofence.ToListAsync();
+            ViewBag.Geofences = geofences;
+            return View(vehicle);
+        }
+
+        // POST: Vehicles/AssignGeofence
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignGeofence(int vehicleId, int geofenceId)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+            if (vehicle == null) return NotFound();
+            vehicle.GeofenceId = geofenceId;
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Geofence", new { id = vehicleId });
+        }
+
+        // POST: Vehicles/RemoveGeofence
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveGeofence(int vehicleId)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+            if (vehicle == null) return NotFound();
+            vehicle.GeofenceId = null;
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Geofence", new { id = vehicleId });
+        }
     }
 }

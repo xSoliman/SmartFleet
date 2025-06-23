@@ -1,0 +1,176 @@
+/* Geofence Edit View Styles */
+.geofence-edit-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(22,180,22,0.07), 0 1.5px 4px rgba(0,0,0,0.03);
+    padding: 32px 32px 24px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-size: 1.25rem;
+    font-weight: 600;
+    overflow-x: auto;
+}
+.geofence-edit-form label,
+.geofence-edit-form .form-control,
+.geofence-edit-form select,
+.geofence-edit-form input {
+    font-size: 1.18rem;
+    font-weight: 600;
+}
+.geofence-edit-title {
+    font-family: 'Montserrat', 'Lato', Arial, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #222;
+    text-align: center;
+    margin-bottom: 24px;
+}
+.geofence-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.geofence-edit-form .form-group {
+    margin-bottom: 0;
+}
+/* .geofence-edit-btn {
+    background: #f7f7f7;
+    color: #222;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: 500;
+    padding: 8px 24px;
+    margin-right: 8px;
+    transition: background 0.15s, border-color 0.15s;
+    box-shadow: none;
+}
+.geofence-edit-btn:last-child { margin-right: 0; }
+.geofence-edit-btn:hover, .geofence-edit-btn:focus {
+    background: #ededed;
+    border-color: #bdbdbd;
+    color: #111;
+    text-decoration: none;
+} */
+.geofence-edit-content {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    align-items: flex-start;
+    justify-content: center;
+}
+.geofence-edit-form-col {
+    flex: 1 1 320px;
+    min-width: 280px;
+    max-width: 400px;
+}
+.geofence-edit-map-col {
+    flex: 2 1 1000px;
+    min-width: 600px;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.geofence-edit-map {
+    width: 100%;
+    min-width: 1000px;
+    max-width: 100%;
+    min-height: 700px;
+    max-height: 900px;
+    height: 800px;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+.geofence-edit-map .leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+}
+.geofence-edit-map-col label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.geofence-edit-validation {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 2px;
+}
+.geofence-primary-button {
+    background-color: #20B2AA;
+    color: #ffffff !important;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.2;
+    position: relative;
+    right: 20px;
+}
+.geofence-primary-button:hover {
+    background-color: #1a9a94;
+}
+.geofence-primary-button:active {
+    background-color: #158f89;
+}
+.geofence-back-link {
+    color: #495057;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    position: relative;
+    left: 80px;
+    bottom: 80px;
+}
+.geofence-back-link:hover {
+    color: #212529;
+    text-decoration: none;
+    background-color: #dee2e6;
+}
+@media (max-width: 2600px) {
+    .geofence-edit-card { max-width: 2000px; }
+    .geofence-edit-map-col { max-width: 1800px; }
+    .geofence-edit-map { min-width: 1200px; min-height: 1000px; height: 1100px; }
+}
+@media (max-width: 2200px) {
+    .geofence-edit-card { max-width: 1600px; }
+    .geofence-edit-map-col { max-width: 1400px; }
+    .geofence-edit-map { min-width: 800px; min-height: 700px; height: 760px; }
+}
+@media (max-width: 1800px) {
+    .geofence-edit-card { max-width: 1200px; }
+    .geofence-edit-map-col { max-width: 1000px; }
+    .geofence-edit-map { min-width: 500px; min-height: 600px; height: 640px; }
+}
+@media (max-width: 1400px) {
+    .geofence-edit-card { max-width: 1000px; }
+    .geofence-edit-map-col { max-width: 800px; }
+    .geofence-edit-map { min-width: 350px; min-height: 400px; height: 420px; }
+}
+@media (max-width: 1100px) {
+    .geofence-edit-content { flex-direction: column; gap: 18px; }
+    .geofence-edit-map { min-width: 220px; min-height: 300px; height: 320px; }
+}
+@media (max-width: 600px) {
+    .geofence-edit-card { padding: 8px 2px 6px 2px; font-size: 1rem; }
+    .geofence-edit-title { font-size: 1.3rem; }
+    .geofence-edit-btn { padding: 6px 12px; font-size: 0.95em; }
+    .geofence-edit-map { min-width: 120px; min-height: 180px; height: 200px; }
+} 

@@ -23,6 +23,18 @@
                 <span asp-validation-for="VehicleId" class="text-danger"></span>
             </div>
             
+            <div class="mb-3">
+                @if (ViewBag.VehicleGeofence != null)
+                {
+                    <span class="badge bg-info text-dark"><i class="fas fa-map-marker-alt"></i> Geofence: <b>@ViewBag.VehicleGeofence.Name</b> (@ViewBag.VehicleGeofence.Type)</span>
+                    <a href="/Geofences/Edit/@ViewBag.VehicleGeofence.Id" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="fas fa-edit"></i> Edit Geofence</a>
+                }
+                else
+                {
+                    <span class="text-warning"><i class="fas fa-exclamation-circle"></i> No geofence assigned to this vehicle.</span>
+                }
+            </div>
+            
             <div class="form-group mb-3">
                 <label asp-for="OrderId" class="control-label">Order</label>
                 <select asp-for="OrderId" class="form-control" asp-items="ViewBag.OrderId"></select>

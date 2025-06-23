@@ -33,10 +33,19 @@ namespace SmartFleet.Controllers
         // POST: Geofences/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson")] Geofence geofence)
+        public async Task<IActionResult> Create([Bind("Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson,IsDefault")] Geofence geofence)
         {
             if (ModelState.IsValid)
             {
+                if (geofence.IsDefault)
+                {
+                    var prevDefault = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                    if (prevDefault != null)
+                    {
+                        prevDefault.IsDefault = false;
+                        _context.Update(prevDefault);
+                    }
+                }
                 _context.Add(geofence);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -56,11 +65,23 @@ namespace SmartFleet.Controllers
         // POST: Geofences/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson")] Geofence geofence)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,CenterLat,CenterLng,RadiusMeters,Type,PolygonJson,IsDefault")] Geofence geofence)
         {
             if (id != geofence.Id) return NotFound();
             if (ModelState.IsValid)
             {
+                if (geofence.IsDefault)
+                {
+                    var prevDefault = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault && g.Id != geofence.Id);
+                    if (prevDefault != null)
+                    {
+                        prevDefault.IsDefault = false;
+                        _context.Update(prevDefault);
+                    }
+                }
+                // Detach any tracked entity with the same key
+                var local = _context.ChangeTracker.Entries<Geofence>().FirstOrDefault(e => e.Entity.Id == geofence.Id);
+                if (local != null) _context.Entry(local.Entity).State = EntityState.Detached;
                 _context.Update(geofence);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -92,12 +113,17 @@ namespace SmartFleet.Controllers
         }
 
         // GET: Geofences/Assign/5
-        public async Task<IActionResult> Assign(int? id)
+        public async Task<IActionResult> Assign(int? id, string searchPlate)
         {
             if (id == null) return NotFound();
             var geofence = await _context.Geofence.FindAsync(id);
             if (geofence == null) return NotFound();
-            var vehicles = await _context.Vehicles.ToListAsync();
+            var vehiclesQuery = _context.Vehicles.Include(v => v.Geofence).AsQueryable();
+            if (!string.IsNullOrEmpty(searchPlate))
+            {
+                vehiclesQuery = vehiclesQuery.Where(v => v.LicensePlate.Contains(searchPlate));
+            }
+            var vehicles = await vehiclesQuery.ToListAsync();
             ViewBag.Geofence = geofence;
             return View(vehicles);
         }
@@ -112,6 +138,7 @@ namespace SmartFleet.Controllers
             vehicle.GeofenceId = geofenceId;
             _context.Update(vehicle);
             await _context.SaveChangesAsync();
+            TempData["AssignmentSuccess"] = "Vehicle assigned to geofence successfully.";
             return RedirectToAction("Assign", new { id = geofenceId });
         }
     }

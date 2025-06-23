@@ -52,6 +52,17 @@ namespace SmartFleet.Services
                         
                         // Update vehicle state when trip status changes
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                        // If trip just completed or cancelled, reset vehicle geofence to default
+                        if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
+                        {
+                            var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
+                            if (vehicle != null)
+                            {
+                                var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                                vehicle.GeofenceId = defaultGeofence?.Id;
+                                _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
+                            }
+                        }
                     }
                 }
 
@@ -98,6 +109,18 @@ namespace SmartFleet.Services
                     
                     // Update vehicle state when trip status changes
                     await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    // If trip just completed or cancelled, reset vehicle geofence to default
+                    if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
+                    {
+                        var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
+                        if (vehicle != null)
+                        {
+                            var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                            vehicle.GeofenceId = defaultGeofence?.Id;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
+                        }
+                    }
                 }
             }
             catch (Exception ex)

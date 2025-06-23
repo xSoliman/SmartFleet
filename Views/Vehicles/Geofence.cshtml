@@ -1,0 +1,184 @@
+@model SmartFleet.Models.Vehicle
+@using SmartFleet.Models;
+@{
+    ViewData["Title"] = "Vehicle Geofence";
+    var geofences = ViewBag.Geofences as List<Geofence>;
+}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<div class="main-container">
+    <!-- Left Section: Geofence Information -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
+        <div class="vehicle-container">
+            <h1 class="vehicle-heading">Geofence Information - @Model.Model</h1>
+            <div class="vehicle-details">
+                <div class="vehicle-item">
+                    <span class="vehicle-label">License Plate:</span>
+                    <span>@Model.LicensePlate</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Status:</span>
+                    <span>
+                        @{
+                            var statusText = Model.Status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div id="geofence-assignment-container">
+            <h2><i class="fas fa-link"></i> Geofence Assignment</h2>
+            @if (Model.Geofence != null)
+            {
+                <div class="current-geofence">
+                    <h3>Currently Assigned Geofence</h3>
+                    <div class="geofence-info">
+                        <div class="geofence-item">
+                            <span class="geofence-label">Name:</span>
+                            <span class="geofence-value">@Model.Geofence.Name</span>
+                        </div>
+                        <div class="geofence-item">
+                            <span class="geofence-label">Type:</span>
+                            <span class="geofence-value">@Model.Geofence.Type</span>
+                        </div>
+                        <div class="geofence-item">
+                            <span class="geofence-label">Shape:</span>
+                            <span class="geofence-value">
+                                @if (Model.Geofence.Type == GeofenceType.Circle)
+                                {
+                                    <span>Center: @Model.Geofence.CenterLat, @Model.Geofence.CenterLng | Radius: @Model.Geofence.RadiusMeters m</span>
+                                }
+                                else if (Model.Geofence.Type == GeofenceType.Polygon && !string.IsNullOrEmpty(Model.Geofence.PolygonJson))
+                                {
+                                    var points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(Model.Geofence.PolygonJson);
+                                    <span>Polygon with @points.Count points</span>
+                                }
+                            </span>
+                        </div>
+                    </div>
+                    <div id="vehicle-geofence-map" style="height:180px; width:100%; border-radius:10px; border:1px solid #eee; margin-bottom:12px;"></div>
+                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            var map = L.map('vehicle-geofence-map').setView([@Model.Geofence.CenterLat, @Model.Geofence.CenterLng], 14);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+                            @if (Model.Geofence.Type == GeofenceType.Circle)
+                            {
+                                <text>
+                                L.circle([
+                                    @Model.Geofence.CenterLat, @Model.Geofence.CenterLng
+                                ], {
+                                    radius: @Model.Geofence.RadiusMeters,
+                                    color: 'blue',
+                                    fillColor: '#3f8efc',
+                                    fillOpacity: 0.2
+                                }).addTo(map);
+                                </text>
+                            }
+                            else if (Model.Geofence.Type == GeofenceType.Polygon && !string.IsNullOrEmpty(Model.Geofence.PolygonJson))
+                            {
+                                <text>
+                                var polygon = @Html.Raw(Model.Geofence.PolygonJson);
+                                L.polygon(polygon, {
+                                    color: 'green',
+                                    fillColor: '#4caf50',
+                                    fillOpacity: 0.2
+                                }).addTo(map);
+                                map.fitBounds(L.polygon(polygon).getBounds());
+                                </text>
+                            }
+                            map.touchZoom.disable();
+                            map.doubleClickZoom.disable();
+                            map.scrollWheelZoom.disable();
+                            map.boxZoom.disable();
+                            map.keyboard.disable();
+                            map.dragging.disable();
+                        });
+                    </script>
+                    <div class="geofence-action-buttons mt-2">
+                        <form asp-action="RemoveGeofence" method="post" style="display:inline;">
+                            <input type="hidden" name="vehicleId" value="@Model.Id" />
+                            <button type="submit" class="simcard-btn simcard-btn-danger"><i class="fas fa-unlink"></i> Remove Geofence</button>
+                        </form>
+                        <button class="simcard-btn simcard-btn-warning" onclick="showAssignmentForm()"><i class="fas fa-exchange-alt"></i> Change Geofence</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="no-geofence">
+                    <div class="geofence-no-content-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>No Geofence Assigned</h3>
+                        <p>This vehicle doesn't have a geofence assigned.</p>
+                    </div>
+                    <div class="geofence-action-buttons">
+                        <button class="simcard-btn simcard-btn-primary" onclick="showAssignmentForm()"><i class="fas fa-plus"></i> Assign Geofence</button>
+                    </div>
+                </div>
+            }
+            <!-- Assignment Form (Hidden by default) -->
+            <div id="assignment-form" style="display: none;">
+                <h3>@(Model.Geofence != null ? "Change" : "Assign") Geofence</h3>
+                <form asp-action="AssignGeofence" method="post">
+                    <input type="hidden" name="vehicleId" value="@Model.Id" />
+                    <div class="simcard-form-group">
+                        <label for="geofenceId">Select Geofence:</label>
+                        <select name="geofenceId" id="geofenceId" class="simcard-form-control" required>
+                            <option value="">-- Select a Geofence --</option>
+                            @foreach (var g in geofences)
+                            {
+                                <option value="@g.Id">@g.Name (@g.Type)</option>
+                            }
+                        </select>
+                        <small class="simcard-help-text">Choose a geofence to assign to this vehicle</small>
+                    </div>
+                    <div class="simcard-form-actions">
+                        <button type="submit" class="simcard-btn simcard-btn-success"><i class="fas fa-check"></i> @(Model.Geofence != null ? "Change" : "Assign") Geofence</button>
+                        <button type="button" class="simcard-btn simcard-btn-secondary" onclick="hideAssignmentForm()"><i class="fas fa-times"></i> Cancel</button>
+                    </div>
+                </form>
+            </div>
+            <div style="margin-top:18px;">
+                <a href="/Geofences/Index" class="simcard-btn simcard-btn-secondary" style="text-decoration:none;"><i class="fas fa-cogs"></i> Manage Geofences</a>
+            </div>
+        </div>
+    </div>
+    <!-- Right Sidebar Section -->
+    <div class="right-container">
+        <h2>Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Geofence" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-draw-polygon"></i> Geofence</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+        </ul>
+    </div>
+</div>
+<script>
+function showAssignmentForm() {
+    document.getElementById('assignment-form').style.display = 'block';
+}
+function hideAssignmentForm() {
+    document.getElementById('assignment-form').style.display = 'none';
+}
+</script> 

@@ -3,44 +3,171 @@
 @{
     ViewData["Title"] = "Geofences";
 }
-<h1>Geofences</h1>
-<a asp-action="Create" class="btn btn-primary">Create New Geofence</a>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Shape</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Name</td>
-            <td>@item.Type</td>
-            <td>
-                @if (item.Type == GeofenceType.Circle)
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="/css/pages/vehicle/list.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="/css/pages/geofence/index.css" />
+
+<div class="container my-4 d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-sm rounded-4 p-4 w-100" style="background: #fff; max-width: 1200px; margin: 0 auto;">
+        <h1 class="mb-4 text-center" style="font-family: 'Montserrat', 'Lato', Arial, sans-serif; font-weight: 600; font-size: 2rem; color: #222;">Geofences</h1>
+        <div class="d-flex flex-row justify-content-end align-items-center mb-3 gap-3">
+            <a asp-action="Create" class="btn btn-add-car ms-md-auto"><i class="fas fa-plus"></i> Add Geofence</a>
+        </div>
+        <div class="table-responsive">
+            <table id="geofence-table" class="table table-bordered align-middle text-center" style="border-radius: 15px; background: #fff;">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center align-middle">Name</th>
+                        <th class="text-center align-middle">Type</th>
+                        <th class="text-center align-middle">Shape</th>
+                        <th class="text-center align-middle">Preview</th>
+                        <th class="text-center align-middle" style="width: 260px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model)
                 {
-                    <span>Center: @item.CenterLat, @item.CenterLng<br />Radius: @item.RadiusMeters m</span>
+                    var isCircle = item.Type == GeofenceType.Circle;
+                    var isPolygon = item.Type == GeofenceType.Polygon;
+                    var mapId = $"map-preview-{item.Id}";
+                    <tr>
+                        <td class="align-middle text-center" style="font-weight: 600; color: #222;">
+                            @item.Name
+                            @if (item.IsDefault)
+                            {
+                                <span class="badge bg-warning text-dark ms-2"><i class="fas fa-star"></i> Default</span>
+                            }
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="badge badge-status @(isCircle ? "badge-available" : "badge-on_trip")" style="font-size:1em;">@item.Type</span>
+                        </td>
+                        <td class="align-middle text-center">
+                            @if (isCircle)
+                            {
+                                <span>Center: @item.CenterLat, @item.CenterLng<br />Radius: @item.RadiusMeters m</span>
+                            }
+                            else if (isPolygon && !string.IsNullOrEmpty(item.PolygonJson))
+                            {
+                                var points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(item.PolygonJson);
+                                <span>Polygon with @points.Count points</span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+                        <td class="align-middle text-center" style="width: 120px;">
+                            <div id="@mapId" style="height: 80px; width: 110px; cursor:pointer; border-radius:8px; border:1px solid #eee; margin: 0 auto;" data-bs-toggle="modal" data-bs-target="#modal-@item.Id"></div>
+                            <!-- Modal for larger preview -->
+                            <div class="modal fade" id="modal-@item.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Id" aria-hidden="true">
+                              <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="modalLabel-@item.Id">@item.Name - Preview</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body p-0" style="height: 100vh; width: 100vw;">
+                                    <div id="modal-map-@item.Id" style="height: 100vh; width: 100vw;"></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                        </td>
+                        <td class="align-middle text-center" style="width: 260px;">
+                            <div class="d-flex justify-content-center align-items-center gap-1 flex-nowrap ms-3" style="margin-left: 18px;">
+                               <a asp-action="Assign" asp-route-id="@item.Id" class="geofence-action-btn geofence-action-assign" title="Assign Vehicles">
+                                    <i class="fas fa-truck me-1"></i> <span>Assign</span>
+                                </a>
+                               
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="geofence-action-btn geofence-action-edit" title="Edit">
+                                    <i class="fas fa-edit me-1"></i> <span>Edit</span>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="geofence-action-btn geofence-action-delete" title="Delete">
+                                    <i class="fas fa-trash-alt deleted_icon me-1"></i> <span>Delete</span>
+                                </a>
+                              
+                            </div>
+                        </td>
+                    </tr>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            var map = L.map('@mapId', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false }).setView([@item.CenterLat, @item.CenterLng], 14);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+                            @if (isCircle)
+                            {
+                                <text>
+                                L.circle([
+                                    @item.CenterLat, @item.CenterLng
+                                ], {
+                                    radius: @item.RadiusMeters,
+                                    color: 'blue',
+                                    fillColor: '#3f8efc',
+                                    fillOpacity: 0.2
+                                }).addTo(map);
+                                </text>
+                            }
+                            else if (isPolygon && !string.IsNullOrEmpty(item.PolygonJson))
+                            {
+                                <text>
+                                var polygon = @Html.Raw(item.PolygonJson);
+                                L.polygon(polygon, {
+                                    color: 'green',
+                                    fillColor: '#4caf50',
+                                    fillOpacity: 0.2
+                                }).addTo(map);
+                                map.fitBounds(L.polygon(polygon).getBounds());
+                                </text>
+                            }
+                            map.touchZoom.disable();
+                            map.doubleClickZoom.disable();
+                            map.scrollWheelZoom.disable();
+                            map.boxZoom.disable();
+                            map.keyboard.disable();
+                            map.dragging.disable();
+                        });
+                        // Modal map
+                        document.addEventListener("shown.bs.modal", function (event) {
+                            var modal = event.target;
+                            if (modal.id === "modal-@item.Id") {
+                                setTimeout(function () {
+                                    var modalMap = L.map('modal-map-@item.Id').setView([@item.CenterLat, @item.CenterLng], 15);
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(modalMap);
+                                    @if (isCircle)
+                                    {
+                                        <text>
+                                        L.circle([
+                                            @item.CenterLat, @item.CenterLng
+                                        ], {
+                                            radius: @item.RadiusMeters,
+                                            color: 'blue',
+                                            fillColor: '#3f8efc',
+                                            fillOpacity: 0.2
+                                        }).addTo(modalMap);
+                                        </text>
+                                    }
+                                    else if (isPolygon && !string.IsNullOrEmpty(item.PolygonJson))
+                                    {
+                                        <text>
+                                        var polygon = @Html.Raw(item.PolygonJson);
+                                        L.polygon(polygon, {
+                                            color: 'green',
+                                            fillColor: '#4caf50',
+                                            fillOpacity: 0.2
+                                        }).addTo(modalMap);
+                                        modalMap.fitBounds(L.polygon(polygon).getBounds());
+                                        </text>
+                                    }
+                                    modalMap.invalidateSize();
+                                }, 300);
+                            }
+                        });
+                    </script>
                 }
-                else if (item.Type == GeofenceType.Polygon && !string.IsNullOrEmpty(item.PolygonJson))
-                {
-                    var points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(item.PolygonJson);
-                    <span>Polygon with @points.Count points</span>
-                }
-                else
-                {
-                    <span>-</span>
-                }
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
-                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
-                <a asp-action="Assign" asp-route-id="@item.Id" class="btn btn-sm btn-info">Assign Vehicles</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table> 
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 
