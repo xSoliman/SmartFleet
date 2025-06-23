@@ -394,6 +394,15 @@ namespace SmartFleet.Controllers
                     // Update vehicle state to on_scheduled_trip
                     await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     
+                    // After trip is created and saved in POST Create
+                    await _notificationService.CreateNotificationAsync(
+                        trip.DriverId,
+                        "Trip Assigned",
+                        $"You have been assigned to a new trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination}. Trip starts at {order.TripStartDate:yyyy-MM-dd HH:mm}.",
+                        RelatedTable.Trip,
+                        trip.Id
+                    );
+                    
                     TempData["SuccessMessage"] = "Trip created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -757,6 +766,15 @@ namespace SmartFleet.Controllers
                     trip.Id
                 );
             }
+
+            // In Cancel action, after trip.Status = TripState.Cancelled and SaveChangesAsync()
+            await _notificationService.CreateNotificationAsync(
+                trip.DriverId,
+                "Trip Cancelled",
+                $"Your assigned trip (ID: {trip.Id}) scheduled from {trip.Order.StartLocation} to {trip.Order.Destination} at {trip.Order.TripStartDate:yyyy-MM-dd HH:mm} has been cancelled.",
+                RelatedTable.Trip,
+                trip.Id
+            );
 
             TempData["SuccessMessage"] = "Trip cancelled successfully.";
             return RedirectToAction(nameof(Index));
