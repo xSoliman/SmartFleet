@@ -35,6 +35,8 @@ namespace SmartFleet
             options.LoginPath = "/Account/Login";
             options.AccessDeniedPath = "/Account/AccessDenied";
                                      });
+            builder.Services.AddSignalR();
+
 
             builder.Services.AddScoped<INotificationService, NotificationService>();
             // Database initializer 
@@ -53,7 +55,6 @@ namespace SmartFleet
             builder.Services.AddHostedService<TripStateBackgroundService>();
 
             var app = builder.Build();
-            builder.Services.AddSignalR();
             // initialize the database
             using (var scope = app.Services.CreateScope())
             {
