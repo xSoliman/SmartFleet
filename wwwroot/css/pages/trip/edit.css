@@ -1,126 +1,223 @@
-
+/* Edit Trip Form Styles - Unified with Driver/Vehicle */
 .edit-layout-container {
     display: flex;
+    flex-direction: row;
     justify-content: center;
-    margin-top: 20px;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
+    gap: 40px;
 }
-
 
 .edit-form-wrapper {
-    width: 60%;
-    background: #f9f9f9;
-    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    padding: 30px;
     border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     position: relative;
+    margin-bottom: 40px;
 }
 
-
-.edit-navigation-inside {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+.edit-navigation {
+    margin-bottom: 20px;
 }
 
-
-.btn.btn-secondary {
-    background: #00796b;
-    color: white;
+.edit-back-link {
+    background-color: #20B2AA;
+    color: #ffffff !important;
     text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
+    font-size: 15px;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+   
 }
 
-    .btn.btn-secondary:hover {
-        background: #004d40;
-    }
-
-    .btn.btn-secondary i {
-        margin-right: 5px;
-    }
-
+.edit-back-link:hover {
+    text-decoration: none;
+    background-color: #1a9a94;
+    
+}
 
 .edit-heading {
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 20px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 8px;
     text-align: center;
-    margin-top: 50px;
 }
-
 
 .edit-custom-form {
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
-
-
-.edit-flex-container {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 15px;
-}
-
-.time-container {
-    gap: 20px;
-}
-
-.flex-item {
-    flex: 1;
-    min-width: 150px;
-}
-
 
 .edit-input-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 220px;
+    flex: 1;
 }
 
 .edit-input-label {
-    font-weight: bold;
-    margin-bottom: 5px;
     display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 16px;
+    line-height: 1.4;
 }
-
 
 .edit-input-field,
 .edit-dropdown {
     width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
+    padding: 8px 16px;
+    height: 45px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #212529;
+    font-weight: 500;
+    line-height: 1.5;
+    min-width: 220px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-
-.time-input {
-    padding-left: 12px;
-    padding-right: 12px;
+.edit-input-field:focus,
+.edit-dropdown:focus {
+    outline: none;
+    border-color: #20B2AA;
+    box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
 }
 
+.edit-input-field::placeholder {
+    color: #6c757d;
+    font-weight: 400;
+    line-height: 1.5;
+}
 
 .edit-validation-message {
-    color: red;
+    color: #dc3545;
     font-size: 12px;
+    margin-top: 2px;
 }
 
+.edit-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .edit-input-row {
+        grid-template-columns: 1fr;
+    }
+}
 
 .edit-button-group {
+    margin-top: 8px;
     text-align: center;
-    margin-top: 20px;
+    display: flex;
+    justify-content: center;
 }
 
 .edit-primary-button {
-    background: #00796b;
-    color: white;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.2;
 }
 
-    .edit-primary-button:hover {
-        background: #004d40;
+.edit-primary-button:hover {
+    background-color: #1a9a94;
+}
+
+.edit-primary-button:active {
+    background-color: #158f89;
+}
+
+.edit-secondary-button {
+    background-color: #e9ecef;
+    color: #495057;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-secondary-button:hover {
+    background-color: #dee2e6;
+    color: #212529;
+}
+
+.right-card-info {
+    max-width: 350px;
+    min-width: 280px;
+    margin-left: 20px;
+    margin-right: 0;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1100px) {
+    .edit-layout-container {
+        gap: 20px;
     }
+    .right-card-info {
+        max-width: 300px;
+        min-width: 200px;
+    }
+}
+
+@media (max-width: 900px) {
+    .edit-layout-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+    }
+    .right-card-info {
+        margin-left: 0;
+        margin-top: 30px;
+        width: 100%;
+        max-width: 600px;
+    }
+}
+
+.edit-dropdown {
+    appearance: auto;
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
+}
+
+.edit-dropdown option {
+    padding: 8px;
+    font-size: 16px;
+    white-space: nowrap;
+}

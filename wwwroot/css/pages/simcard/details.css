@@ -44,8 +44,8 @@
 }
 
 .details-back-link {
-    background: #00796b;
-    color: white;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     text-decoration: none;
     padding: 8px 12px;
     border-radius: 4px;

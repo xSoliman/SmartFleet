@@ -75,7 +75,8 @@
 .edit-input-field,
 .edit-dropdown {
     width: 100%;
-    padding: 12px 16px;
+    padding: 8px 16px;
+    height: 45px;
     border: 1px solid #dee2e6;
     border-radius: 6px;
     font-size: 16px;
@@ -84,6 +85,15 @@
     color: #212529;
     font-weight: 500;
     line-height: 1.5;
+    min-width: 220px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.edit-dropdown {
+    appearance: auto;
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
 }
 
 .edit-input-field:focus,
