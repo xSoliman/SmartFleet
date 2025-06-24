@@ -12,7 +12,7 @@ namespace SmartFleet.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DriverStatusBackgroundService> _logger;
-        private readonly TimeSpan _period = TimeSpan.FromMinutes(5); // Update every 5 minutes
+        private readonly TimeSpan _period = TimeSpan.FromMinutes(1); // Update every 1 minute for more dynamic updates
 
         public DriverStatusBackgroundService(
             IServiceProvider serviceProvider,

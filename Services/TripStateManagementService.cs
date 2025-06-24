@@ -19,15 +19,18 @@ namespace SmartFleet.Services
         private readonly SmartFleetContext _context;
         private readonly ILogger<TripStateManagementService> _logger;
         private readonly IVehicleStateManagementService _vehicleStateService;
+        private readonly IDriverStatusManagementService _driverStatusService;
         private readonly INotificationService _notificationService;
         private readonly HashSet<string> _notifiedDrivers = new(); // To avoid duplicate notifications in one run
 
         public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger, 
-            IVehicleStateManagementService vehicleStateService, INotificationService notificationService)
+            IVehicleStateManagementService vehicleStateService, IDriverStatusManagementService driverStatusService,
+            INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
             _vehicleStateService = vehicleStateService;
+            _driverStatusService = driverStatusService;
             _notificationService = notificationService;
         }
 
@@ -56,6 +59,14 @@ namespace SmartFleet.Services
                         
                         // Update vehicle state when trip status changes
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                        
+                        // Update driver state when trip status changes
+                        if (trip.DriverId != null)
+                        {
+                            await _driverStatusService.UpdateSingleDriverStatusAsync(trip.DriverId);
+                            _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {trip.Id} state change");
+                        }
+                        
                         // If trip just completed or cancelled, reset vehicle geofence to default
                         if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
                         {
@@ -150,6 +161,14 @@ namespace SmartFleet.Services
                     
                     // Update vehicle state when trip status changes
                     await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    
+                    // Update driver state when trip status changes
+                    if (trip.DriverId != null)
+                    {
+                        await _driverStatusService.UpdateSingleDriverStatusAsync(trip.DriverId);
+                        _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {tripId} state change");
+                    }
+                    
                     // If trip just completed or cancelled, reset vehicle geofence to default
                     if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
                     {

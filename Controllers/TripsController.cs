@@ -38,6 +38,75 @@ namespace SmartFleet.Controllers
             _userRoleService = userRoleService;
         }
 
+        /// <summary>
+        /// Gets available vehicles for trip assignment, excluding those with conflicting states or intersecting trips
+        /// </summary>
+        private async Task<List<Vehicle>> GetAvailableVehiclesAsync(DateTime? tripStartDate = null, DateTime? tripEndDate = null, int? currentVehicleId = null)
+        {
+            var query = _context.Vehicles.AsQueryable();
+            
+            // Exclude vehicles in unavailable states
+            query = query.Where(v => v.Status != VehicleState.on_trip && 
+                                     v.Status != VehicleState.need_maintenance && 
+                                     v.Status != VehicleState.under_maintenance && 
+                                     v.Status != VehicleState.maintained);
+            
+            // If we have trip dates, exclude vehicles with intersecting scheduled trips
+            if (tripStartDate.HasValue && tripEndDate.HasValue)
+            {
+                var conflictingVehicleIds = await _context.Trips
+                    .Include(t => t.Order)
+                    .Where(t => t.Status == TripState.Scheduled &&
+                               t.VehicleId != currentVehicleId && // Allow current vehicle in edit mode
+                               ((t.Order.TripStartDate <= tripStartDate && t.Order.TripEndDate > tripStartDate) ||
+                                (t.Order.TripStartDate < tripEndDate && t.Order.TripEndDate >= tripEndDate) ||
+                                (t.Order.TripStartDate >= tripStartDate && t.Order.TripEndDate <= tripEndDate)))
+                    .Select(t => t.VehicleId)
+                    .Distinct()
+                    .ToListAsync();
+                
+                if (conflictingVehicleIds.Any())
+                {
+                    query = query.Where(v => !conflictingVehicleIds.Contains(v.Id));
+                }
+            }
+            
+            return await query.ToListAsync();
+        }
+
+        /// <summary>
+        /// Gets available drivers for trip assignment, excluding unavailable drivers and those with intersecting trips
+        /// </summary>
+        private async Task<List<Driver>> GetAvailableDriversAsync(DateTime? tripStartDate = null, DateTime? tripEndDate = null, string currentDriverId = null)
+        {
+            var query = _context.Drivers.AsQueryable();
+            
+            // Exclude unavailable drivers
+            query = query.Where(d => d.DriverStatus != DriverState.NotAvailable);
+            
+            // If we have trip dates, exclude drivers with intersecting scheduled trips
+            if (tripStartDate.HasValue && tripEndDate.HasValue)
+            {
+                var conflictingDriverIds = await _context.Trips
+                    .Include(t => t.Order)
+                    .Where(t => t.Status == TripState.Scheduled &&
+                               t.DriverId != currentDriverId && // Allow current driver in edit mode
+                               ((t.Order.TripStartDate <= tripStartDate && t.Order.TripEndDate > tripStartDate) ||
+                                (t.Order.TripStartDate < tripEndDate && t.Order.TripEndDate >= tripEndDate) ||
+                                (t.Order.TripStartDate >= tripStartDate && t.Order.TripEndDate <= tripEndDate)))
+                    .Select(t => t.DriverId)
+                    .Distinct()
+                    .ToListAsync();
+                
+                if (conflictingDriverIds.Any())
+                {
+                    query = query.Where(d => !conflictingDriverIds.Contains(d.Id));
+                }
+            }
+            
+            return await query.ToListAsync();
+        }
+
         public async Task<IActionResult> Index(
             string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate,
             string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, DateTime? assignedStartDate, DateTime? assignedEndDate)
@@ -244,9 +313,7 @@ namespace SmartFleet.Controllers
             ViewBag.TripEndTime = order.TripEndDate;
 
             // Get all available vehicles (not filtering by type to show all options)
-            var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
-                .ToListAsync();
+            var availableVehicles = await GetAvailableVehiclesAsync(order.TripStartDate, order.TripEndDate);
 
             // Debug: Log the count of available vehicles
             var totalVehicles = await _context.Vehicles.CountAsync();
@@ -258,9 +325,7 @@ namespace SmartFleet.Controllers
             ViewBag.AvailableVehicles = availableVehicles; // For debugging
 
             // Get all active drivers
-            var availableDrivers = await _context.Drivers
-                .Where(d => d.DriverStatus == DriverState.Available)
-                .ToListAsync();
+            var availableDrivers = await GetAvailableDriversAsync(order.TripStartDate, order.TripEndDate, null);
 
             // Debug: Log the count of available drivers
             var totalDrivers = await _context.Drivers.CountAsync();
@@ -275,7 +340,7 @@ namespace SmartFleet.Controllers
             var driverSelectList = availableDrivers.Select(d => new SelectListItem
             {
                 Value = d.Id,
-                Text = $"{d.UserName} - {d.LicenseNumber} (Active)"
+                Text = $"{d.UserName} - {d.LicenseNumber} ({d.DriverStatus})"
             }).ToList();
             
             ViewBag.DriverId = new SelectList(driverSelectList, "Value", "Text");
@@ -284,7 +349,7 @@ namespace SmartFleet.Controllers
             var vehicleSelectList = availableVehicles.Select(v => new SelectListItem
             {
                 Value = v.Id.ToString(),
-                Text = $"{v.LicensePlate} - {v.Model} ({v.Type})"
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
             }).ToList();
             
             ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text");
@@ -418,19 +483,15 @@ namespace SmartFleet.Controllers
             var createdByUserName = orderUser?.UserName ?? "Unknown User";
             
             // Reload available vehicles and drivers
-            var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
-                .ToListAsync();
+            var availableVehicles = await GetAvailableVehiclesAsync(order.TripStartDate, order.TripEndDate);
             
-            var availableDrivers = await _context.Drivers
-                .Where(d => d.DriverStatus == DriverState.Available)
-                .ToListAsync();
+            var availableDrivers = await GetAvailableDriversAsync(order.TripStartDate, order.TripEndDate, null);
             
             // Create detailed driver display format
             var driverSelectList = availableDrivers.Select(d => new SelectListItem
             {
                 Value = d.Id,
-                Text = $"{d.UserName} - {d.LicenseNumber} (Active)"
+                Text = $"{d.UserName} - {d.LicenseNumber} ({d.DriverStatus})"
             }).ToList();
             
             ViewBag.DriverId = new SelectList(driverSelectList, "Value", "Text", trip.DriverId);
@@ -439,7 +500,7 @@ namespace SmartFleet.Controllers
             var vehicleSelectList = availableVehicles.Select(v => new SelectListItem
             {
                 Value = v.Id.ToString(),
-                Text = $"{v.LicensePlate} - {v.Model} ({v.Type})"
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
             }).ToList();
             
             ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
@@ -471,16 +532,45 @@ namespace SmartFleet.Controllers
             var trip = await _context.Trips
                 .Include(t => t.Vehicle)
                 .ThenInclude(v => v.Geofence)
+                .Include(t => t.Driver)
+                .Include(t => t.Order)
                 .FirstOrDefaultAsync(t => t.Id == id);
             if (trip == null)
             {
                 return NotFound();
             }
-            ViewData["DriverId"] = new SelectList(_context.Drivers, "Id", "Id", trip.DriverId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id", trip.OrderId);
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", trip.VehicleId);
+
+            if (trip.Status != TripState.Scheduled && trip.Status != TripState.InProgress)
+            {
+                TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be edited.";
+                return RedirectToAction("Details", new { id = trip.Id });
+            }
+
+            // Vehicle dropdown
+            var vehicles = await GetAvailableVehiclesAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.VehicleId);
+            var vehicleSelectList = vehicles.Select(v => new SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
+            }).ToList();
+            ViewData["VehicleId"] = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
+            // Driver dropdown
+            var drivers = await GetAvailableDriversAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.DriverId);
+            var driverSelectList = drivers.Select(d => new SelectListItem
+            {
+                Value = d.Id,
+                Text = $"{d.UserName} - {d.LicenseNumber} ({d.DriverStatus})"
+            }).ToList();
+            ViewData["DriverId"] = new SelectList(driverSelectList, "Value", "Text", trip.DriverId);
             ViewData["CreatedBy"] = new SelectList(_context.Users, "Id", "Id", trip.CreatedBy);
             ViewBag.VehicleGeofence = trip.Vehicle?.Geofence;
+            ViewBag.CreatedByUserName = trip.Order?.User?.UserName ?? "Unknown User";
+            ViewBag.TripStartTime = trip.Order?.TripStartDate;
+            ViewBag.TripEndTime = trip.Order?.TripEndDate;
+            ViewBag.OrderStartLocation = trip.Order?.StartLocation;
+            ViewBag.OrderEndLocation = trip.Order?.Destination;
+            ViewBag.TripStatus = trip.Status;
+            ViewBag.OrderId = trip.OrderId;
             return View(trip);
         }
 
@@ -489,11 +579,31 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,OrderId,DriverId,Status,CreatedAt,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,DriverId,Status,CreatedAt,CreatedBy")] Trip trip)
         {
             if (id != trip.Id)
             {
                 return NotFound();
+            }
+
+            // Before if (ModelState.IsValid) in Edit POST action:
+            ModelState.Remove("Order");
+            ModelState.Remove("Vehicle");
+            ModelState.Remove("Driver");
+            ModelState.Remove("CreatedByUser");
+
+            // Validate that the vehicle exists
+            var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == trip.VehicleId);
+            if (!vehicleExists)
+            {
+                ModelState.AddModelError("VehicleId", "Selected vehicle does not exist.");
+            }
+
+            // Validate that the driver exists
+            var driverExists = await _context.Drivers.AnyAsync(d => d.Id == trip.DriverId);
+            if (!driverExists)
+            {
+                ModelState.AddModelError("DriverId", "Selected driver does not exist.");
             }
 
             if (ModelState.IsValid)
@@ -510,9 +620,21 @@ namespace SmartFleet.Controllers
                         return NotFound();
                     }
 
+                    if (originalTrip.Status != TripState.Scheduled && originalTrip.Status != TripState.InProgress)
+                    {
+                        TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be edited.";
+                        return RedirectToAction("Details", new { id = trip.Id });
+                    }
+
                     var originalStatus = originalTrip.Status;
                     
-                    _context.Update(trip);
+                    // Update the original trip instance instead of the parameter to avoid entity tracking conflicts
+                    originalTrip.VehicleId = trip.VehicleId;
+                    originalTrip.DriverId = trip.DriverId;
+                    originalTrip.Status = trip.Status;
+                    originalTrip.CreatedAt = trip.CreatedAt;
+                    originalTrip.CreatedBy = trip.CreatedBy;
+
                     await _context.SaveChangesAsync();
                     
                     // Update driver status if trip status changed to completed or cancelled
@@ -585,9 +707,20 @@ namespace SmartFleet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DriverId"] = new SelectList(_context.Drivers, "Id", "Id", trip.DriverId);
-            ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id", trip.OrderId);
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", trip.VehicleId);
+            var vehicles = await GetAvailableVehiclesAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.VehicleId);
+            var vehicleSelectList = vehicles.Select(v => new SelectListItem
+            {
+                Value = v.Id.ToString(),
+                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
+            }).ToList();
+            ViewData["VehicleId"] = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
+            var drivers = await GetAvailableDriversAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.DriverId);
+            var driverSelectList = drivers.Select(d => new SelectListItem
+            {
+                Value = d.Id,
+                Text = $"{d.UserName} - {d.LicenseNumber} ({d.DriverStatus})"
+            }).ToList();
+            ViewData["DriverId"] = new SelectList(driverSelectList, "Value", "Text", trip.DriverId);
             ViewData["CreatedBy"] = new SelectList(_context.Users, "Id", "Id", trip.CreatedBy);
             return View(trip);
         }
@@ -730,6 +863,7 @@ namespace SmartFleet.Controllers
         {
             var trip = await _context.Trips
                 .Include(t => t.Driver)
+                .Include(t => t.Order)
                 .FirstOrDefaultAsync(t => t.Id == id);
             if (trip == null)
             {

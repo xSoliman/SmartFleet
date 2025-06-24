@@ -5,6 +5,7 @@
 }
 
 <link rel="stylesheet" href="~/css/pages/trip/create.css">
+<link rel="stylesheet" href="~/css/pages/trip/searchable-dropdowns.css">
 
 <div class="create-layout-container">
     <div class="create-form-wrapper">
@@ -180,7 +181,7 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    
+    <script src="~/js/trip/searchable-dropdowns.js"></script>
     <script>
         // Enhanced form validation and user experience
         $(document).ready(function() {

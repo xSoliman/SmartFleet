@@ -224,7 +224,7 @@
                     <i class="fas fa-info-circle"></i> Details
                 </a>
 
-                @if (Model.IsFleetManager || Model.IsSysSupport)
+                @if (item.Status == TripState.Scheduled || item.Status == TripState.InProgress)
                 {
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
                         <i class="fas fa-edit edit-icon"></i> Edit

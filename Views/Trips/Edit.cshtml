@@ -7,6 +7,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/trip/edit.css">
+    <link rel="stylesheet" href="~/css/pages/trip/searchable-dropdowns.css">
 </head>
 <div class="edit-layout-container">
     <div class="edit-form-wrapper">
@@ -28,7 +29,7 @@
             <div class="edit-input-row">
                 <div class="edit-input-group">
                     <label asp-for="VehicleId" class="edit-input-label">Vehicle</label>
-                    <select asp-for="VehicleId" class="edit-dropdown" asp-items="ViewBag.VehicleId"></select>
+                    <select asp-for="VehicleId" class="edit-dropdown" asp-items='@(ViewData["VehicleId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList)'></select>
                     <span asp-validation-for="VehicleId" class="edit-validation-message"></span>
                 </div>
                 <!-- Geofence Display Block -->
@@ -36,7 +37,7 @@
                     @if (ViewBag.VehicleGeofence != null)
                     {
                         <span class="badge bg-info text-dark"><i class="fas fa-map-marker-alt"></i> Geofence: <b>@ViewBag.VehicleGeofence.Name</b> (@ViewBag.VehicleGeofence.Type)</span>
-                        <a href="/Geofences/Edit/@ViewBag.VehicleGeofence.Id" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="fas fa-edit"></i> Edit Geofence</a>
+                        <a href="/Geofences/Index" target="_blank" class="btn btn-sm btn-outline-info ms-2"><i class="fas fa-cogs"></i> Manage Geofence</a>
                     }
                     else
                     {
@@ -46,21 +47,15 @@
             </div>
             <div class="edit-input-row">
                 <div class="edit-input-group">
-                    <label asp-for="OrderId" class="edit-input-label">Order</label>
-                    <select asp-for="OrderId" class="edit-dropdown" asp-items="ViewBag.OrderId"></select>
-                    <span asp-validation-for="OrderId" class="edit-validation-message"></span>
-                </div>
-                <div class="edit-input-group">
                     <label asp-for="DriverId" class="edit-input-label">Driver</label>
-                    <select asp-for="DriverId" class="edit-dropdown" asp-items="ViewBag.DriverId"></select>
+                    <select asp-for="DriverId" class="edit-dropdown" asp-items='@(ViewData["DriverId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList)'></select>
                     <span asp-validation-for="DriverId" class="edit-validation-message"></span>
                 </div>
             </div>
             <div class="edit-input-row">
                 <div class="edit-input-group">
-                    <label asp-for="Status" class="edit-input-label">Status</label>
-                    <select asp-for="Status" class="edit-dropdown" style="width: 100%" asp-items="Html.GetEnumSelectList<TripState>()"></select>
-                    <span asp-validation-for="Status" class="edit-validation-message"></span>
+                    <label class="edit-input-label">Status</label>
+                    <input type="text" class="form-control" value="@Model.Status" readonly />
                 </div>
             </div>
             <div class="alert alert-info mt-3">
@@ -73,24 +68,37 @@
                 </button>
             </div>
         </form>
+        @if (Model.Status != SmartFleet.Models.TripState.Cancelled)
+        {
+            <form asp-action="Cancel" method="post" style="margin-top:10px;">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-warning btn-sm" 
+                        onclick="return confirm('Are you sure you want to cancel this trip?')">
+                    <i class="fas fa-times"></i> Cancel trip
+                </button>
+            </form>
+        }
     </div>
     <div class="edit-form-wrapper right-card-info">
-        <div class="card">
+        <div class="card order-info-card">
             <div class="card-header">
-                <h5>Current Trip Information</h5>
+                <i class="fas fa-file-alt"></i>
+                <h5>Order Information</h5>
             </div>
             <div class="card-body">
                 <dl class="row">
-                    <dt class="col-sm-4">Distance:</dt>
-                    <dd class="col-sm-8">@Model.Distance km</dd>
-                    <dt class="col-sm-4">Created:</dt>
-                    <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
-                    <dt class="col-sm-4">Status:</dt>
-                    <dd class="col-sm-8">
-                        <span class="badge badge-@Model.Status.ToString().ToLower()">
-                            @Model.Status
-                        </span>
-                    </dd>
+                    <dt class="col-5"><i class="fas fa-hashtag"></i> Order ID</dt>
+                    <dd class="col-7">@ViewBag.OrderId</dd>
+                    <dt class="col-5"><i class="fas fa-user"></i> Ordered By</dt>
+                    <dd class="col-7">@ViewBag.CreatedByUserName</dd>
+                    <dt class="col-5"><i class="fas fa-clock"></i> Start Time</dt>
+                    <dd class="col-7">@((ViewBag.TripStartTime != null) ? ((DateTime)ViewBag.TripStartTime).ToString("dd/MM/yyyy HH:mm") : "-")</dd>
+                    <dt class="col-5"><i class="fas fa-clock"></i> End Time</dt>
+                    <dd class="col-7">@((ViewBag.TripEndTime != null) ? ((DateTime)ViewBag.TripEndTime).ToString("dd/MM/yyyy HH:mm") : "-")</dd>
+                    <dt class="col-5"><i class="fas fa-map-marker-alt"></i> From</dt>
+                    <dd class="col-7">@ViewBag.OrderStartLocation</dd>
+                    <dt class="col-5"><i class="fas fa-map-marker-alt"></i> To</dt>
+                    <dd class="col-7">@ViewBag.OrderEndLocation</dd>
                 </dl>
             </div>
         </div>
@@ -99,4 +107,50 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/trip/searchable-dropdowns.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Basic form validation and functionality
+            $('.edit-dropdown').on('change', function() {
+                validateField($(this));
+            });
+            
+            // Form submission handling
+            $('.edit-custom-form').on('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+        
+        function validateField(field) {
+            const value = field.val();
+            const validationSpan = field.siblings('.edit-validation-message');
+            
+            field.removeClass('is-valid is-invalid');
+            
+            if (!value || value.trim() === '') {
+                field.addClass('is-invalid');
+                validationSpan.text('This field is required.');
+                return false;
+            } else {
+                field.addClass('is-valid');
+                validationSpan.text('');
+                return true;
+            }
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            
+            $('.edit-dropdown[required]').each(function() {
+                if (!validateField($(this))) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+    </script>
 }
