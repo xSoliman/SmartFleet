@@ -61,19 +61,22 @@
     </div>
     <!-- Navbar & Hero End -->
     
-    <!-- Error Messages Display -->
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="container mt-3">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- Main Content -->
+    <main>
+        <!-- Error Messages Display -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
-        </div>
-    }
-    
-    @RenderBody()
+        }
+        
+        @RenderBody()
+    </main>
 
     <!-- Copyright Start -->
     <div id="sf-footer">
@@ -91,6 +94,7 @@
         </div>
     </div>
     <!-- Copyright End -->
+    
     <!-- Back to Top -->
     <a href="#" class="btn btn-secondary btn-lg-square rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>
 
@@ -106,8 +110,8 @@
     <script src="~/js/notification.js"></script>
     <script src="~/js/site.js"></script>
 
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 
 </html>
-@await RenderSectionAsync("Scripts", required: false)
 

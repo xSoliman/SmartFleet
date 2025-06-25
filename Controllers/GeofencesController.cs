@@ -20,7 +20,7 @@ namespace SmartFleet.Controllers
         // GET: Geofences
         public async Task<IActionResult> Index()
         {
-            var geofences = await _context.Geofence.ToListAsync();
+            var geofences = await _context.Geofences.ToListAsync();
             return View(geofences);
         }
 
@@ -57,7 +57,7 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var geofence = await _context.Geofence.FindAsync(id);
+            var geofence = await _context.Geofences.FindAsync(id);
             if (geofence == null) return NotFound();
             return View(geofence);
         }
@@ -93,7 +93,7 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var geofence = await _context.Geofence.FindAsync(id);
+            var geofence = await _context.Geofences.FindAsync(id);
             if (geofence == null) return NotFound();
             return View(geofence);
         }
@@ -103,10 +103,10 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var geofence = await _context.Geofence.FindAsync(id);
+            var geofence = await _context.Geofences.FindAsync(id);
             if (geofence != null)
             {
-                _context.Geofence.Remove(geofence);
+                _context.Geofences.Remove(geofence);
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
@@ -116,7 +116,7 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Assign(int? id, string searchPlate)
         {
             if (id == null) return NotFound();
-            var geofence = await _context.Geofence.FindAsync(id);
+            var geofence = await _context.Geofences.FindAsync(id);
             if (geofence == null) return NotFound();
             var vehiclesQuery = _context.Vehicles.Include(v => v.Geofence).AsQueryable();
             if (!string.IsNullOrEmpty(searchPlate))

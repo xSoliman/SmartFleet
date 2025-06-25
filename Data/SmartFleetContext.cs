@@ -26,7 +26,7 @@ namespace SmartFleet.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Geofence> Geofence { get; set; }
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -124,6 +124,39 @@ namespace SmartFleet.Data
             .HasOne(vl => vl.Vehicle)
             .WithMany(v => v.VehicleLocations)
             .HasForeignKey(vl => vl.VehicleId);
+
+            // Fix cascade delete conflicts for Trips
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.Order)
+                .WithMany()
+                .HasForeignKey(t => t.OrderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedBy)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Geofence configurations
+            modelBuilder.Entity<Geofence>()
+                .Property(g => g.CenterLat)
+                .HasColumnType("decimal(9, 6)");
+
+            modelBuilder.Entity<Geofence>()
+                .Property(g => g.CenterLng)
+                .HasColumnType("decimal(9, 6)");
+
+            modelBuilder.Entity<Geofence>()
+                .Property(g => g.RadiusMeters)
+                .HasColumnType("decimal(18, 2)");
+
+            // GeofenceType Enum Conversion
+            modelBuilder.Entity<Geofence>()
+                .Property(g => g.Type)
+                .HasConversion(
+                    new EnumToStringConverter<GeofenceType>()
+                );
         }
     }
 }
