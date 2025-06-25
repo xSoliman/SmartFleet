@@ -117,6 +117,9 @@ namespace SmartFleet.Controllers
             var isDriver = userRoles.Contains("Driver");
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSystemSupport = userRoles.Contains("SysSupport");
+            var isNormalUser = userRoles.Contains("NormalUser");
+            var isCommissioner = userRoles.Contains("commissioner");
+            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
 
             IQueryable<Trip> tripsQuery = _context.Trips
                 .Include(t => t.Vehicle)
@@ -128,41 +131,30 @@ namespace SmartFleet.Controllers
 
             if (isFleetManager || isSystemSupport)
             {
-                // Fleet Managers and System Support see all trips (do not filter by user)
-                // Do nothing here
+                // Fleet Managers and System Support see all trips
+                // Do nothing here - show all trips
             }
             else if (isDriver)
             {
-                // Drivers see trips assigned to them in a separate list
-                var assignedTripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
-                // Apply assigned trips filters
-                if (!string.IsNullOrEmpty(assignedDestination))
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.Destination.Contains(assignedDestination));
-                }
-                if (!string.IsNullOrEmpty(assignedSearchDriverName))
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Driver.UserName.Contains(assignedSearchDriverName));
-                }
-                if (assignedVehicleType.HasValue)
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Vehicle.Type == assignedVehicleType.Value);
-                }
-                if (assignedStateFilter.HasValue)
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Status == assignedStateFilter.Value);
-                }
-                if (assignedStartDate.HasValue)
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripStartDate >= assignedStartDate.Value);
-                }
-                if (assignedEndDate.HasValue)
-                {
-                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripEndDate <= assignedEndDate.Value);
-                }
-                assignedTrips = await assignedTripsQuery.ToListAsync();
-                // And also see trips from orders they created (if any)
+                // Drivers see only trips assigned to them
+                tripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
+            }
+            else if (isNormalUser)
+            {
+                // Normal users see trips from their own orders
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
+            }
+            else if (isCommissioner)
+            {
+                // Commissioner has no access to trips
+                TempData["ErrorMessage"] = "You don't have access to trips.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isMaintenanceManager)
+            {
+                // Maintenance Manager has no access to trips
+                TempData["ErrorMessage"] = "You don't have access to trips.";
+                return RedirectToAction("Index", "Home");
             }
             else
             {
@@ -170,7 +162,7 @@ namespace SmartFleet.Controllers
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
             }
 
-            // Now apply filters for ordered trips (for everyone)
+            // Apply filters
             if (!string.IsNullOrEmpty(destination))
             {
                 tripsQuery = tripsQuery.Where(t => t.Order.Destination.Contains(destination));
@@ -226,6 +218,7 @@ namespace SmartFleet.Controllers
                 IsDriver = isDriver,
                 IsFleetManager = isFleetManager,
                 IsSysSupport = isSystemSupport,
+                IsNormalUser = isNormalUser,
                 CurrentUserId = currentUser.Id
             };
 
@@ -239,6 +232,17 @@ namespace SmartFleet.Controllers
             {
                 return NotFound();
             }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isDriver = userRoles.Contains("Driver");
+            var isNormalUser = userRoles.Contains("NormalUser");
+            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
 
             // Update trip state before displaying details
             await _tripStateService.UpdateSingleTripStateAsync(id.Value);
@@ -254,10 +258,27 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            // Check if user has permission to view this trip
+            if (isMaintenanceManager)
+            {
+                TempData["ErrorMessage"] = "Maintenance managers don't have access to trips.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isDriver && trip.DriverId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only view trips assigned to you.";
+                return RedirectToAction(nameof(Index));
+            }
+            else if (isNormalUser && trip.Order.UserId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only view trips from your own orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
             return View(trip);
         }
 
-        [Authorize(Roles = "FleetManager")]
+        // GET: Trips/Create
         public async Task<IActionResult> Create(int? id, string? userId)
         {
             if (id == null || string.IsNullOrEmpty(userId))
@@ -265,19 +286,16 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Check if user is Fleet Manager
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isFleetManager = userRoles.Contains("FleetManager");
-
-            if (!isFleetManager)
+            // Check if user can create trips
+            if (!await _userRoleService.CanCreateTrip(currentUser))
             {
-                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                TempData["ErrorMessage"] = "You don't have permission to create trips.";
                 return RedirectToAction("Index", "Orders");
             }
 
@@ -314,29 +332,10 @@ namespace SmartFleet.Controllers
 
             // Get all available vehicles (not filtering by type to show all options)
             var availableVehicles = await GetAvailableVehiclesAsync(order.TripStartDate, order.TripEndDate);
-
-            // Debug: Log the count of available vehicles
-            var totalVehicles = await _context.Vehicles.CountAsync();
-            var availableCount = availableVehicles.Count;
             
-            // Add debug information to ViewBag
-            ViewBag.TotalVehicles = totalVehicles;
-            ViewBag.AvailableVehiclesCount = availableCount;
-            ViewBag.AvailableVehicles = availableVehicles; // For debugging
-
-            // Get all active drivers
             var availableDrivers = await GetAvailableDriversAsync(order.TripStartDate, order.TripEndDate, null);
-
-            // Debug: Log the count of available drivers
-            var totalDrivers = await _context.Drivers.CountAsync();
-            var availableDriversCount = availableDrivers.Count;
             
-            // Add debug information to ViewBag
-            ViewBag.TotalDrivers = totalDrivers;
-            ViewBag.AvailableDriversCount = availableDriversCount;
-            ViewBag.AvailableDrivers = availableDrivers; // For debugging
-
-            // Display detailed driver information
+            // Create detailed driver display format
             var driverSelectList = availableDrivers.Select(d => new SelectListItem
             {
                 Value = d.Id,
@@ -353,22 +352,24 @@ namespace SmartFleet.Controllers
             }).ToList();
             
             ViewBag.VehicleId = new SelectList(vehicleSelectList, "Value", "Text");
-            ViewBag.OrderId = id;
+            ViewBag.OrderId = order.Id;
             ViewBag.CreatedBy = userId;
             ViewBag.CreatedByUserName = createdByUserName;
-
+            
+            // Add debug information
+            ViewBag.TotalVehicles = availableVehicles.Count;
+            ViewBag.AvailableVehiclesCount = availableVehicles.Count;
+            ViewBag.TotalDrivers = availableDrivers.Count;
+            ViewBag.AvailableDriversCount = availableDrivers.Count;
+            
             return View();
         }
 
+        // POST: Trips/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "FleetManager")]
         public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,CreatedBy")] Trip trip)
         {
-            // Debug: Log the received data
-            TempData["DebugInfo"] = $"Received: VehicleId={trip.VehicleId}, OrderId={trip.OrderId}, DriverId={trip.DriverId}, CreatedBy={trip.CreatedBy}";
-            
-            // Check if user is Fleet Manager
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
@@ -376,12 +377,10 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Orders");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isFleetManager = userRoles.Contains("FleetManager");
-
-            if (!isFleetManager)
+            // Check if user can create trips
+            if (!await _userRoleService.CanCreateTrip(currentUser))
             {
-                TempData["ErrorMessage"] = "Only Fleet Managers can create trips.";
+                TempData["ErrorMessage"] = "You don't have permission to create trips.";
                 return RedirectToAction("Index", "Orders");
             }
 
@@ -433,15 +432,6 @@ namespace SmartFleet.Controllers
             ModelState.Remove("Driver");
             ModelState.Remove("Vehicle");
             ModelState.Remove("CreatedByUser");
-
-            // Debug: Log ModelState errors
-            if (!ModelState.IsValid)
-            {
-                var errors = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-                TempData["DebugInfo"] += $"; ModelState Errors: {errors}";
-            }
 
             if (ModelState.IsValid)
             {
@@ -538,33 +528,34 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can edit trips
+            if (!await _userRoleService.CanEditTrip(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to edit trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var trip = await _context.Trips
-                .Include(t => t.Vehicle)
-                .ThenInclude(v => v.Geofence)
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .Include(t => t.Vehicle)
+                .Include(t => t.CreatedByUser)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (trip == null)
             {
                 return NotFound();
             }
 
-            if (trip.Status != TripState.Scheduled && trip.Status != TripState.InProgress)
-            {
-                TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be edited.";
-                return RedirectToAction("Details", new { id = trip.Id });
-            }
-
-            // Vehicle dropdown
-            var vehicles = await GetAvailableVehiclesAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.VehicleId);
-            var vehicleSelectList = vehicles.Select(v => new SelectListItem
-            {
-                Value = v.Id.ToString(),
-                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
-            }).ToList();
-            ViewData["VehicleId"] = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
-            // Driver dropdown
             var drivers = await GetAvailableDriversAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.DriverId);
+            var vehicles = await GetAvailableVehiclesAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.VehicleId);
+
+            ViewData["VehicleId"] = new SelectList(vehicles, "Id", "LicensePlate", trip.VehicleId);
             var driverSelectList = drivers.Select(d => new SelectListItem
             {
                 Value = d.Id,
@@ -595,6 +586,19 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can edit trips
+            if (!await _userRoleService.CanEditTrip(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to edit trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
             // Before if (ModelState.IsValid) in Edit POST action:
             ModelState.Remove("Order");
             ModelState.Remove("Vehicle");
@@ -605,108 +609,88 @@ namespace SmartFleet.Controllers
             var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == trip.VehicleId);
             if (!vehicleExists)
             {
-                ModelState.AddModelError("VehicleId", "Selected vehicle does not exist.");
+                ModelState.AddModelError("VehicleId", "Selected vehicle not found.");
             }
 
             // Validate that the driver exists
             var driverExists = await _context.Drivers.AnyAsync(d => d.Id == trip.DriverId);
             if (!driverExists)
             {
-                ModelState.AddModelError("DriverId", "Selected driver does not exist.");
+                ModelState.AddModelError("DriverId", "Selected driver not found.");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Get the original trip to check status changes
                     var originalTrip = await _context.Trips
                         .Include(t => t.Driver)
+                        .Include(t => t.Vehicle)
                         .FirstOrDefaultAsync(t => t.Id == id);
-                    
+
                     if (originalTrip == null)
                     {
                         return NotFound();
                     }
 
-                    if (originalTrip.Status != TripState.Scheduled && originalTrip.Status != TripState.InProgress)
-                    {
-                        TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be edited.";
-                        return RedirectToAction("Details", new { id = trip.Id });
-                    }
-
+                    // Store original values for status updates
+                    var originalDriverId = originalTrip.DriverId;
+                    var originalVehicleId = originalTrip.VehicleId;
                     var originalStatus = originalTrip.Status;
-                    
-                    // Update the original trip instance instead of the parameter to avoid entity tracking conflicts
+
+                    // Update trip properties
                     originalTrip.VehicleId = trip.VehicleId;
                     originalTrip.DriverId = trip.DriverId;
                     originalTrip.Status = trip.Status;
-                    originalTrip.CreatedAt = trip.CreatedAt;
-                    originalTrip.CreatedBy = trip.CreatedBy;
 
+                    _context.Update(originalTrip);
                     await _context.SaveChangesAsync();
-                    
-                    // Update driver status if trip status changed to completed or cancelled
-                    if ((trip.Status == TripState.Completed || trip.Status == TripState.Cancelled) && 
-                        (originalStatus != TripState.Completed && originalStatus != TripState.Cancelled))
-                    {
-                        await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
-                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
 
-                        // Send notification to FleetManager
-                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
-                        var notificationTitle = $"Trip Ended";
-                        var notificationMessage = $"Trip (ID: {trip.Id}) has ended (Status: {trip.Status}). The attached vehicle and driver are now free.";
-                        foreach (var user in fleetManagers)
-                        {
-                            await _notificationService.CreateNotificationAsync(
-                                user.Id,
-                                notificationTitle,
-                                notificationMessage,
-                                RelatedTable.Trip,
-                                trip.Id
-                            );
-                        }
-                    }
-                    // Update driver status if trip status changed from completed/cancelled to scheduled
-                    else if ((originalStatus == TripState.Completed || originalStatus == TripState.Cancelled) && 
-                             trip.Status == TripState.Scheduled)
+                    // Update driver status if driver changed
+                    if (originalDriverId != trip.DriverId)
                     {
+                        // Reset original driver status
+                        await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(originalDriverId);
+                        // Set new driver status
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
-                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
-
-                        // Send notification to the order creator
-                        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == trip.OrderId);
-                        if (order != null)
-                        {
-                            await _notificationService.CreateNotificationAsync(
-                                order.UserId,
-                                "Trip Rescheduled",
-                                $"Your trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination} has been rescheduled.",
-                                RelatedTable.Trip,
-                                trip.Id
-                            );
-                        }
                     }
-                    // Update driver status if trip status changed from in-progress to scheduled
-                    else if (originalStatus == TripState.InProgress && trip.Status == TripState.Scheduled)
+
+                    // Update vehicle state if vehicle changed
+                    if (originalVehicleId != trip.VehicleId)
                     {
-                        await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        // Reset original vehicle state
+                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(originalVehicleId);
+                        // Set new vehicle state
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
-
-                        // Send notification to the order creator
-                        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == trip.OrderId);
-                        if (order != null)
-                        {
-                            await _notificationService.CreateNotificationAsync(
-                                order.UserId,
-                                "Trip Paused",
-                                $"Your trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination} has been paused and rescheduled.",
-                                RelatedTable.Trip,
-                                trip.Id
-                            );
-                        }
                     }
+
+                    // Send notification to the new driver if driver changed
+                    if (originalDriverId != trip.DriverId)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            trip.DriverId,
+                            "Trip Assigned",
+                            $"You have been assigned to trip (ID: {trip.Id}).",
+                            RelatedTable.Trip,
+                            trip.Id
+                        );
+                    }
+
+                    // Send notification to the order creator about the edit
+                    var order = await _context.Orders.FindAsync(originalTrip.OrderId);
+                    if (order != null)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            order.UserId,
+                            "Trip Updated",
+                            $"Your trip (ID: {trip.Id}) has been updated.",
+                            RelatedTable.Trip,
+                            trip.Id
+                        );
+                    }
+
+                    TempData["SuccessMessage"] = "Trip updated successfully.";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -719,16 +703,25 @@ namespace SmartFleet.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
-            var vehicles = await GetAvailableVehiclesAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.VehicleId);
-            var vehicleSelectList = vehicles.Select(v => new SelectListItem
+
+            // Reload data for the form (in case of validation errors)
+            var reloadedTrip = await _context.Trips
+                .Include(t => t.Driver)
+                .Include(t => t.Order)
+                .Include(t => t.Vehicle)
+                .Include(t => t.CreatedByUser)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (reloadedTrip == null)
             {
-                Value = v.Id.ToString(),
-                Text = $"{v.LicensePlate} - {v.Model} ({v.Type}) - {v.Status}"
-            }).ToList();
-            ViewData["VehicleId"] = new SelectList(vehicleSelectList, "Value", "Text", trip.VehicleId);
-            var drivers = await GetAvailableDriversAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.DriverId);
+                return NotFound();
+            }
+
+            var drivers = await GetAvailableDriversAsync(reloadedTrip.Order.TripStartDate, reloadedTrip.Order.TripEndDate, reloadedTrip.DriverId);
+            var vehicles = await GetAvailableVehiclesAsync(reloadedTrip.Order.TripStartDate, reloadedTrip.Order.TripEndDate, reloadedTrip.VehicleId);
+
+            ViewData["VehicleId"] = new SelectList(vehicles, "Id", "LicensePlate", trip.VehicleId);
             var driverSelectList = drivers.Select(d => new SelectListItem
             {
                 Value = d.Id,
@@ -736,6 +729,14 @@ namespace SmartFleet.Controllers
             }).ToList();
             ViewData["DriverId"] = new SelectList(driverSelectList, "Value", "Text", trip.DriverId);
             ViewData["CreatedBy"] = new SelectList(_context.Users, "Id", "Id", trip.CreatedBy);
+            ViewBag.VehicleGeofence = reloadedTrip.Vehicle?.Geofence;
+            ViewBag.CreatedByUserName = reloadedTrip.Order?.User?.UserName ?? "Unknown User";
+            ViewBag.TripStartTime = reloadedTrip.Order?.TripStartDate;
+            ViewBag.TripEndTime = reloadedTrip.Order?.TripEndDate;
+            ViewBag.OrderStartLocation = reloadedTrip.Order?.StartLocation;
+            ViewBag.OrderEndLocation = reloadedTrip.Order?.Destination;
+            ViewBag.TripStatus = reloadedTrip.Status;
+            ViewBag.OrderId = reloadedTrip.OrderId;
             return View(trip);
         }
 
@@ -747,11 +748,23 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can edit trips (only FleetManager and SysSupport can delete trips)
+            if (!await _userRoleService.CanEditTrip(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to delete trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var trip = await _context.Trips
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
                 .Include(t => t.Vehicle)
-                .Include(t => t.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (trip == null)
             {
@@ -766,6 +779,19 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can edit trips (only FleetManager and SysSupport can delete trips)
+            if (!await _userRoleService.CanEditTrip(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to delete trips.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var trip = await _context.Trips
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
@@ -812,6 +838,19 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RecalculateDistance(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can edit trips (only FleetManager and SysSupport can recalculate distance)
+            if (!await _userRoleService.CanEditTrip(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to recalculate trip distance.";
+                return RedirectToAction(nameof(Index));
+            }
+
             var trip = await _context.Trips
                 .Include(t => t.Vehicle)
                 .Include(t => t.Order)
@@ -890,6 +929,12 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var trip = await _context.Trips
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
@@ -899,10 +944,19 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Only allow cancellation of scheduled or in-progress trips
-            if (trip.Status != TripState.Scheduled && trip.Status != TripState.InProgress)
+            // Check if user can cancel this trip
+            if (!await _userRoleService.CanCancelTrip(currentUser, trip.Status))
             {
-                TempData["ErrorMessage"] = "Only scheduled or in-progress trips can be cancelled.";
+                TempData["ErrorMessage"] = "You don't have permission to cancel this trip.";
+                return RedirectToAction(nameof(Details), new { id = trip.Id });
+            }
+
+            // For NormalUser - only allow cancelling trips from their own orders
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isNormalUser = userRoles.Contains("NormalUser");
+            if (isNormalUser && trip.Order.UserId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only cancel trips from your own orders.";
                 return RedirectToAction(nameof(Details), new { id = trip.Id });
             }
 

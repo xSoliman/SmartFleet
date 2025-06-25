@@ -27,6 +27,7 @@ namespace SmartFleet.ViewModel
         public bool IsDriver { get; set; }
         public bool IsFleetManager { get; set; }
         public bool IsSysSupport { get; set; }
+        public bool IsNormalUser { get; set; }
         public string? CurrentUserId { get; set; }
     }
 } 

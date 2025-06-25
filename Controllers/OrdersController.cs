@@ -43,10 +43,19 @@ namespace SmartFleet.Controllers
             }
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
             var isCommissioner = userRoles.Contains("commissioner");
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSysSupport = userRoles.Contains("SysSupport");
+            var isDriver = userRoles.Contains("Driver");
+            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isNormalUser = userRoles.Contains("NormalUser");
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToOrders(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
 
             var orders = _context.Orders.Include(o => o.User).AsQueryable();
 
@@ -58,14 +67,37 @@ namespace SmartFleet.Controllers
                 // Include Trips for FleetManager to check if trip exists
                 orders = orders.Include(o => o.Trip);
             }
-            else if (!isAdminUser)
+            else if (isCommissioner)
             {
-                // For NormalUser, Driver, MaintenanceManager - show only their own orders
+                // Commissioner can see all orders (for approval/rejection)
+                // Include Trips for Commissioner to see trip status
+                orders = orders.Include(o => o.Trip);
+            }
+            else if (isDriver)
+            {
+                // Driver has no access to orders
+                TempData["ErrorMessage"] = "Drivers don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isMaintenanceManager)
+            {
+                // Maintenance Manager has no access to orders
+                TempData["ErrorMessage"] = "Maintenance managers don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isNormalUser)
+            {
+                // NormalUser sees only their own orders
                 orders = orders.Where(o => o.UserId == currentUser.Id);
+            }
+            else if (isSysSupport)
+            {
+                // SysSupport sees all orders
+                orders = orders.Include(o => o.Trip);
             }
 
             // Original filters (only for admin users)
-            if (isAdminUser && !string.IsNullOrEmpty(searchUserId))
+            if ((isFleetManager || isSysSupport || isCommissioner) && !string.IsNullOrEmpty(searchUserId))
             {
                 orders = orders.Where(o => o.User != null && o.User.UserName.Contains(searchUserId));
             }
@@ -80,7 +112,7 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.Destination.Contains(searchDestination));
             }
 
-            if (isAdminUser && typeFilter.HasValue)
+            if ((isFleetManager || isSysSupport || isCommissioner) && typeFilter.HasValue)
             {
                 orders = orders.Where(o => o.VehicleType == typeFilter.Value);
             }
@@ -123,7 +155,7 @@ namespace SmartFleet.Controllers
                 StateFilter = stateFilter,
                 StartDate = startDate,
                 EndDate = endDate,
-                IsAdminUser = isAdminUser,
+                IsAdminUser = isFleetManager || isSysSupport || isCommissioner,
                 IsCommissioner = isCommissioner,
                 IsFleetManager = isFleetManager,
                 IsSysSupport = isSysSupport,
@@ -148,10 +180,19 @@ namespace SmartFleet.Controllers
             }
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
             var isCommissioner = userRoles.Contains("commissioner");
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSysSupport = userRoles.Contains("SysSupport");
+            var isDriver = userRoles.Contains("Driver");
+            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isNormalUser = userRoles.Contains("NormalUser");
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToOrders(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
 
             var order = await _context.Orders
                 .Include(o => o.User)
@@ -161,8 +202,8 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Include Trip for FleetManager to check if trip exists
-            if (isFleetManager)
+            // Include Trip for FleetManager and Commissioner to check if trip exists
+            if (isFleetManager || isCommissioner)
             {
                 order = await _context.Orders
                     .Include(o => o.User)
@@ -171,15 +212,26 @@ namespace SmartFleet.Controllers
             }
 
             // Check if user has permission to view this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            if (isDriver)
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "Drivers don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isMaintenanceManager)
+            {
+                TempData["ErrorMessage"] = "Maintenance managers don't have access to orders.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (isNormalUser && order.UserId != currentUser.Id)
+            {
+                TempData["ErrorMessage"] = "You can only view your own orders.";
+                return RedirectToAction(nameof(Index));
             }
 
             ViewBag.IsCommissioner = isCommissioner;
             ViewBag.IsFleetManager = isFleetManager;
             ViewBag.IsSysSupport = isSysSupport;
-            ViewBag.IsAdminUser = isAdminUser;
+            ViewBag.IsAdminUser = isFleetManager || isSysSupport || isCommissioner;
 
             return View(order);
         }
@@ -191,6 +243,13 @@ namespace SmartFleet.Controllers
             if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can create orders
+            if (!await _userRoleService.CanCreateOrder(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to create orders.";
+                return RedirectToAction(nameof(Index));
             }
 
             ViewBag.VehicleTypes = new List<SelectListItem>
@@ -211,12 +270,17 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,VehicleType,PassengerCount,StartLocation,Destination,TripStartDate,TripEndDate,Reason,CreatedAt")] Order order)
         {
-            order.Status = OrderState.Pending; // Always set status to Pending
-            order.UserId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            // Check if user can create orders
+            if (!await _userRoleService.CanCreateOrder(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to create orders.";
+                return RedirectToAction(nameof(Index));
             }
 
             order.Status = OrderState.Pending; 
@@ -299,25 +363,25 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
-
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
 
-            // Check if user has permission to edit this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            // Check if user can edit this order
+            if (!await _userRoleService.CanEditOrder(currentUser, order.Status))
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "You don't have permission to edit this order.";
+                return RedirectToAction(nameof(Index));
             }
 
-            // For NormalUser, Driver, MaintenanceManager - only allow editing of pending orders
-            if (!isAdminUser && order.Status != OrderState.Pending)
+            // For NormalUser - only allow editing their own orders
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isNormalUser = userRoles.Contains("NormalUser");
+            if (isNormalUser && order.UserId != currentUser.Id)
             {
-                TempData["ErrorMessage"] = "Only pending orders can be edited.";
+                TempData["ErrorMessage"] = "You can only edit your own orders.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -343,19 +407,19 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
-
-            // Check if user has permission to edit this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            // Check if user can edit this order
+            if (!await _userRoleService.CanEditOrder(currentUser, order.Status))
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "You don't have permission to edit this order.";
+                return RedirectToAction(nameof(Index));
             }
 
-            // For NormalUser, Driver, MaintenanceManager - only allow editing of pending orders
-            if (!isAdminUser && order.Status != OrderState.Pending)
+            // For NormalUser - only allow editing their own orders
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isNormalUser = userRoles.Contains("NormalUser");
+            if (isNormalUser && order.UserId != currentUser.Id)
             {
-                TempData["ErrorMessage"] = "Only pending orders can be edited.";
+                TempData["ErrorMessage"] = "You can only edit your own orders.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -398,7 +462,9 @@ namespace SmartFleet.Controllers
             }
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isNormalUser = userRoles.Contains("NormalUser");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
             var order = await _context.Orders
                 .Include(o => o.User)
@@ -409,9 +475,17 @@ namespace SmartFleet.Controllers
             }
 
             // Check if user has permission to delete this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            if (isNormalUser && order.UserId != currentUser.Id)
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "You can only delete your own orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Only allow deletion of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be deleted.";
+                return RedirectToAction(nameof(Index));
             }
 
             return View(order);
@@ -429,7 +503,9 @@ namespace SmartFleet.Controllers
             }
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
+            var isNormalUser = userRoles.Contains("NormalUser");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
 
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -438,9 +514,17 @@ namespace SmartFleet.Controllers
             }
 
             // Check if user has permission to delete this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            if (isNormalUser && order.UserId != currentUser.Id)
             {
-                return Forbid();
+                TempData["ErrorMessage"] = "You can only delete your own orders.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Only allow deletion of pending orders
+            if (order.Status != OrderState.Pending)
+            {
+                TempData["ErrorMessage"] = "Only pending orders can be deleted.";
+                return RedirectToAction(nameof(Index));
             }
 
             if (order != null)
@@ -463,11 +547,6 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isAdminUser = userRoles.Any(r => r == "FleetManager" || r == "SysSupport" || r == "commissioner");
-            var isSysSupport = userRoles.Contains("SysSupport");
-            var isFleetManager = userRoles.Contains("FleetManager");
-
             var order = await _context.Orders
                 .Include(o => o.User)
                 .FirstOrDefaultAsync(o => o.Id == id);
@@ -476,23 +555,19 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            // Check if user has permission to cancel this order
-            if (!isAdminUser && order.UserId != currentUser.Id)
+            // Check if user can cancel this order
+            if (!await _userRoleService.CanCancelOrder(currentUser, order.Status))
             {
-                return Forbid();
-            }
-
-            // SysSupport can only cancel their own orders, not other users' orders
-            if (isSysSupport && order.UserId != currentUser.Id)
-            {
-                TempData["ErrorMessage"] = "You can only cancel your own orders.";
+                TempData["ErrorMessage"] = "You don't have permission to cancel this order.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Only allow cancellation of pending orders
-            if (order.Status != OrderState.Pending)
+            // For NormalUser - only allow cancelling their own orders
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isNormalUser = userRoles.Contains("NormalUser");
+            if (isNormalUser && order.UserId != currentUser.Id)
             {
-                TempData["ErrorMessage"] = "Only pending orders can be cancelled.";
+                TempData["ErrorMessage"] = "You can only cancel your own orders.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -524,12 +599,8 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isCommissioner = userRoles.Contains("commissioner");
-            var isSysSupport = userRoles.Contains("SysSupport");
-
-            // Only Commissioner and SysSupport can approve orders
-            if (!isCommissioner && !isSysSupport)
+            // Check if user can approve orders
+            if (!await _userRoleService.CanApproveRejectOrder(currentUser))
             {
                 TempData["ErrorMessage"] = "You don't have permission to approve orders.";
                 return RedirectToAction(nameof(Index));
@@ -593,12 +664,8 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isCommissioner = userRoles.Contains("commissioner");
-            var isSysSupport = userRoles.Contains("SysSupport");
-
-            // Only Commissioner and SysSupport can reject orders
-            if (!isCommissioner && !isSysSupport)
+            // Check if user can reject orders
+            if (!await _userRoleService.CanApproveRejectOrder(currentUser))
             {
                 TempData["ErrorMessage"] = "You don't have permission to reject orders.";
                 return RedirectToAction(nameof(Index));
