@@ -25,7 +25,7 @@ namespace SmartFleet.Data
         public DbSet<Trip> Trips { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Geofence> Geofence { get; set; }
+        public DbSet<Geofence> Geofences { get; set; }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -39,7 +39,7 @@ namespace SmartFleet.Controllers
             {
                 if (geofence.IsDefault)
                 {
-                    var prevDefault = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                    var prevDefault = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault);
                     if (prevDefault != null)
                     {
                         prevDefault.IsDefault = false;
@@ -72,7 +72,7 @@ namespace SmartFleet.Controllers
             {
                 if (geofence.IsDefault)
                 {
-                    var prevDefault = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault && g.Id != geofence.Id);
+                    var prevDefault = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault && g.Id != geofence.Id);
                     if (prevDefault != null)
                     {
                         prevDefault.IsDefault = false;

@@ -1,83 +1,3 @@
-/* Body and HTML base styling */
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Main content should take up available space */
-main {
-    flex: 1;
-    margin-bottom: 80px; /* Add extra space before footer */
-    padding-bottom: 40px; /* Additional padding */
-}
-
-/* Ensure the body content takes up available space */
-.container-fluid {
-    flex: 1;
-}
-
-/* Fix for pages with dark backgrounds */
-.container-fluid {
-    background: #f8f9fa !important;
-}
-
-/* Footer should stay at bottom - BLACK as requested with more space */
-#sf-footer {
-    margin-top: auto;
-    background: #212529 !important;
-    color: #fff !important;
-    padding: 2.5rem 0 1.5rem 0; /* Increased padding */
-    font-size: 1rem;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3); /* Add shadow above footer */
-}
-
-#sf-footer .container-fluid.copyright {
-    background: #212529 !important;
-    color: #fff !important;
-}
-
-#sf-footer .copyright {
-    background: transparent !important;
-    color: #fff !important;
-    font-size: 1rem;
-    padding: 1.5rem 0; /* Increased padding */
-}
-
-#sf-footer a {
-    color: #fff !important;
-    text-decoration: underline;
-}
-
-#sf-footer a:hover {
-    color: var(--bs-primary) !important;
-}
-
-/* Header styling */
-#sf-header {
-    width: 100%;
-    z-index: 1000;
-    position: relative;
-    background: white;
-}
-
-/* Remove any fixed positioning that might cause issues */
-.sticky-top {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1020;
-}
-
 .nav-auto {
     display: flex;
     justify-content: flex-end; /* Aligns items to the right */
@@ -316,17 +236,14 @@ nav {
     .navbar-nav .nav-item {
         margin: 2px 3px;
     }
-    
-    main {
-        margin-bottom: 60px; /* Reduce on mobile */
-    }
-    
-    #sf-footer {
-        padding: 2rem 0 1rem 0; /* Reduce on mobile */
-    }
 }
 
 /* === Scoped Smart Fleet Header & Footer Styles (from layout-header-footer.css) === */
+
+#sf-header {
+    width: 100%;
+    z-index: 1000;
+}
 
 .sf-navbar {
     min-height: 15px !important; /* Further reduced from 20px */
@@ -461,6 +378,28 @@ nav {
     color: #fff;
     background-color: #dc3545;
     border-color: #dc3545;
+}
+
+#sf-footer {
+    color: #fff;
+    padding: 1.5rem 0 0.5rem 0;
+    font-size: 1rem;
+}
+#sf-footer .container-fluid.copyright {
+    background: var(--bs-dark, #000C21);
+    color: #fff;
+}
+#sf-footer .copyright {
+    background: transparent;
+    color: #fff;
+    font-size: 1rem;
+}
+#sf-footer a {
+    color: #fff;
+    text-decoration: underline;
+}
+#sf-footer a:hover {
+    color: var(--bs-primary);
 }
 
 /* === Scoped layout-relevant styles from home.css for header/footer === */

@@ -104,7 +104,7 @@ namespace SmartFleet.Services
                             var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
                             if (vehicle != null)
                             {
-                                var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                                var defaultGeofence = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault);
                                 vehicle.GeofenceId = defaultGeofence?.Id;
                                 _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
                             }
@@ -237,7 +237,7 @@ namespace SmartFleet.Services
                         var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
                         if (vehicle != null)
                         {
-                            var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                            var defaultGeofence = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault);
                             vehicle.GeofenceId = defaultGeofence?.Id;
                             await _context.SaveChangesAsync();
                             _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");

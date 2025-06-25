@@ -7,205 +7,203 @@
 
 <link href="~/css/pages/users/users.css" rel="stylesheet" />
 
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="text-dark mb-1">
-                        <i class="fas fa-plus-circle me-2 text-primary"></i>
-                        Create New Role
-                    </h2>
-                    <p class="text-muted mb-0">Add a new role to the system to customize permissions</p>
-                </div>
-                <div>
-                    <a href="@Url.Action("ManageRoles", "Users")" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>
-                        Back to Role Management
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Success/Error Messages -->
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <div class="row">
-        <!-- Create Role Form -->
-        <div class="col-lg-6">
-            <div class="main-card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Create New Role
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form asp-action="CreateRole" method="post">
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert alert-danger" role="alert">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Please correct the following errors:
-                                <ul class="mb-0 mt-2">
-                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                                    {
-                                        <li>@error.ErrorMessage</li>
-                                    }
-                                </ul>
-                            </div>
-                        }
-
-                        <div class="form-section mb-4">
-                            <label asp-for="RoleName" class="form-label">
-                                <i class="fas fa-tag me-1"></i>
-                                Role Name
-                            </label>
-                            <input asp-for="RoleName" class="form-control form-control-lg" placeholder="Enter the new role name" />
-                            <span asp-validation-for="RoleName" class="text-danger"></span>
-                            <small class="form-text text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Choose a clear and distinctive name for the new role
-                            </small>
-                        </div>
-
-                        <div class="form-section mb-4">
-                            <label asp-for="Description" class="form-label">
-                                <i class="fas fa-align-left me-1"></i>
-                                Role Description (Optional)
-                            </label>
-                            <textarea asp-for="Description" class="form-control" rows="3" 
-                                      placeholder="Write a brief description of this role and its permissions"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>
-                                Create Role
-                            </button>
-                            <button type="reset" class="btn btn-outline-secondary btn-lg">
-                                <i class="fas fa-undo me-2"></i>
-                                Reset
-                            </button>
-                        </div>
-                    </form>
+<div class="users-management-page">
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="text-dark mb-1">
+                            <i class="fas fa-plus-circle me-2 text-primary"></i>
+                            Create New Role
+                        </h2>
+                        <p class="text-muted mb-0">Add a new role to the system to customize permissions</p>
+                    </div>
+                    <div>
+                        <a href="@Url.Action("ManageRoles", "Users")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Role Management
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Existing Roles -->
-        <div class="col-lg-6">
-            <div class="main-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        Existing System Roles
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if (ViewBag.ExistingRoles != null && ((List<string>)ViewBag.ExistingRoles).Any())
-                    {
-                        <div class="existing-roles-grid">
-                            @foreach (var role in (List<string>)ViewBag.ExistingRoles)
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Create Role Form -->
+            <div class="col-lg-6">
+                <div class="main-card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Create New Role
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="CreateRole" method="post">
+                            @if (!ViewData.ModelState.IsValid)
                             {
-                                var badgeClass = role switch
-                                {
-                                    "SysSupport" => "badge-sys-support",
-                                    "FleetManager" => "badge-fleet-manager",
-                                    "Driver" => "badge-driver",
-                                    "MaintanceManager" => "badge-maintenance",
-                                    "commissioner" => "badge-commissioner",
-                                    "NormalUser" => "badge-normal",
-                                    _ => "badge-default"
-                                };
-                                
-                                var roleIcon = role switch
-                                {
-                                    "SysSupport" => "fas fa-crown",
-                                    "FleetManager" => "fas fa-users-cog",
-                                    "Driver" => "fas fa-id-card",
-                                    "MaintanceManager" => "fas fa-tools",
-                                    "commissioner" => "fas fa-user-tie",
-                                    "NormalUser" => "fas fa-user",
-                                    _ => "fas fa-star"
-                                };
-                                
-                                var roleDescription = role switch
-                                {
-                                    "SysSupport" => "System Support - Full system permissions",
-                                    "FleetManager" => "Fleet Manager - Manage vehicles and trips",
-                                    "Driver" => "Driver - Execute assigned trips",
-                                    "MaintanceManager" => "Maintenance Manager - Vehicle maintenance",
-                                    "commissioner" => "Commissioner - Approve/reject requests",
-                                    "NormalUser" => "Normal User - Create requests",
-                                    _ => "Custom Role"
-                                };
-                                
-                                <div class="existing-role-card">
-                                    <div class="role-card-header">
-                                        <div class="role-icon-wrapper">
-                                            <i class="@roleIcon"></i>
-                                        </div>
-                                        <div class="role-info">
-                                            <div class="role-title">
-                                                <span class="badge @badgeClass">@role</span>
-                                            </div>
-                                            <p class="role-desc">@roleDescription</p>
-                                        </div>
-                                    </div>
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Please correct the following errors:
+                                    <ul class="mb-0 mt-2">
+                                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                        {
+                                            <li>@error.ErrorMessage</li>
+                                        }
+                                    </ul>
                                 </div>
                             }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="empty-state">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">No roles exist in the system currently</p>
-                        </div>
-                    }
+
+                            <div class="form-section mb-4">
+                                <label asp-for="RoleName" class="form-label">
+                                    <i class="fas fa-tag me-1"></i>
+                                    Role Name
+                                </label>
+                                <input asp-for="RoleName" class="form-control form-control-lg" placeholder="Enter the new role name" />
+                                <span asp-validation-for="RoleName" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Choose a clear and distinctive name for the new role
+                                </small>
+                            </div>
+
+                            <div class="form-section mb-4">
+                                <label asp-for="Description" class="form-label">
+                                    <i class="fas fa-align-left me-1"></i>
+                                    Role Description (Optional)
+                                </label>
+                                <textarea asp-for="Description" class="form-control" rows="3" 
+                                          placeholder="Write a brief description of this role and its permissions"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>
+                                    Create Role
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-undo me-2"></i>
+                                    Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
-            <!-- Role Guidelines -->
-            <div class="main-card mt-4">
-                <div class="card-header bg-warning-light">
-                    <h6 class="mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        Role Creation Guidelines
-                    </h6>
+            <!-- Existing Roles -->
+            <div class="col-lg-6">
+                <div class="main-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Existing System Roles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.ExistingRoles != null && ((List<string>)ViewBag.ExistingRoles).Any())
+                        {
+                            <div class="existing-roles-grid">
+                                @foreach (var role in (List<string>)ViewBag.ExistingRoles)
+                                {
+                                    var badgeClass = role switch
+                                    {
+                                        "SysSupport" => "badge-sys-support",
+                                        "FleetManager" => "badge-fleet-manager",
+                                        "Driver" => "badge-driver",
+                                        "MaintanceManager" => "badge-maintenance",
+                                        "commissioner" => "badge-commissioner",
+                                        "NormalUser" => "badge-normal",
+                                        _ => "badge-default"
+                                    };
+                                    
+                                    var roleIcon = role switch
+                                    {
+                                        "SysSupport" => "fas fa-crown",
+                                        "FleetManager" => "fas fa-users-cog",
+                                        "Driver" => "fas fa-id-card",
+                                        "MaintanceManager" => "fas fa-tools",
+                                        "commissioner" => "fas fa-user-tie",
+                                        "NormalUser" => "fas fa-user",
+                                        _ => "fas fa-star"
+                                    };
+                                    
+                                    var roleDescription = role switch
+                                    {
+                                        "SysSupport" => "System Support - Full system permissions",
+                                        "FleetManager" => "Fleet Manager - Manage vehicles and trips",
+                                        "Driver" => "Driver - Execute assigned trips",
+                                        "MaintanceManager" => "Maintenance Manager - Vehicle maintenance",
+                                        "commissioner" => "Commissioner - Approve/reject requests",
+                                        "NormalUser" => "Normal User - Create requests",
+                                        _ => "Custom Role"
+                                    };
+                                    
+                                    <div class="existing-role-card">
+                                        <div class="role-card-header">
+                                            <div class="role-icon-wrapper">
+                                                <i class="@roleIcon"></i>
+                                            </div>
+                                            <div class="role-info">
+                                                <div class="role-title">
+                                                    <span class="badge @badgeClass">@role</span>
+                                                </div>
+                                                <p class="role-desc">@roleDescription</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No roles exist in the system currently</p>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="guidelines-list">
-                        <div class="guideline-item">
-                            <i class="fas fa-check text-success"></i>
-                            <span>Use clear and understandable names for roles</span>
-                        </div>
-                        <div class="guideline-item">
-                            <i class="fas fa-check text-success"></i>
-                            <span>Avoid creating duplicate or similar roles</span>
-                        </div>
-                        <div class="guideline-item">
-                            <i class="fas fa-check text-success"></i>
-                            <span>Consider required permissions before creating role</span>
-                        </div>
-                        <div class="guideline-item">
-                            <i class="fas fa-check text-success"></i>
-                            <span>User roles can be modified later</span>
-                        </div>
-                        <div class="guideline-item">
-                            <i class="fas fa-exclamation-triangle text-warning"></i>
-                            <span>Ensure not to give more permissions than necessary</span>
+
+                <!-- Role Guidelines -->
+                <div class="main-card mt-4">
+                    <div class="card-header bg-warning-light">
+                        <h6 class="mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Role Creation Guidelines
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="guidelines-list">
+                            <div class="guideline-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>Use clear and understandable names for roles</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>Avoid creating duplicate or similar roles</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>Consider required permissions before creating role</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check text-success"></i>
+                                <span>Follow naming conventions for consistency</span>
+                            </div>
                         </div>
                     </div>
                 </div>

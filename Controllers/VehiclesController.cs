@@ -552,7 +552,7 @@ namespace SmartFleet.Controllers
             if (id == null) return NotFound();
             var vehicle = await _context.Vehicles.Include(v => v.Geofence).FirstOrDefaultAsync(v => v.Id == id);
             if (vehicle == null) return NotFound();
-            var geofences = await _context.Geofence.ToListAsync();
+            var geofences = await _context.Geofences.ToListAsync();
             ViewBag.Geofences = geofences;
             return View(vehicle);
         }

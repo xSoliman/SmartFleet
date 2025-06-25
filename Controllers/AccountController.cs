@@ -106,6 +106,13 @@ namespace SmartFleet.Controllers
                     return View("Login", User);
                 }
 
+                // Check if user account is active
+                if (!applicationUser.AccountStatus)
+                {
+                    ModelState.AddModelError("", "Your account has been deactivated. Please contact your administrator.");
+                    return View("Login", User);
+                }
+
                 await signInManager.SignInAsync(applicationUser, User.RememberMe);
 
                 var claims = new List<Claim>
