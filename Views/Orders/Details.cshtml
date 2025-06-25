@@ -22,56 +22,88 @@
         <!-- Heading -->
         <h1 class="details-heading">Order Details</h1>
 
-        <!-- Display Fields in two columns -->
-        <div class="details-grid">
-            <div class="details-display-group">
-                <label class="details-display-label">User ID</label>
-                <div class="details-display-value">@Model.User?.Id</div>
+        <!-- Resource Availability for Commissioner -->
+        @if (ViewBag.IsCommissioner == true)
+        {
+            <div class="details-resource-availability" style="margin-bottom: 1.5rem;">
+                <label class="details-display-label">Resources Availability</label>
+                @if (Model.Status == SmartFleet.Models.OrderState.Pending)
+                {
+                    if (ViewBag.ResourceAvailability == "Available")
+                    {
+                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
+                    }
+                    else if (ViewBag.ResourceAvailability == "Not Available")
+                    {
+                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Unknown</span>
+                    }
+                }
+                else
+                {
+                    <span class="badge bg-secondary">N/A</span>
+                }
             </div>
+        }
 
-            <div class="details-display-group">
-                <label class="details-display-label">Vehicle Type</label>
-                <div class="details-display-value">@Model.VehicleType</div>
+        <!-- Details in two columns -->
+        <div class="details-two-cols">
+            <div>
+                <div class="details-display-group">
+                    <label class="details-display-label">User Name</label>
+                    <div class="details-display-value">@Model.User?.UserName</div>
+                </div>
+                <div class="details-display-group">
+                    <label class="details-display-label">User Email</label>
+                    <div class="details-display-value">@Model.User?.Email</div>
+                </div>
+                <div class="details-display-group">
+                    <label class="details-display-label">Vehicle Type</label>
+                    <div class="details-display-value">@Model.VehicleType</div>
+                </div>
+                <div class="details-display-group">
+                    <label class="details-display-label">Passenger Count</label>
+                    <div class="details-display-value">@Model.PassengerCount</div>
+                </div>
+                <!-- Trip Start/End Location Row -->
+                <div class="details-row-flex">
+                    <div class="details-display-group" style="flex:1;">
+                        <label class="details-display-label">Trip Start Location</label>
+                        <div class="details-display-value">@Model.StartLocation</div>
+                    </div>
+                    <div class="details-display-group" style="flex:1;">
+                        <label class="details-display-label">Trip End Location</label>
+                        <div class="details-display-value">@Model.Destination</div>
+                    </div>
+                </div>
+                <!-- Trip Start/End Date Row -->
+                <div class="details-row-flex">
+                    <div class="details-display-group" style="flex:1;">
+                        <label class="details-display-label">Trip Start Date</label>
+                        <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
+                    </div>
+                    <div class="details-display-group" style="flex:1;">
+                        <label class="details-display-label">Trip End Date</label>
+                        <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
+                    </div>
+                </div>
             </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Passenger Count</label>
-                <div class="details-display-value">@Model.PassengerCount</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Trip Start Location</label>
-                <div class="details-display-value">@Model.StartLocation</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Trip End Location</label>
-                <div class="details-display-value">@Model.Destination</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Trip Start Date</label>
-                <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Trip End Date</label>
-                <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Reason</label>
-                <div class="details-display-value">@Model.Reason</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Status</label>
-                <div class="details-display-value">@Model.Status</div>
-            </div>
-
-            <div class="details-display-group">
-                <label class="details-display-label">Created At</label>
-                <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
+            <div>
+                <div class="details-display-group">
+                    <label class="details-display-label">Reason</label>
+                    <div class="details-display-value">@Model.Reason</div>
+                </div>
+                <div class="details-display-group">
+                    <label class="details-display-label">Status</label>
+                    <div class="details-display-value">@Model.Status</div>
+                </div>
+                <div class="details-display-group">
+                    <label class="details-display-label">Created At</label>
+                    <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
+                </div>
             </div>
         </div>
 

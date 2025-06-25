@@ -133,17 +133,9 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
             }
 
-            // Sort by submission date in descending order (newest first)
-            // For FleetManager, also sort by status (Pending first, then Approved)
-            if (isFleetManager)
-            {
-                orders = orders.OrderByDescending(o => o.Status == OrderState.Approved && !_context.Trips.Any(t => t.OrderId == o.Id))
-                              .ThenBy(o => o.CreatedAt); // Oldest first for FleetManager
-            }
-            else
-            {
-                orders = orders.OrderByDescending(o => o.CreatedAt);
-            }
+            // Sort by status (Pending first), then by CreatedAt ascending (oldest first)
+            orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 : 1)
+                           .ThenBy(o => o.CreatedAt);
 
             var viewModel = new OrderViewModel
             {
@@ -161,6 +153,16 @@ namespace SmartFleet.Controllers
                 IsSysSupport = isSysSupport,
                 CurrentUserId = currentUser.Id
             };
+
+            // Populate resource availability for commissioner
+            if (isCommissioner && viewModel.Orders != null)
+            {
+                viewModel.ResourceAvailability = new Dictionary<int, string>();
+                foreach (var order in viewModel.Orders)
+                {
+                    viewModel.ResourceAvailability[order.Id] = await GetOrderResourceAvailabilityAsync(order);
+                }
+            }
 
             return View(viewModel);
         }
@@ -232,6 +234,12 @@ namespace SmartFleet.Controllers
             ViewBag.IsFleetManager = isFleetManager;
             ViewBag.IsSysSupport = isSysSupport;
             ViewBag.IsAdminUser = isFleetManager || isSysSupport || isCommissioner;
+
+            // For commissioner, add resource availability
+            if (isCommissioner && order != null)
+            {
+                ViewBag.ResourceAvailability = await GetOrderResourceAvailabilityAsync(order);
+            }
 
             return View(order);
         }
@@ -701,6 +709,46 @@ namespace SmartFleet.Controllers
 
             TempData["SuccessMessage"] = "Order rejected successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Helper to check resource availability for an order
+        private async Task<string> GetOrderResourceAvailabilityAsync(Order order)
+        {
+            // Check available vehicles (match type and capacity)
+            var vehicles = await _context.Vehicles.Where(v => v.Status != VehicleState.on_trip &&
+                                                             v.Status != VehicleState.need_maintenance &&
+                                                             v.Status != VehicleState.under_maintenance &&
+                                                             v.Status != VehicleState.maintained &&
+                                                             v.Type == order.VehicleType &&
+                                                             v.Capacity >= order.PassengerCount).ToListAsync();
+            var conflictingVehicleIds = await _context.Trips
+                .Include(t => t.Order)
+                .Where(t => t.Status == TripState.Scheduled &&
+                           ((t.Order.TripStartDate <= order.TripStartDate && t.Order.TripEndDate > order.TripStartDate) ||
+                            (t.Order.TripStartDate < order.TripEndDate && t.Order.TripEndDate >= order.TripEndDate) ||
+                            (t.Order.TripStartDate >= order.TripStartDate && t.Order.TripEndDate <= order.TripEndDate)))
+                .Select(t => t.VehicleId)
+                .Distinct()
+                .ToListAsync();
+            var availableVehicles = vehicles.Where(v => !conflictingVehicleIds.Contains(v.Id)).ToList();
+
+            // Check available drivers
+            var drivers = await _context.Drivers.Where(d => d.DriverStatus != DriverState.NotAvailable).ToListAsync();
+            var conflictingDriverIds = await _context.Trips
+                .Include(t => t.Order)
+                .Where(t => t.Status == TripState.Scheduled &&
+                           ((t.Order.TripStartDate <= order.TripStartDate && t.Order.TripEndDate > order.TripStartDate) ||
+                            (t.Order.TripStartDate < order.TripEndDate && t.Order.TripEndDate >= order.TripEndDate) ||
+                            (t.Order.TripStartDate >= order.TripStartDate && t.Order.TripEndDate <= order.TripEndDate)))
+                .Select(t => t.DriverId)
+                .Distinct()
+                .ToListAsync();
+            var availableDrivers = drivers.Where(d => !conflictingDriverIds.Contains(d.Id)).ToList();
+
+            if (availableVehicles.Any() && availableDrivers.Any())
+                return "Available";
+            else
+                return "Not Available";
         }
 
         private bool OrderExists(int id)
