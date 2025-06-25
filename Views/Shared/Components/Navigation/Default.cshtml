@@ -46,7 +46,8 @@
             }
         </a>
         <div class="dropdown-menu m-0">
-            <a asp-controller="Maintenances" asp-action="Index" class="dropdown-item @(!Model.HasAccessToMaintenance ? "text-muted" : "")">All Maintenances</a>
+            <a asp-controller="Maintenances" asp-action="Index" class="dropdown-item @(!Model.HasAccessToMaintenance ? "text-muted" : "")">All Maintenance Records</a>
+            <a asp-controller="Maintenances" asp-action="MaintenanceVehicles" class="dropdown-item @(!Model.HasAccessToMaintenance ? "text-muted" : "")">Vehicles Under Maintenance</a>
         </div>
     </div>
 
