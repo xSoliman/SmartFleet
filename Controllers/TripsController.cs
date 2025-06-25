@@ -468,6 +468,15 @@ namespace SmartFleet.Controllers
                         trip.Id
                     );
                     
+                    // Send notification to the order creator
+                    await _notificationService.CreateNotificationAsync(
+                        order.UserId,
+                        "Trip Created",
+                        $"A trip (ID: {trip.Id}) has been created for your order from {order.StartLocation} to {order.Destination}. Trip starts at {order.TripStartDate:yyyy-MM-dd HH:mm}.",
+                        RelatedTable.Trip,
+                        trip.Id
+                    );
+                    
                     TempData["SuccessMessage"] = "Trip created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -665,23 +674,15 @@ namespace SmartFleet.Controllers
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
-                    }
-                    // Update driver status if trip status changed from scheduled to in-progress
-                    else if (originalStatus == TripState.Scheduled && trip.Status == TripState.InProgress)
-                    {
-                        await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
-                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
 
-                        // Send notification to FleetManager
-                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
-                        var notificationTitle = $"Trip Started";
-                        var notificationMessage = $"Trip (ID: {trip.Id}) has started. Vehicle: {trip.Vehicle?.Model ?? "Unknown"}, Driver: {trip.DriverId}.";
-                        foreach (var user in fleetManagers)
+                        // Send notification to the order creator
+                        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == trip.OrderId);
+                        if (order != null)
                         {
                             await _notificationService.CreateNotificationAsync(
-                                user.Id,
-                                notificationTitle,
-                                notificationMessage,
+                                order.UserId,
+                                "Trip Rescheduled",
+                                $"Your trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination} has been rescheduled.",
                                 RelatedTable.Trip,
                                 trip.Id
                             );
@@ -692,6 +693,19 @@ namespace SmartFleet.Controllers
                     {
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+
+                        // Send notification to the order creator
+                        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == trip.OrderId);
+                        if (order != null)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                order.UserId,
+                                "Trip Paused",
+                                $"Your trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination} has been paused and rescheduled.",
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
                     }
                 }
                 catch (DbUpdateConcurrencyException)
@@ -754,12 +768,15 @@ namespace SmartFleet.Controllers
         {
             var trip = await _context.Trips
                 .Include(t => t.Driver)
+                .Include(t => t.Order)
                 .FirstOrDefaultAsync(t => t.Id == id);
                 
             if (trip != null)
             {
                 var driverId = trip.DriverId;
                 var vehicleId = trip.VehicleId;
+                var order = trip.Order;
+                
                 _context.Trips.Remove(trip);
                 await _context.SaveChangesAsync();
                 
@@ -768,6 +785,18 @@ namespace SmartFleet.Controllers
                 
                 // Update vehicle state after trip deletion
                 await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(vehicleId);
+
+                // Send notification to the order creator
+                if (order != null)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        order.UserId,
+                        "Trip Deleted",
+                        $"The trip (ID: {id}) for your order from {order.StartLocation} to {order.Destination} has been deleted.",
+                        RelatedTable.Trip,
+                        id
+                    );
+                }
             }
 
             return RedirectToAction(nameof(Index));
@@ -906,6 +935,15 @@ namespace SmartFleet.Controllers
                 trip.DriverId,
                 "Trip Cancelled",
                 $"Your assigned trip (ID: {trip.Id}) scheduled from {trip.Order.StartLocation} to {trip.Order.Destination} at {trip.Order.TripStartDate:yyyy-MM-dd HH:mm} has been cancelled.",
+                RelatedTable.Trip,
+                trip.Id
+            );
+
+            // Send notification to the order creator
+            await _notificationService.CreateNotificationAsync(
+                trip.Order.UserId,
+                "Trip Cancelled",
+                $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} has been cancelled.",
                 RelatedTable.Trip,
                 trip.Id
             );

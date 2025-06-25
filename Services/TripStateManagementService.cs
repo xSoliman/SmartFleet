@@ -67,6 +67,37 @@ namespace SmartFleet.Services
                             _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {trip.Id} state change");
                         }
                         
+                        // Send notification to the order creator about automatic status change
+                        if (trip.Order != null)
+                        {
+                            string statusMessage = "";
+                            string title = "";
+                            
+                            switch (newStatus)
+                            {
+                                case TripState.InProgress:
+                                    title = "Trip Started Automatically";
+                                    statusMessage = "has started automatically based on the scheduled time";
+                                    break;
+                                case TripState.Completed:
+                                    title = "Trip Completed Automatically";
+                                    statusMessage = "has been completed automatically based on the scheduled end time";
+                                    break;
+                                default:
+                                    title = "Trip Status Updated";
+                                    statusMessage = $"status has been updated to {newStatus}";
+                                    break;
+                            }
+                            
+                            await _notificationService.CreateNotificationAsync(
+                                trip.Order.UserId,
+                                title,
+                                $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} {statusMessage}.",
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
+                        
                         // If trip just completed or cancelled, reset vehicle geofence to default
                         if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
                         {
@@ -167,6 +198,37 @@ namespace SmartFleet.Services
                     {
                         await _driverStatusService.UpdateSingleDriverStatusAsync(trip.DriverId);
                         _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {tripId} state change");
+                    }
+                    
+                    // Send notification to the order creator about automatic status change
+                    if (trip.Order != null)
+                    {
+                        string statusMessage = "";
+                        string title = "";
+                        
+                        switch (newStatus)
+                        {
+                            case TripState.InProgress:
+                                title = "Trip Started Automatically";
+                                statusMessage = "has started automatically based on the scheduled time";
+                                break;
+                            case TripState.Completed:
+                                title = "Trip Completed Automatically";
+                                statusMessage = "has been completed automatically based on the scheduled end time";
+                                break;
+                            default:
+                                title = "Trip Status Updated";
+                                statusMessage = $"status has been updated to {newStatus}";
+                                break;
+                        }
+                        
+                        await _notificationService.CreateNotificationAsync(
+                            trip.Order.UserId,
+                            title,
+                            $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} {statusMessage}.",
+                            RelatedTable.Trip,
+                            trip.Id
+                        );
                     }
                     
                     // If trip just completed or cancelled, reset vehicle geofence to default

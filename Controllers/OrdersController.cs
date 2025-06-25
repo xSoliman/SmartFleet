@@ -468,7 +468,9 @@ namespace SmartFleet.Controllers
             var isSysSupport = userRoles.Contains("SysSupport");
             var isFleetManager = userRoles.Contains("FleetManager");
 
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
@@ -498,6 +500,15 @@ namespace SmartFleet.Controllers
             _context.Update(order);
             await _context.SaveChangesAsync();
 
+            // Send notification to the order creator
+            await _notificationService.CreateNotificationAsync(
+                order.UserId,
+                "Order Cancelled",
+                $"Your order (ID: {order.Id}) from {order.StartLocation} to {order.Destination} has been cancelled.",
+                RelatedTable.Order,
+                order.Id
+            );
+
             TempData["SuccessMessage"] = "Order cancelled successfully.";
             return RedirectToAction(nameof(Index));
         }
@@ -524,7 +535,9 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
@@ -540,6 +553,15 @@ namespace SmartFleet.Controllers
             order.Status = OrderState.Approved;
             _context.Update(order);
             await _context.SaveChangesAsync();
+
+            // Send notification to the order creator
+            await _notificationService.CreateNotificationAsync(
+                order.UserId,
+                "Order Approved",
+                $"Your order (ID: {order.Id}) from {order.StartLocation} to {order.Destination} has been approved. A trip will be created for you soon.",
+                RelatedTable.Order,
+                order.Id
+            );
 
             // Send notification to FleetManager after approval
             var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
@@ -582,7 +604,9 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
@@ -598,6 +622,15 @@ namespace SmartFleet.Controllers
             order.Status = OrderState.Rejected;
             _context.Update(order);
             await _context.SaveChangesAsync();
+
+            // Send notification to the order creator
+            await _notificationService.CreateNotificationAsync(
+                order.UserId,
+                "Order Rejected",
+                $"Your order (ID: {order.Id}) from {order.StartLocation} to {order.Destination} has been rejected. Please contact support for more information.",
+                RelatedTable.Order,
+                order.Id
+            );
 
             TempData["SuccessMessage"] = "Order rejected successfully.";
             return RedirectToAction(nameof(Index));
