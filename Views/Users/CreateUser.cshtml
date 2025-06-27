@@ -41,7 +41,7 @@
                         </h5>
                     </div>
                     <div class="card-body p-4">
-                        <form asp-action="CreateUser" method="post">
+                        <form asp-action="CreateUser" method="post" enctype="multipart/form-data">
                             @if (!ViewData.ModelState.IsValid)
                             {
                                 <div class="alert alert-danger" role="alert">
@@ -79,7 +79,9 @@
                                     </div>
 
                                     <div class="col-md-6 mb-3">
-                                        <label asp-for="PhoneNumber" class="form-label">Phone Number (Optional)</label>
+                                        <label asp-for="PhoneNumber" class="form-label">
+                                            Phone Number <span class="text-danger">*</span>
+                                        </label>
                                         <input asp-for="PhoneNumber" class="form-control" type="tel" placeholder="Enter phone number" />
                                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                                     </div>
@@ -176,16 +178,39 @@
                                             <span asp-validation-for="LicenseExpiryDate" class="text-danger"></span>
                                         </div>
                                     </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label asp-for="ProfileImage" class="form-label">
+                                                Profile Image <span class="text-danger">*</span>
+                                            </label>
+                                            <input asp-for="ProfileImage" type="file" class="form-control" accept="image/*" id="profileImageInput" />
+                                            <span asp-validation-for="ProfileImage" class="text-danger"></span>
+                                            <small class="form-text text-muted">Upload a clear photo of the driver (JPG, PNG, GIF - Max 5MB)</small>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="image-preview-container">
+                                                <label class="form-label">Image Preview</label>
+                                                <div class="image-preview" id="imagePreview">
+                                                    <div class="preview-placeholder">
+                                                        <i class="fas fa-user-circle"></i>
+                                                        <p>No image selected</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Submit Buttons -->
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save me-2"></i>
-                                    Create User
+                                <button type="submit" class="btn btn-primary btn-lg" style="color: white;">
+                                    <i class="fas fa-save me-2" style="color: white;"></i>
+                                   <span style="color: white;">Create User</span>
                                 </button>
-                                <a href="@Url.Action("Index", "Users")" class="btn btn-secondary btn-lg">
+                                <a href="@Url.Action("Index", "Users")" class="btn btn-secondary btn-lg cancel-btn">
                                     <i class="fas fa-times me-2"></i>
                                     Cancel
                                 </a>
@@ -203,10 +228,20 @@
         // Show/hide driver fields based on checkbox
         document.getElementById('isDriverCheck').addEventListener('change', function() {
             const driverFields = document.getElementById('driverFields');
+            const profileImageInput = document.getElementById('profileImageInput');
+            
             if (this.checked) {
                 driverFields.style.display = 'block';
+                if (profileImageInput) {
+                    profileImageInput.required = true;
+                }
             } else {
                 driverFields.style.display = 'none';
+                if (profileImageInput) {
+                    profileImageInput.required = false;
+                    profileImageInput.value = '';
+                    removeImage();
+                }
             }
         });
 
@@ -217,20 +252,85 @@
             
             driverCheckboxes.forEach(function(checkbox) {
                 checkbox.addEventListener('change', function() {
+                    const profileImageInput = document.getElementById('profileImageInput');
+                    
                     if (this.checked) {
                         isDriverCheck.checked = true;
                         document.getElementById('driverFields').style.display = 'block';
+                        if (profileImageInput) {
+                            profileImageInput.required = true;
+                        }
                     } else {
                         // Check if any other Driver role checkbox is still checked
                         const anyDriverChecked = Array.from(driverCheckboxes).some(cb => cb.checked);
                         if (!anyDriverChecked) {
                             isDriverCheck.checked = false;
                             document.getElementById('driverFields').style.display = 'none';
+                            if (profileImageInput) {
+                                profileImageInput.required = false;
+                                profileImageInput.value = '';
+                                removeImage();
+                            }
                         }
                     }
                 });
             });
+
+            // Image preview functionality
+            const profileImageInput = document.getElementById('profileImageInput');
+            const imagePreview = document.getElementById('imagePreview');
+
+            if (profileImageInput) {
+                profileImageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    
+                    if (file) {
+                        // Validate file size (5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('File size must be less than 5MB');
+                            this.value = '';
+                            return;
+                        }
+
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                            alert('Please select a valid image file');
+                            this.value = '';
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            imagePreview.innerHTML = `
+                                <img src="${e.target.result}" alt="Profile Preview" class="preview-image" />
+                                <button type="button" class="remove-image-btn" onclick="removeImage()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        imagePreview.innerHTML = `
+                            <div class="preview-placeholder">
+                                <i class="fas fa-user-circle"></i>
+                                <p>No image selected</p>
+                            </div>
+                        `;
+                    }
+                });
+            }
         });
+
+        // Remove image function
+        function removeImage() {
+            document.getElementById('profileImageInput').value = '';
+            document.getElementById('imagePreview').innerHTML = `
+                <div class="preview-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <p>No image selected</p>
+                </div>
+            `;
+        }
     </script>
 }
 
@@ -322,26 +422,198 @@
         margin-top: 15px;
     }
 
-    /* Form Actions */
-    .form-actions {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        padding-top: 20px;
-        border-top: 2px solid #dee2e6;
+    /* Image Preview Styles */
+    .image-preview-container {
+        margin-top: 10px;
     }
 
-    .form-actions .btn {
-        min-width: 150px;
+    .image-preview {
+        width: 100%;
+        height: 200px;
+        border: 2px dashed #dee2e6;
         border-radius: 10px;
-        font-weight: 500;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        position: relative;
+        overflow: hidden;
         transition: all 0.3s ease;
     }
 
-    .form-actions .btn:hover {
-        transform: translateY(-2px);
+    .image-preview:hover {
+        border-color: #0d6efd;
+        background: #f0f8ff;
+    }
+
+    .preview-placeholder {
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .preview-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .preview-placeholder p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+    .preview-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .remove-image-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .remove-image-btn:hover {
+        background: rgba(220, 53, 69, 1);
+        transform: scale(1.1);
+    }
+
+    .remove-image-btn i {
+        font-size: 0.8rem;
+    }
+
+    /* File input styling */
+    input[type="file"] {
+        padding: 8px;
+    }
+
+    input[type="file"]::-webkit-file-upload-button {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    input[type="file"]::-webkit-file-upload-button:hover {
+        background: #0056b3;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        padding-top: 30px;
+        border-top: 2px solid #dee2e6;
+        margin-top: 20px;
+    }
+
+    .form-actions .btn {
+        min-width: 180px;
+        height: 50px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-actions .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .form-actions .btn:hover::before {
+        left: 100%;
+    }
+
+    .form-actions .btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+
+    .form-actions .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+
+    .form-actions .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        color: white;
+    }
+
+    .form-actions .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #545b62);
+        color: white;
+    }
+
+    .form-actions .btn-secondary:hover {
+        background: linear-gradient(135deg, #545b62, #3d4449);
+        color: white;
+    }
+
+    /* Unique Cancel Button Styling */
+    .form-actions .cancel-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-actions .cancel-btn:hover {
+        background: linear-gradient(135deg, #c82333, #a71e2a);
+        color: white;
+        text-decoration: none;
+    }
+
+    .form-actions .cancel-btn i {
+        margin-right: 8px;
+        font-size: 1.1rem;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .form-actions .cancel-btn span {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .form-actions .btn i {
+        margin-right: 8px;
+        font-size: 1.1rem;
     }
 
     /* Responsive */
