@@ -63,15 +63,14 @@ namespace SmartFleet.Controllers
             if (isFleetManager)
             {
                 // FleetManager can only see pending and approved orders
+                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
                 orders = orders.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
-                // Include Trips for FleetManager to check if trip exists
-                orders = orders.Include(o => o.Trip);
             }
             else if (isCommissioner)
             {
                 // Commissioner can see all orders (for approval/rejection)
                 // Include Trips for Commissioner to see trip status
-                orders = orders.Include(o => o.Trip);
+                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
             }
             else if (isDriver)
             {
@@ -88,12 +87,17 @@ namespace SmartFleet.Controllers
             else if (isNormalUser)
             {
                 // NormalUser sees only their own orders
+                orders = _context.Orders.Include(o => o.User).AsQueryable();
                 orders = orders.Where(o => o.UserId == currentUser.Id);
             }
             else if (isSysSupport)
             {
                 // SysSupport sees all orders
-                orders = orders.Include(o => o.Trip);
+                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
+            }
+            else
+            {
+                orders = _context.Orders.Include(o => o.User).AsQueryable();
             }
 
             // Original filters (only for admin users)
@@ -133,8 +137,10 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
             }
 
-            // Sort by status (Pending first), then by CreatedAt ascending (oldest first)
-            orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 : 1)
+            // Sort by priority: Approved orders without trips first, then pending orders, then others
+            // Within each group, sort by CreatedAt ascending (oldest first)
+            orders = orders.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 : 
+                                        o.Status == OrderState.Pending ? 1 : 2)
                            .ThenBy(o => o.CreatedAt);
 
             var viewModel = new OrderViewModel

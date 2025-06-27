@@ -128,8 +128,8 @@ namespace SmartFleet.Data
             // Fix cascade delete conflicts for Trips
             modelBuilder.Entity<Trip>()
                 .HasOne(t => t.Order)
-                .WithMany()
-                .HasForeignKey(t => t.OrderId)
+                .WithOne(o => o.Trip)
+                .HasForeignKey<Trip>(t => t.OrderId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Trip>()

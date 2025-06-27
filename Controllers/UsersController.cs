@@ -125,7 +125,7 @@ namespace SmartFleet.Controllers
 
             var roleExists = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExists)
-            {
+            { 
                 TempData["ErrorMessage"] = "Role does not exist.";
                 return RedirectToAction(nameof(ManageRoles));
             }

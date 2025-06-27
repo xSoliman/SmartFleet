@@ -47,6 +47,7 @@ namespace SmartFleet.Controllers
             ViewBag.SimCardsCount = _context.SimCards.Count();
             ViewBag.NotificationsCount = _context.Notifications.Count();
             ViewBag.EventsCount = _context.Events.Count();
+            ViewBag.GeofencesCount = _context.Geofences.Count();
             ViewBag.LatestEvents = _context.Events.OrderByDescending(e => e.CreatedAt).Take(5).ToList();
             ViewBag.LatestNotifications = _context.Notifications.OrderByDescending(n => n.CreatedAt).Take(5).ToList();
             // Trips per month for last 12 months

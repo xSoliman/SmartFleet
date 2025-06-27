@@ -60,49 +60,49 @@
                     <label class="details-display-label">User Email</label>
                     <div class="details-display-value">@Model.User?.Email</div>
                 </div>
-                <div class="details-display-group">
-                    <label class="details-display-label">Vehicle Type</label>
-                    <div class="details-display-value">@Model.VehicleType</div>
-                </div>
-                <div class="details-display-group">
-                    <label class="details-display-label">Passenger Count</label>
-                    <div class="details-display-value">@Model.PassengerCount</div>
-                </div>
+            <div class="details-display-group">
+                <label class="details-display-label">Vehicle Type</label>
+                <div class="details-display-value">@Model.VehicleType</div>
+            </div>
+            <div class="details-display-group">
+                <label class="details-display-label">Passenger Count</label>
+                <div class="details-display-value">@Model.PassengerCount</div>
+            </div>
                 <!-- Trip Start/End Location Row -->
                 <div class="details-row-flex">
                     <div class="details-display-group" style="flex:1;">
-                        <label class="details-display-label">Trip Start Location</label>
-                        <div class="details-display-value">@Model.StartLocation</div>
-                    </div>
+                <label class="details-display-label">Trip Start Location</label>
+                <div class="details-display-value">@Model.StartLocation</div>
+            </div>
                     <div class="details-display-group" style="flex:1;">
-                        <label class="details-display-label">Trip End Location</label>
-                        <div class="details-display-value">@Model.Destination</div>
-                    </div>
+                <label class="details-display-label">Trip End Location</label>
+                <div class="details-display-value">@Model.Destination</div>
+            </div>
                 </div>
                 <!-- Trip Start/End Date Row -->
                 <div class="details-row-flex">
                     <div class="details-display-group" style="flex:1;">
-                        <label class="details-display-label">Trip Start Date</label>
-                        <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
-                    </div>
+                <label class="details-display-label">Trip Start Date</label>
+                <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
+            </div>
                     <div class="details-display-group" style="flex:1;">
-                        <label class="details-display-label">Trip End Date</label>
-                        <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
+                <label class="details-display-label">Trip End Date</label>
+                <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
                     </div>
                 </div>
             </div>
             <div>
-                <div class="details-display-group">
-                    <label class="details-display-label">Reason</label>
-                    <div class="details-display-value">@Model.Reason</div>
-                </div>
-                <div class="details-display-group">
-                    <label class="details-display-label">Status</label>
-                    <div class="details-display-value">@Model.Status</div>
-                </div>
-                <div class="details-display-group">
-                    <label class="details-display-label">Created At</label>
-                    <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
+            <div class="details-display-group">
+                <label class="details-display-label">Reason</label>
+                <div class="details-display-value">@Model.Reason</div>
+            </div>
+            <div class="details-display-group">
+                <label class="details-display-label">Status</label>
+                <div class="details-display-value">@Model.Status</div>
+            </div>
+            <div class="details-display-group">
+                <label class="details-display-label">Created At</label>
+                <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
                 </div>
             </div>
         </div>
