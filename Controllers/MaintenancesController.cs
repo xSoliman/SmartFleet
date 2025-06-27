@@ -158,6 +158,13 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Check create permissions
+            if (!await _userRoleService.CanCreateMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to create maintenance records.";
+                return RedirectToAction("Index");
+            }
+
             var maintenance = new Maintenance
             {
                 VehicleId = vehicleId ?? 0,
@@ -225,6 +232,13 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Check create permissions
+            if (!await _userRoleService.CanCreateMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to create maintenance records.";
+                return RedirectToAction("Index");
+            }
+
             // Initialize ViewBag data to prevent null reference exceptions
             ViewBag.VehicleInfo = null;
             ViewBag.UserInfo = currentUser;
@@ -248,6 +262,13 @@ namespace SmartFleet.Controllers
             {
                 TempData["ErrorMessage"] = "You don't have access to maintenance.";
                 return RedirectToAction("Index", "Home");
+            }
+
+            // Check create permissions
+            if (!await _userRoleService.CanCreateMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to create maintenance records.";
+                return RedirectToAction("Index");
             }
 
             if (ModelState.IsValid)
@@ -312,6 +333,13 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Check edit permissions
+            if (!await _userRoleService.CanEditMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to edit maintenance records.";
+                return RedirectToAction("Index");
+            }
+
             var maintenance = await _context.Maintenances.FindAsync(id);
             if (maintenance == null)
             {
@@ -346,6 +374,13 @@ namespace SmartFleet.Controllers
             {
                 TempData["ErrorMessage"] = "You don't have access to maintenance.";
                 return RedirectToAction("Index", "Home");
+            }
+
+            // Check edit permissions
+            if (!await _userRoleService.CanEditMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to edit maintenance records.";
+                return RedirectToAction("Index");
             }
 
             if (ModelState.IsValid)

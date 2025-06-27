@@ -21,6 +21,8 @@ namespace SmartFleet.Services
         Task<bool> CanCancelTrip(ApplicationUser user, TripState tripStatus);
         Task<List<string>> GetUserRoles(ApplicationUser user);
         Task<List<ApplicationUser>> GetUsersByRole(string roleName);
+        Task<bool> CanCreateMaintenance(ApplicationUser user);
+        Task<bool> CanEditMaintenance(ApplicationUser user);
     }
 
     public class UserRoleService : IUserRoleService
@@ -169,6 +171,25 @@ namespace SmartFleet.Services
             // FleetManager can cancel any scheduled trip
             // SysSupport can cancel any scheduled trip
             return roles.Any(r => r == "NormalUser" || r == "FleetManager" || r == "SysSupport");
+        }
+
+        // New methods for maintenance permissions
+        public async Task<bool> CanCreateMaintenance(ApplicationUser user)
+        {
+            if (user == null) return false;
+            var roles = await GetUserRoles(user);
+            // Only MaintenanceManager and SysSupport can create maintenance records
+            // FleetManager cannot create maintenance records
+            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
+        }
+
+        public async Task<bool> CanEditMaintenance(ApplicationUser user)
+        {
+            if (user == null) return false;
+            var roles = await GetUserRoles(user);
+            // Only MaintenanceManager and SysSupport can edit maintenance records
+            // FleetManager cannot edit maintenance records
+            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
         }
     }
 } 
