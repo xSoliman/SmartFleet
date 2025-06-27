@@ -2,30 +2,73 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
+    [Authorize]
     public class MaintenancesController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserRoleService _userRoleService;
 
-        public MaintenancesController(SmartFleetContext context)
+        public MaintenancesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService)
         {
             _context = context;
+            _userManager = userManager;
+            _userRoleService = userRoleService;
         }
-
 
         public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
+
             var query = _context.Maintenances
                 .Include(m => m.Vehicle)
                 .Include(m => m.ReportedUser)
                 .AsQueryable();
+
+            // Role-based filtering
+            if (isMaintenanceManager)
+            {
+                // Maintenance Manager sees all maintenance records
+                query = query.AsQueryable();
+            }
+            else if (isFleetManager || isSysSupport)
+            {
+                // Fleet Manager and SysSupport see all maintenance records
+                query = query.AsQueryable();
+            }
+            else
+            {
+                // Other roles have no access
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
 
             if (!string.IsNullOrEmpty(searchPlate))
             {
@@ -45,13 +88,24 @@ namespace SmartFleet.Controllers
             return View(await query.ToListAsync());
         }
 
-
-
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
             }
 
             var maintenance = await _context.Maintenances
@@ -68,6 +122,19 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> MaintenanceVehicles()
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
             var vehicles = await _context.Vehicles
                 .Where(v => v.Status == VehicleState.need_maintenance || v.Status == VehicleState.under_maintenance)
                 .ToListAsync();
@@ -75,20 +142,26 @@ namespace SmartFleet.Controllers
             return View(vehicles);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> CreateMaintenance(int? vehicleId = null)
         {
-            var userId = Request.Cookies["UserId"];
-            if (string.IsNullOrEmpty(userId))
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
             }
 
             var maintenance = new Maintenance
             {
                 VehicleId = vehicleId ?? 0,
-                ReportedBy = userId,
+                ReportedBy = currentUser.Id,
                 CreatedAt = DateTime.Now
             };
 
@@ -103,8 +176,7 @@ namespace SmartFleet.Controllers
                 ViewBag.VehicleInfo = null;
             }
 
-            var user = await _context.Users.FindAsync(userId);
-            ViewBag.UserInfo = user ?? null;
+            ViewBag.UserInfo = currentUser;
 
             // Prepare dropdown data
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
@@ -113,11 +185,22 @@ namespace SmartFleet.Controllers
             return View("Create", maintenance);
         }
 
-
-
         [HttpPost]
         public async Task<IActionResult> UpdateVehicleStatus(int vehicleId, VehicleState newStatus)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(vehicleId);
             if (vehicle == null) return NotFound();
 
@@ -129,9 +212,22 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> Create()
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
             // Initialize ViewBag data to prevent null reference exceptions
             ViewBag.VehicleInfo = null;
-            ViewBag.UserInfo = null;
+            ViewBag.UserInfo = currentUser;
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
             return View();
@@ -141,6 +237,19 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,VehicleId,ReportedBy,IssueDescription,RepairStatus,Priority,RepairedAt,CreatedAt")] Maintenance maintenance)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
             if (ModelState.IsValid)
             {
                 maintenance.ReportedUser = await _context.Users.FindAsync(maintenance.ReportedBy);
@@ -183,14 +292,24 @@ namespace SmartFleet.Controllers
             return View(maintenance);
         }
 
-
-
-
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
             }
 
             var maintenance = await _context.Maintenances.FindAsync(id);
@@ -214,6 +333,19 @@ namespace SmartFleet.Controllers
             if (id != maintenance.Id)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
             }
 
             if (ModelState.IsValid)
@@ -262,12 +394,25 @@ namespace SmartFleet.Controllers
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
         }
-       
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
             }
 
             var maintenance = await _context.Maintenances
@@ -286,6 +431,19 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
             var maintenance = await _context.Maintenances
                 .Include(m => m.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -301,7 +459,6 @@ namespace SmartFleet.Controllers
 
             return RedirectToAction(nameof(Index), new { searchPlate = licensePlate });
         }
-
 
         private bool MaintenanceExists(int id)
         {

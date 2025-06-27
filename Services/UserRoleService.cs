@@ -68,16 +68,16 @@ namespace SmartFleet.Services
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            // All roles have access to orders (but with different permissions)
-            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintanceManager" || r == "commissioner" || r == "NormalUser" || r == "Driver");
+            // NormalUser, Commissioner, FleetManager, SysSupport have access to orders
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "commissioner" || r == "NormalUser");
         }
 
         public async Task<bool> HasAccessToTrips(ApplicationUser user)
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            // All roles except commissioner have access to trips
-            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintanceManager" || r == "NormalUser" || r == "Driver");
+            // NormalUser, Driver, FleetManager, SysSupport have access to trips
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "NormalUser" || r == "Driver");
         }
 
         public async Task<bool> HasAccessToTracking(ApplicationUser user)

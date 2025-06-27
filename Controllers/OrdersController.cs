@@ -57,20 +57,26 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var orders = _context.Orders.Include(o => o.User).AsQueryable();
+            // Get orders based on user role
+            IQueryable<Order> ordersQuery = _context.Orders.Include(o => o.User);
+
+            // Include Trip for FleetManager and Commissioner to check if trip exists
+            if (isFleetManager || isCommissioner)
+            {
+                ordersQuery = ordersQuery.Include(o => o.Trip);
+            }
 
             // Role-based filtering
             if (isFleetManager)
             {
                 // FleetManager can only see pending and approved orders
-                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
-                orders = orders.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
+                ordersQuery = ordersQuery.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
             }
             else if (isCommissioner)
             {
                 // Commissioner can see all orders (for approval/rejection)
                 // Include Trips for Commissioner to see trip status
-                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
+                ordersQuery = ordersQuery.AsQueryable();
             }
             else if (isDriver)
             {
@@ -87,73 +93,72 @@ namespace SmartFleet.Controllers
             else if (isNormalUser)
             {
                 // NormalUser sees only their own orders
-                orders = _context.Orders.Include(o => o.User).AsQueryable();
-                orders = orders.Where(o => o.UserId == currentUser.Id);
+                ordersQuery = ordersQuery.Where(o => o.UserId == currentUser.Id);
             }
             else if (isSysSupport)
             {
                 // SysSupport sees all orders
-                orders = _context.Orders.Include(o => o.User).Include(o => o.Trip).AsQueryable();
+                ordersQuery = ordersQuery.AsQueryable();
             }
             else
             {
-                orders = _context.Orders.Include(o => o.User).AsQueryable();
+                ordersQuery = ordersQuery.AsQueryable();
             }
 
             // Original filters (only for admin users)
             if ((isFleetManager || isSysSupport || isCommissioner) && !string.IsNullOrEmpty(searchUserId))
             {
-                orders = orders.Where(o => o.User != null && o.User.UserName.Contains(searchUserId));
+                ordersQuery = ordersQuery.Where(o => o.User != null && o.User.UserName.Contains(searchUserId));
             }
 
             if (!string.IsNullOrEmpty(searchStartLocation))
             {
-                orders = orders.Where(o => o.StartLocation.Contains(searchStartLocation));
+                ordersQuery = ordersQuery.Where(o => o.StartLocation.Contains(searchStartLocation));
             }
 
             if (!string.IsNullOrEmpty(searchDestination))
             {
-                orders = orders.Where(o => o.Destination.Contains(searchDestination));
+                ordersQuery = ordersQuery.Where(o => o.Destination.Contains(searchDestination));
             }
 
             if ((isFleetManager || isSysSupport || isCommissioner) && typeFilter.HasValue)
             {
-                orders = orders.Where(o => o.VehicleType == typeFilter.Value);
+                ordersQuery = ordersQuery.Where(o => o.VehicleType == typeFilter.Value);
             }
 
             if (stateFilter.HasValue)
             {
-                orders = orders.Where(o => o.Status == stateFilter.Value);
+                ordersQuery = ordersQuery.Where(o => o.Status == stateFilter.Value);
             }
 
             // Date range filtering
             if (startDate.HasValue)
             {
-                orders = orders.Where(o => o.CreatedAt.Date >= startDate.Value.Date);
+                ordersQuery = ordersQuery.Where(o => o.CreatedAt.Date >= startDate.Value.Date);
             }
 
             if (endDate.HasValue)
             {
-                orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
+                ordersQuery = ordersQuery.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
             }
 
             // Sort by priority: For FleetManager, show 'Create Trip' (approved, no trip) first, then pending, then others. For Commissioner/others, pending first, then 'Create Trip', then others
             if (isFleetManager)
             {
-                orders = orders.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 :
+                ordersQuery = ordersQuery.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 :
                                             o.Status == OrderState.Pending ? 1 : 2)
                                .ThenBy(o => o.CreatedAt);
             }
             else
             {
-                orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 :
+                ordersQuery = ordersQuery.OrderBy(o => o.Status == OrderState.Pending ? 0 :
                                             o.Status == OrderState.Approved && o.Trip == null ? 1 : 2)
                                .ThenBy(o => o.CreatedAt);
             }
 
             var viewModel = new OrderViewModel
             {
-                Orders = await orders.ToListAsync(),
+                Orders = await ordersQuery.ToListAsync(),
                 SearchUserId = searchUserId,
                 SearchStartLocation = searchStartLocation,
                 SearchDestination = searchDestination,
@@ -169,8 +174,8 @@ namespace SmartFleet.Controllers
                 CanCreateOrder = await _userRoleService.CanCreateOrder(currentUser)
             };
 
-            // Populate resource availability for commissioner
-            if (isCommissioner && viewModel.Orders != null)
+            // Populate resource availability for commissioner and fleet manager
+            if ((isCommissioner || isFleetManager) && viewModel.Orders != null)
             {
                 viewModel.ResourceAvailability = new Dictionary<int, string>();
                 foreach (var order in viewModel.Orders)
@@ -250,8 +255,8 @@ namespace SmartFleet.Controllers
             ViewBag.IsSysSupport = isSysSupport;
             ViewBag.IsAdminUser = isFleetManager || isSysSupport || isCommissioner;
 
-            // For commissioner, add resource availability
-            if (isCommissioner && order != null)
+            // For commissioner and fleet manager, add resource availability
+            if ((isCommissioner || isFleetManager) && order != null)
             {
                 ViewBag.ResourceAvailability = await GetOrderResourceAvailabilityAsync(order);
             }
