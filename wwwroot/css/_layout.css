@@ -131,31 +131,40 @@
     }
 
 nav {
-    margin-left: -100px;
+    margin-left: 0; /* Remove negative margin */
 }
 
 .noti {
-    position: relative;
-    left: 290px;
+    position: static; /* Remove relative positioning */
+    left: auto;
 }
 
 .acc {
-    position: relative;
-    left: 280px;
+    position: static; /* Remove relative positioning */
+    left: auto;
 }
 
 .it {
-    position: relative;
-    left: 150px;
+    position: static; /* Remove relative positioning */
+    left: auto;
 }
 
 .lo {
-    position: relative;
-    right: 50px;
+    position: static; /* Remove relative positioning */
+    right: auto;
 }
 
 .nav-auto {
-    width: 100%;
+    width: auto; /* Let it size naturally */
+    margin-left: 0; /* Remove left margin */
+    justify-content: flex-end; /* Keep items aligned to the right */
+    gap: 5px; /* Adds space between the buttons */
+}
+
+.nav-right {
+    margin-right: 0; /* Remove right margin to edge it */
+    width: auto; /* Let it size naturally */
+    margin-left: 0; /* Remove left margin */
 }
 
 /* Role-based navigation layout fixes */
@@ -165,23 +174,12 @@ nav {
     justify-content: center;
     flex: 1;
     min-width: 0; /* Allow flex item to shrink */
+    margin: 0 auto; /* Center the nav items */
 }
 
 .navbar-nav .nav-item {
     white-space: nowrap;
     margin: 0 3px; /* Decreased from 5px */
-}
-
-/* Ensure logo stays fixed on the left */
-.navbar-brand {
-    flex-shrink: 0;
-    margin-right: 2rem;
-}
-
-/* Ensure right-side buttons stay fixed on the right */
-.d-flex.align-items-center.ms-auto {
-    flex-shrink: 0;
-    margin-left: auto;
 }
 
 /* Unauthenticated navigation styling */
@@ -246,15 +244,21 @@ nav {
 }
 
 .sf-navbar {
-    min-height: 15px !important; /* Further reduced from 20px */
-    background: var(--bs-white);
-    padding-top: 0.02rem !important; /* Further reduced from 0.05rem */
-    padding-bottom: 0.02rem !important; /* Further reduced from 0.05rem */
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+    min-height: 60px !important; /* Reduced from 15px */
+    background: var(--bs-white) !important;
+    padding-top: 0.5rem !important; /* Reduced padding */
+    padding-bottom: 0.5rem !important; /* Reduced padding */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; /* Add subtle shadow for sticky effect */
 }
 
 .sf-navbar .navbar-brand h1 {
-    font-size: 2.2rem; /* Increased from 1.8rem */
-    margin: 0;
+    font-size: 2.2rem !important; /* Restored from 1.8rem */
+    margin: 0 !important;
+    position: relative !important;
+    left: 25px !important;
 }
 
 .sf-navbar .notification-bell {
@@ -327,6 +331,7 @@ nav {
 
 .sf-navbar .navbar-collapse {
     justify-content: space-between;
+    width: 100%;
 }
 
 .sf-navbar .navbar-collapse .d-flex.align-items-center.ms-auto {
@@ -406,26 +411,32 @@ nav {
 
 #sf-header .nav-bar {
     background: var(--bs-white) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
 }
 
 #sf-header .sticky-top {
-    transition: 1s;
+    transition: 1s !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
 }
 
 #sf-header .navbar-light .navbar-nav .nav-link {
-    position: relative;
-    margin-right: 12px; /* Decreased from 18px */
-    padding: 12px 0 !important; /* Reduced from 20px for compactness */
-    letter-spacing: 1px;
+    position: relative !important;
+    margin-right: 18px !important;
+    padding: 8px 0 !important; /* Keep reduced padding */
+    letter-spacing: 1px !important;
     color: var(--bs-dark) !important;
-    font-size: 20px !important; /* Increased from 18px */
-    font-weight: bold;
-    outline: none;
-    transition: .5s;
+    font-size: 20px !important; /* Restored from 16px */
+    font-weight: bold !important;
+    outline: none !important;
+    transition: .5s !important;
 }
 
-#sf-header .sticky-top .navbar-light .navbar-nav .nav-link {
-    padding: 6px 0 !important; /* Reduced from 8px */
+.sticky-top .navbar-light .navbar-nav .nav-link {
+    padding: 6px 0 !important; /* Keep reduced padding */
     color: var(--bs-dark) !important;
 }
 
@@ -435,21 +446,21 @@ nav {
 }
 
 #sf-header .navbar-light .navbar-brand img {
-    max-height: 45px;
-    transition: .5s;
+    max-height: 40px !important; /* Reduced from 60px */
+    transition: .5s !important;
 }
 
 #sf-header .sticky-top .navbar-light .navbar-brand img {
-    max-height: 35px;
+    max-height: 35px !important; /* Reduced from 50px */
 }
 
 #sf-header .navbar .dropdown-toggle::after {
-    border: none;
-    content: "\f107";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 600;
-    vertical-align: middle;
-    margin-left: 8px;
+    border: none !important;
+    content: "\f107" !important;
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 600 !important;
+    vertical-align: middle !important;
+    margin-left: 8px !important;
 }
 
 #sf-header .dropdown .dropdown-menu a:hover {
@@ -458,54 +469,66 @@ nav {
 }
 
 #sf-header .navbar .nav-item:hover .dropdown-menu {
-    transform: rotateX(0deg);
-    visibility: visible;
+    transform: rotateX(0deg) !important;
+    visibility: visible !important;
     margin-top: 8px !important;
     background: var(--bs-light) !important;
-    transition: .5s;
-    opacity: 1;
+    transition: .5s !important;
+    opacity: 1 !important;
 }
 
 #sf-header .nav-right {
-    margin-right: 20px !important;
-    width: 300px;
+    margin-right: 0 !important; /* Remove right margin to edge it */
+    width: auto; /* Let it size naturally */
 }
 
 #sf-header .d-flex {
-    margin-left: -80px !important;
-    margin-right: 30px !important;
+    margin-left: 0 !important; /* Remove negative margin */
+    margin-right: 0 !important; /* Remove right margin to edge it */
 }
 
 #sf-header .d-flex.align-items-center.ms-auto {
-    margin-left: 40px !important;
+    margin-left: auto !important; /* Push to the right */
+    margin-right: 0 !important; /* Remove right margin to edge it */
     width: auto;
     min-width: 200px;
     justify-content: flex-end;
+    position: relative;
+    right: 25px;
 }
 
 @media (min-width: 992px) {
     #sf-header .navbar .nav-item .dropdown-menu {
-        display: block;
-        visibility: hidden;
-        top: 100%;
-        transform: rotateX(-75deg);
-        transform-origin: 0% 0%;
-        border: 0;
-        border-radius: 10px;
+        display: block !important;
+        visibility: hidden !important;
+        top: 100% !important;
+        transform: rotateX(-75deg) !important;
+        transform-origin: 0% 0% !important;
+        border: 0 !important;
+        border-radius: 10px !important;
         margin-top: 8px !important;
-        transition: .5s;
-        opacity: 0;
+        transition: .5s !important;
+        opacity: 0 !important;
     }
 }
 
 @media (max-width: 991px) {
-    #sf-header .navbar.navbar-expand-lg .navbar-toggler {
-        padding: 8px 15px;
-        border: 1px solid var(--bs-primary);
-        color: var(--bs-primary);
+    .navbar.navbar-expand-lg .navbar-toggler {
+        padding: 6px 12px !important; /* Reduced from 8px 15px */
+        border: 1px solid var(--bs-primary) !important;
+        color: var(--bs-primary) !important;
     }
-    #sf-header .sticky-top .navbar-light .navbar-nav .nav-link {
-        padding: 12px 0 !important;
+
+    .sticky-top .navbar-light .navbar-nav .nav-link {
+        padding: 4px 0 !important; /* Reduced from 12px 0 */
+    }
+}
+
+@media (max-width: 1200px) and (min-width: 768px) {
+    .navbar-light .navbar-nav .nav-link {
+        font-size: 15px !important; /* Restored from 14px */
+        padding: 6px 0 !important; /* Keep reduced padding */
+        margin-right: 6px !important;
     }
 }
 
@@ -662,4 +685,226 @@ nav {
     background-color: #001027 !important; /* Very close to original */
     border-color: #001027 !important;
     opacity: 0.95 !important; /* Very subtle hover effect */
+}
+
+/* === EDGED NAVBAR LAYOUT === */
+
+/* Override container padding for navbar to allow edging */
+#sf-header .container-fluid .container {
+    padding-left: 0 !important; /* Remove left padding to allow edging */
+    padding-right: 0 !important; /* Remove right padding to allow edging */
+    max-width: 100% !important; /* Use full width */
+}
+
+/* Ensure navbar uses full width */
+#sf-header .navbar {
+    padding-left: 0 !important; /* Remove left padding */
+    padding-right: 0 !important; /* Remove right padding */
+    width: 100%;
+}
+
+/* Ensure navbar collapse uses full available space */
+#sf-header .navbar-collapse {
+    justify-content: space-between;
+    width: 100%;
+    flex: 1;
+}
+
+/* Center the navigation menu in the available space */
+#sf-header .navbar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-width: 0; /* Allow flex item to shrink */
+    margin: 0 auto; /* Center the nav items */
+}
+
+/* Ensure logo stays at the far left edge */
+#sf-header .navbar-brand {
+    flex-shrink: 0;
+    margin-right: 0 !important; /* Remove right margin to edge it */
+    margin-left: 0 !important; /* Ensure no left margin */
+    padding-left: 0 !important; /* Remove left padding */
+}
+
+/* Ensure right-side buttons stay at the far right edge */
+#sf-header .d-flex.align-items-center.ms-auto {
+    flex-shrink: 0;
+    margin-left: auto !important; /* Push to the right */
+    margin-right: 0 !important; /* Remove right margin to edge it */
+    padding-right: 0 !important; /* Remove right padding */
+    width: auto;
+    min-width: 200px;
+    justify-content: flex-end;
+}
+
+/* Override the conflicting .d-flex style from home.css */
+#sf-header .d-flex {
+    margin-left: 0 !important; /* Override home.css negative margin */
+    margin-right: 0 !important; /* Override home.css positive margin */
+}
+
+/* Override the conflicting .nav-right style from home.css */
+#sf-header .nav-right {
+    margin-right: 0 !important; /* Override home.css margin-right: 20px */
+    width: auto !important; /* Override home.css width: 300px */
+}
+
+/* Override the conflicting .nav-auto style from home.css */
+#sf-header .nav-auto {
+    width: auto !important; /* Override home.css width: 450px */
+    margin-left: 0 !important; /* Override home.css margin-left: 50px */
+    justify-content: flex-end; /* Keep items aligned to the right */
+    gap: 5px; /* Adds space between the buttons */
+}
+
+/* === LAYOUT STYLES MOVED FROM HOME.CSS === */
+
+/* Basic layout styles */
+body {
+    overflow-x: hidden !important;
+}
+
+/* Navbar layout styles */
+.nav-bar {
+    background: var(--bs-white) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+}
+
+.sticky-top {
+    transition: 1s !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+}
+
+/* Navbar navigation link styles */
+.navbar-light .navbar-nav .nav-link {
+    position: relative !important;
+    margin-right: 18px !important;
+    padding: 8px 0 !important; /* Keep reduced padding */
+    letter-spacing: 1px !important;
+    color: var(--bs-dark) !important;
+    font-size: 20px !important; /* Restored from 16px */
+    font-weight: bold !important;
+    outline: none !important;
+    transition: .5s !important;
+}
+
+.sticky-top .navbar-light .navbar-nav .nav-link {
+    padding: 6px 0 !important; /* Keep reduced padding */
+    color: var(--bs-dark) !important;
+}
+
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link.active {
+    color: var(--bs-primary) !important;
+}
+
+/* Navbar brand image styles */
+.navbar-light .navbar-brand img {
+    max-height: 40px !important; /* Reduced from 60px */
+    transition: .5s !important;
+}
+
+.sticky-top .navbar-light .navbar-brand img {
+    max-height: 35px !important; /* Reduced from 50px */
+}
+
+/* Dropdown styles */
+.navbar .dropdown-toggle::after {
+    border: none !important;
+    content: "\f107" !important;
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 600 !important;
+    vertical-align: middle !important;
+    margin-left: 8px !important;
+}
+
+.dropdown .dropdown-menu a:hover {
+    background: var(--bs-primary) !important;
+    color: var(--bs-white) !important;
+}
+
+.navbar .nav-item:hover .dropdown-menu {
+    transform: rotateX(0deg) !important;
+    visibility: visible !important;
+    margin-top: 8px !important;
+    background: var(--bs-light) !important;
+    transition: .5s !important;
+    opacity: 1 !important;
+}
+
+/* Layout container styles */
+.counter, .steps, .bg-breadcrumb {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* Copyright layout */
+.copyright {
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: var(--bs-dark) !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    padding: 5px 0 !important;
+    z-index: 1000 !important;
+    text-align: center !important;
+}
+
+/* Back to top button layout */
+.back-to-top {
+    position: fixed !important;
+    right: 30px !important;
+    bottom: 30px !important;
+    transition: 0.5s !important;
+    z-index: 99 !important;
+}
+
+/* Responsive layout styles */
+@media (min-width: 992px) {
+    .navbar .nav-item .dropdown-menu {
+        display: block !important;
+        visibility: hidden !important;
+        top: 100% !important;
+        transform: rotateX(-75deg) !important;
+        transform-origin: 0% 0% !important;
+        border: 0 !important;
+        border-radius: 10px !important;
+        margin-top: 8px !important;
+        transition: .5s !important;
+        opacity: 0 !important;
+    }
+}
+
+@media (max-width: 991px) {
+    .navbar.navbar-expand-lg .navbar-toggler {
+        padding: 8px 15px !important;
+        border: 1px solid var(--bs-primary) !important;
+        color: var(--bs-primary) !important;
+    }
+
+    .sticky-top .navbar-light .navbar-nav .nav-link {
+        padding: 12px 0 !important;
+    }
+}
+
+@media (max-width: 1200px) and (min-width: 768px) {
+    .navbar-light .navbar-nav .nav-link {
+        font-size: 15px !important;
+        padding: 10px 0 !important;
+        margin-right: 6px !important;
+    }
 }
