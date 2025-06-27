@@ -18,28 +18,35 @@ namespace SmartFleet.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SmartFleetContext _context;
         private readonly IUserRoleService _userRoleService;
+        private readonly IPaginationService _paginationService;
 
         public UsersController(
             UserManager<ApplicationUser> userManager, 
             RoleManager<IdentityRole> roleManager,
             SmartFleetContext context,
-            IUserRoleService userRoleService)
+            IUserRoleService userRoleService,
+            IPaginationService paginationService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _userRoleService = userRoleService;
+            _paginationService = paginationService;
         }
 
         // GET: Users/Index - عرض كل المستخدمين
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1)
         {
-            var users = await _userManager.Users.ToListAsync();
+            int pageSize = 10;
+            var usersQuery = _userManager.Users.OrderBy(u => u.UserName);
+            int totalCount = await usersQuery.CountAsync();
+            var pagedUsers = await _paginationService.GetPaginatedAsync(usersQuery, pageNumber, pageSize);
+
             var userViewModels = new List<UserItemViewModel>();
             var userRoles = new Dictionary<string, List<string>>();
             var driverDetails = new Dictionary<string, DriverDetailsViewModel>();
 
-            foreach (var user in users)
+            foreach (var user in pagedUsers)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var driverInfo = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == user.Id);
@@ -78,15 +85,17 @@ namespace SmartFleet.Controllers
             // إنشاء ViewModel الرئيسي
             var viewModel = new UserManagementViewModel
             {
-                TotalUsers = users.Count,
-                ActiveUsers = users.Count(u => u.AccountStatus),
-                InactiveUsers = users.Count(u => !u.AccountStatus),
+                TotalUsers = totalCount,
+                ActiveUsers = userViewModels.Count(u => u.IsActive),
+                InactiveUsers = userViewModels.Count(u => !u.IsActive),
                 DriversCount = userViewModels.Count(u => u.IsDriver),
                 Users = userViewModels,
                 UserRoles = userRoles,
                 DriverDetails = driverDetails
             };
 
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
             return View(viewModel);
         }
 

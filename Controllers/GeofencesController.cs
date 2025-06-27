@@ -5,6 +5,9 @@ using SmartFleet.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using System;
+using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {
@@ -12,16 +15,23 @@ namespace SmartFleet.Controllers
     public class GeofencesController : Controller
     {
         private readonly SmartFleetContext _context;
-        public GeofencesController(SmartFleetContext context)
+        private readonly IPaginationService _paginationService;
+        public GeofencesController(SmartFleetContext context, IPaginationService paginationService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
 
         // GET: Geofences
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1)
         {
-            var geofences = await _context.Geofences.ToListAsync();
-            return View(geofences);
+            int pageSize = 10;
+            var geofencesQuery = _context.Geofences.OrderBy(g => g.Name);
+            int totalCount = await geofencesQuery.CountAsync();
+            var pagedGeofences = await _paginationService.GetPaginatedAsync(geofencesQuery, pageNumber, pageSize);
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            return View(pagedGeofences);
         }
 
         // GET: Geofences/Create

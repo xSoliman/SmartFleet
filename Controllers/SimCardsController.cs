@@ -17,17 +17,19 @@ namespace SmartFleet.Controllers
         private readonly SmartFleetContext _context;
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
+        private readonly IPaginationService _paginationService;
 
-        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService)
+        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
         {
             _context = context;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
+            _paginationService = paginationService;
         }
 
         // GET: SimCards
         //search & filter
-        public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter)
+        public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter, int pageNumber = 1)
         {
             var simCards = _context.SimCards.AsQueryable();
 
@@ -46,7 +48,15 @@ namespace SmartFleet.Controllers
                 simCards = simCards.Where(s => s.Status == parsedStatus);
             }
 
-            return View(await simCards.ToListAsync());
+            int pageSize = 10;
+            int totalCount = await simCards.CountAsync();
+            var pagedSimCards = await _paginationService.GetPaginatedAsync(simCards.OrderBy(s => s.SimNumber), pageNumber, pageSize);
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchSimNumber = searchSimNumber;
+            ViewBag.SearchCarrier = searchCarrier;
+            ViewBag.StatusFilter = statusFilter;
+            return View(pagedSimCards);
         }
 
         // GET: SimCards/Details/5

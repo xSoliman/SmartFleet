@@ -87,6 +87,25 @@
     </table>
 </div>
 <br />
+<!-- Pagination Controls -->
+@if (ViewBag.TotalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new {
+                        pageNumber = i,
+                        searchSimNumber = ViewBag.SearchSimNumber,
+                        searchCarrier = ViewBag.SearchCarrier,
+                        statusFilter = ViewBag.StatusFilter
+                    })">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
 
 <!-- Vehicle Assignment Modal -->
 <div id="assignmentModal" class="simcard-index-modal" style="display: none;">

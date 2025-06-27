@@ -26,10 +26,11 @@ namespace SmartFleet.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
+        private readonly IPaginationService _paginationService;
 
         public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
             IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
-            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService)
+            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
         {
             _context = context;
             _tripStateService = tripStateService;
@@ -38,6 +39,7 @@ namespace SmartFleet.Controllers
             _userManager = userManager;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
+            _paginationService = paginationService;
         }
 
         /// <summary>
@@ -111,7 +113,8 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> Index(
             string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate,
-            string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, DateTime? assignedStartDate, DateTime? assignedEndDate)
+            string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, DateTime? assignedStartDate, DateTime? assignedEndDate,
+            int pageNumber = 1)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var userRoles = await _userManager.GetRolesAsync(currentUser);
@@ -190,20 +193,13 @@ namespace SmartFleet.Controllers
                 tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate <= endDate.Value);
             }
 
-            var filteredTrips = await tripsQuery.ToListAsync();
-
-            // Custom sorting
-            var sortedTrips = filteredTrips.OrderBy(t => t.Status switch {
-                TripState.InProgress => 0,
-                TripState.Scheduled => 1,
-                TripState.Completed => 2,
-                TripState.Cancelled => 3,
-                _ => 4
-            }).ThenBy(t => t.Order.TripStartDate).ToList();
+            int pageSize = 10;
+            int totalCount = await tripsQuery.CountAsync();
+            var pagedTrips = await _paginationService.GetPaginatedAsync(tripsQuery.OrderBy(t => t.Status).ThenBy(t => t.Order.TripStartDate), pageNumber, pageSize);
 
             var viewModel = new TripViewModel
             {
-                Trips = sortedTrips,
+                Trips = pagedTrips,
                 AssignedTrips = assignedTrips,
                 Destination = destination,
                 SearchDriverName = searchDriverName,
@@ -223,6 +219,15 @@ namespace SmartFleet.Controllers
                 IsNormalUser = isNormalUser,
                 CurrentUserId = currentUser.Id
             };
+
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.Destination = destination;
+            ViewBag.SearchDriverName = searchDriverName;
+            ViewBag.VehicleType = vehicleType;
+            ViewBag.StateFilter = stateFilter;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
 
             return View(viewModel);
         }

@@ -152,34 +152,85 @@ namespace SmartFleet
                     }
                 }
 
-                // Check if driver user exists, if not create it
-                if (!await _db.Users.AnyAsync(u => u.Email == "driver@smartfleet.com"))
+                // Seed multiple drivers if not already present
+                var existingDrivers = await _db.Users.OfType<Driver>().ToListAsync();
+                int driversToSeed = 20 - existingDrivers.Count;
+                var seededDriverIds = new List<string>();
+                for (int i = 0; i < driversToSeed; i++)
                 {
-                    // Seed Driver
+                    var driverId = (100 + i).ToString();
+                    var driverEmail = $"driver{i + 1}@smartfleet.com";
                     var driverUser = new Driver
                     {
-                        Id = "2",
-                        UserName = "driver@smartfleet.com",
-                        Email = "driver@smartfleet.com",
-                        LicenseNumber = "AB12345",
+                        Id = driverId,
+                        UserName = driverEmail,
+                        Email = driverEmail,
+                        LicenseNumber = $"LIC{i + 1:D5}",
                         LicenseExpiryDate = DateTime.Now.AddYears(2),
                         DriverStatus = DriverState.Available,
                         ProfileImageUrl = "https://example.com/driver.jpg",
                         CreatedAt = DateTime.Now,
                         EmailConfirmed = true
                     };
-
                     var driverResult = await _ApplicationUserManager.CreateAsync(driverUser, "Password123!");
                     if (driverResult.Succeeded)
                     {
                         await _ApplicationUserManager.AddToRoleAsync(driverUser, "Driver");
-                        _logger.LogInformation("Driver user seeded successfully.");
+                        seededDriverIds.Add(driverId);
+                        _logger.LogInformation($"Seeded driver: {driverEmail}");
                     }
-                    else
+                }
+                // Add the previously seeded driver if not already in the list
+                if (await _db.Users.AnyAsync(u => u.Email == "driver@smartfleet.com"))
+                {
+                    var d = await _db.Users.FirstAsync(u => u.Email == "driver@smartfleet.com");
+                    seededDriverIds.Add(d.Id);
+                }
+
+                // Seed multiple orders if not already present
+                var existingOrders = await _db.Orders.CountAsync();
+                int ordersToSeed = 20 - existingOrders;
+                var seededOrderIds = new List<int>();
+                var vehicle = await _db.Vehicles.FirstOrDefaultAsync();
+                for (int i = 0; i < ordersToSeed; i++)
+                {
+                    var order = new Order
                     {
-                        _logger.LogError("Failed to seed driver user: {Errors}",
-                            string.Join(", ", driverResult.Errors.Select(e => e.Description)));
-                    }
+                        UserId = "1",
+                        VehicleType = VehicleType.Car,
+                        PassengerCount = 2 + (i % 4),
+                        StartLocation = $"Location {i + 1}",
+                        Destination = $"Destination {i + 1}",
+                        TripStartDate = DateTime.Now.AddDays(i),
+                        TripEndDate = DateTime.Now.AddDays(i).AddHours(2),
+                        Reason = $"Reason {i + 1}",
+                        Status = OrderState.Pending,
+                        CreatedAt = DateTime.Now.AddDays(-i)
+                    };
+                    await _db.Orders.AddAsync(order);
+                    await _db.SaveChangesAsync();
+                    seededOrderIds.Add(order.Id);
+                    _logger.LogInformation($"Seeded order: {order.Id}");
+                }
+
+                // Seed multiple trips if not already present
+                var existingTrips = await _db.Trips.CountAsync();
+                int tripsToSeed = 20 - existingTrips;
+                for (int i = 0; i < tripsToSeed; i++)
+                {
+                    var trip = new Trip
+                    {
+                        VehicleId = vehicle?.Id ?? 1,
+                        OrderId = seededOrderIds.ElementAtOrDefault(i % seededOrderIds.Count),
+                        DriverId = seededDriverIds.ElementAtOrDefault(i % seededDriverIds.Count) ?? "2",
+                        Distance = 0,
+                        Status = TripState.Scheduled,
+                        CreatedAt = DateTime.Now.AddDays(-i),
+                        CreatedBy = "1"
+                    };
+                    await _db.Trips.AddAsync(trip);
+                    await _db.SaveChangesAsync();
+                    _logger.LogInformation($"Seeded trip: {trip.Id}");
                 }
 
                 // Seed Commissioner (this is the main purpose of this update)

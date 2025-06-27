@@ -7,21 +7,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {
     public class MaintenancesController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly IPaginationService _paginationService;
 
-        public MaintenancesController(SmartFleetContext context)
+        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
 
-
-        public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter)
+        public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter, int pageNumber = 1)
         {
+            int pageSize = 10;
             var query = _context.Maintenances
                 .Include(m => m.Vehicle)
                 .Include(m => m.ReportedUser)
@@ -42,10 +46,15 @@ namespace SmartFleet.Controllers
                 query = query.Where(m => m.Priority == priorityFilter.Value);
             }
 
-            return View(await query.ToListAsync());
+            int totalCount = await query.CountAsync();
+            var pagedMaintenances = await _paginationService.GetPaginatedAsync(query.OrderByDescending(m => m.CreatedAt), pageNumber, pageSize);
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchPlate = searchPlate;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.PriorityFilter = priorityFilter;
+            return View(pagedMaintenances);
         }
-
-
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -74,7 +83,6 @@ namespace SmartFleet.Controllers
 
             return View(vehicles);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> CreateMaintenance(int? vehicleId = null)
@@ -112,8 +120,6 @@ namespace SmartFleet.Controllers
 
             return View("Create", maintenance);
         }
-
-
 
         [HttpPost]
         public async Task<IActionResult> UpdateVehicleStatus(int vehicleId, VehicleState newStatus)
@@ -182,9 +188,6 @@ namespace SmartFleet.Controllers
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
             return View(maintenance);
         }
-
-
-
 
         public async Task<IActionResult> Edit(int? id)
         {
@@ -262,7 +265,7 @@ namespace SmartFleet.Controllers
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
         }
-       
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -301,7 +304,6 @@ namespace SmartFleet.Controllers
 
             return RedirectToAction(nameof(Index), new { searchPlate = licensePlate });
         }
-
 
         private bool MaintenanceExists(int id)
         {

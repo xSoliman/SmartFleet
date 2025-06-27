@@ -23,19 +23,21 @@ namespace SmartFleet.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
+        private readonly IPaginationService _paginationService;
 
         public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager, 
-            INotificationService notificationService, IUserRoleService userRoleService)
+            INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
         {
             _context = context;
             _userManager = userManager;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
+            _paginationService = paginationService;
         }
 
         // GET: Orders
         public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchDestination, 
-            VehicleType? typeFilter, OrderState? stateFilter, DateTime? startDate, DateTime? endDate)
+            VehicleType? typeFilter, OrderState? stateFilter, DateTime? startDate, DateTime? endDate, int pageNumber = 1)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -152,9 +154,13 @@ namespace SmartFleet.Controllers
                                .ThenBy(o => o.CreatedAt);
             }
 
+            int pageSize = 10;
+            int totalCount = await orders.CountAsync();
+            var pagedOrders = await _paginationService.GetPaginatedAsync(orders, pageNumber, pageSize);
+
             var viewModel = new OrderViewModel
             {
-                Orders = await orders.ToListAsync(),
+                Orders = pagedOrders,
                 SearchUserId = searchUserId,
                 SearchStartLocation = searchStartLocation,
                 SearchDestination = searchDestination,
@@ -179,6 +185,16 @@ namespace SmartFleet.Controllers
                     viewModel.ResourceAvailability[order.Id] = await GetOrderResourceAvailabilityAsync(order);
                 }
             }
+
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchUserId = searchUserId;
+            ViewBag.SearchStartLocation = searchStartLocation;
+            ViewBag.SearchDestination = searchDestination;
+            ViewBag.TypeFilter = typeFilter;
+            ViewBag.StateFilter = stateFilter;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
 
             return View(viewModel);
         }
