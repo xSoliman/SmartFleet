@@ -155,7 +155,7 @@ body {
     font-size: 2.2rem;
     margin: 0;
     position: relative;
-    left: 25px;
+    left: 40px;
 }
 
 .navbar-light .navbar-brand img {
@@ -181,7 +181,7 @@ body {
     min-width: 200px;
     justify-content: flex-end;
     position: relative;
-    right: 25px;
+    right: 40px;
 }
 
 /* Override the conflicting .d-flex style from home.css */

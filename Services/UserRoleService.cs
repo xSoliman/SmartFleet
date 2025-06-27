@@ -136,8 +136,8 @@ namespace SmartFleet.Services
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            // Only Commissioner and SysSupport can approve/reject orders
-            return roles.Any(r => r == "commissioner" || r == "SysSupport");
+            // Only Commissioner can approve/reject orders (SysSupport cannot)
+            return roles.Any(r => r == "commissioner");
         }
 
         // New methods for trip permissions

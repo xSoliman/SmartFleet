@@ -40,9 +40,41 @@
     display: inline-block;
 }
 
-.btn-edit, .btn-details, .btn-delete {
-    background-color: rgb(235, 235, 235);
-    color: black;
+.btn-edit, .btn-details, .btn-delete, .btn-approve, .btn-cancel, .btn-reject {
+    font-size: 0.85em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-right: 4px;
+    color: #fff !important;
+    border: none;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-edit { background-color: #007bff; }
+.btn-edit:hover { background-color: #0056b3; }
+
+.btn-details { background-color: #6c757d; }
+.btn-details:hover { background-color: #495057; }
+
+.btn-delete { background-color: #e63946; }
+.btn-delete:hover { background-color: #b71c1c; }
+
+.btn-approve { background-color: #16b416; }
+.btn-approve:hover { background-color: #128a12; }
+
+.btn-cancel, .btn-reject { background-color: #ff9800; }
+.btn-cancel:hover, .btn-reject:hover { background-color: #b26a00; }
+
+.btn-details.disabled, .btn-delete.disabled, .btn-edit.disabled, .btn-approve.disabled, .btn-cancel.disabled, .btn-reject.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.table-order th:last-child,
+.table-order td:last-child {
+    min-width: 370px;
+    width: 370px;
 }
 
 .deleted_icon {
@@ -372,4 +404,46 @@
     background-color: #6c757d !important;
     color: #fff !important;
     border-color: #6c757d !important;
+}
+
+.btn-details-vehicle-style {
+    background-color: rgb(235, 235, 235) !important;
+    color: #111 !important;
+    border: 1px solid #e0e0e0 !important;
+    padding: 2px 8px !important;
+    font-size: 1em !important;
+}
+
+.btn-approve, .btn-reject {
+    padding: 1px 5px !important;
+    font-size: 0.8em !important;
+}
+
+.btn-create-trip {
+    background-color: #16b416 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 4px 14px !important;
+    border-radius: 4px !important;
+    font-size: 0.95em !important;
+    font-weight: 600 !important;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 4px rgba(22,180,22,0.07);
+}
+.btn-create-trip:hover {
+    background-color: #13a013 !important;
+    color: #fff !important;
+}
+
+.btn-trip-created {
+    background-color: #6c757d !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 2px 10px !important;
+    border-radius: 4px !important;
+    font-size: 0.85em !important;
+    font-weight: 600 !important;
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }  

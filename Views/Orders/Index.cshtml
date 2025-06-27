@@ -166,20 +166,15 @@
                     <td>
                         @if (Model.IsCommissioner)
                         {
-                            <!-- Commissioner can only approve/reject pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
                             {
                                 <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-success text-white" 
-                                            style="padding: 0.1rem 0.4rem; margin-right: 5px;"
-                                            onclick="return confirm('Are you sure you want to approve this order?')">
+                                    <button type="submit" class="btn btn-approve" onclick="return confirm('Are you sure you want to approve this order?')">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                 </form>
                                 <form asp-action="Reject" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger text-white" 
-                                            style="padding: 0.1rem 0.4rem; margin-right: 5px;"
-                                            onclick="return confirm('Are you sure you want to reject this order?')">
+                                    <button type="submit" class="btn btn-reject" onclick="return confirm('Are you sure you want to reject this order?')">
                                         <i class="fas fa-times"></i> Reject
                                     </button>
                                 </form>
@@ -187,20 +182,17 @@
                         }
                         else if (Model.IsFleetManager)
                         {
-                            <!-- FleetManager can only create trips for approved orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Approved)
                             {
                                 @if (item.Trip != null)
                                 {
-                                    <!-- Trip already exists -->
-                                    <span class="btn btn-sm btn-secondary disabled" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                                    <span class="btn btn-trip-created disabled">
                                         <i class="fas fa-check-circle"></i> Trip Created
                                     </span>
                                 }
                                 else
                                 {
-                                    <!-- No trip exists, can create one -->
-                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-sm btn-success text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-create-trip">
                                         <i class="fas fa-route"></i> Create Trip
                                     </a>
                                 }
@@ -208,20 +200,16 @@
                         }
                         else if (Model.IsSysSupport)
                         {
-                            <!-- SysSupport can edit, delete, and cancel only their own orders -->
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>
-                            <!-- SysSupport can only cancel their own pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending && item.UserId == Model.CurrentUserId)
                             {
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-warning text-white" 
-                                            style="padding: 0.15rem 0.4rem; margin-right: 5px;"
-                                            onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    <button type="submit" class="btn btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
@@ -229,24 +217,19 @@
                         }
                         else
                         {
-                            <!-- NormalUser, Driver, MaintenanceManager can only edit/cancel pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
                             {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-warning text-white" 
-                                            style="padding: 0.15rem 0.4rem; margin-right: 5px;"
-                                            onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    <button type="submit" class="btn btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
                             }
                         }
-                        
-                        <!-- Details - Available for all users -->
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-details" style="padding: 0.15rem 0.4rem;">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
                             <i class="fas fa-info-circle"></i> Details
                         </a>
                     </td>

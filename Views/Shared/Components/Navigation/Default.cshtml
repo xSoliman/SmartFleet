@@ -1,7 +1,10 @@
 @model SmartFleet.ViewComponents.NavigationViewModel
 
 <div class="navbar-nav mx-auto py-0">
-    <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Home" ? "active" : "")" style="font-size: 1.1rem;">Home</a>
+    @if (Model.IsAuthenticated)
+    {
+        <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Home" ? "active" : "")" style="font-size: 1.1rem;">Home</a>
+    }
     
     @if (Model.HasAccessToOrders)
     {

@@ -137,11 +137,19 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
             }
 
-            // Sort by priority: Pending orders first, then approved orders without trips, then others
-            // Within each group, sort by CreatedAt ascending (oldest first)
-            orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 : 
-                                        o.Status == OrderState.Approved && o.Trip == null ? 1 : 2)
-                           .ThenBy(o => o.CreatedAt);
+            // Sort by priority: For FleetManager, show 'Create Trip' (approved, no trip) first, then pending, then others. For Commissioner/others, pending first, then 'Create Trip', then others
+            if (isFleetManager)
+            {
+                orders = orders.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 :
+                                            o.Status == OrderState.Pending ? 1 : 2)
+                               .ThenBy(o => o.CreatedAt);
+            }
+            else
+            {
+                orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 :
+                                            o.Status == OrderState.Approved && o.Trip == null ? 1 : 2)
+                               .ThenBy(o => o.CreatedAt);
+            }
 
             var viewModel = new OrderViewModel
             {
