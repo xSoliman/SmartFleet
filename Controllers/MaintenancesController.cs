@@ -429,7 +429,7 @@ namespace SmartFleet.Controllers
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
         }
-
+       
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
