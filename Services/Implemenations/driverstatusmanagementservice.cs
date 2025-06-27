@@ -6,17 +6,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using SmartFleet.Hubs;
+using SmartFleet.Services.Interfaces;
 
-namespace SmartFleet.Services
+namespace SmartFleet.Services.Implemenations
 {
-    public interface IDriverStatusManagementService
-    {
-        Task UpdateDriverStatusesAsync();
-        Task UpdateSingleDriverStatusAsync(string driverId);
-        Task UpdateDriverStatusOnTripAssignmentAsync(string driverId);
-        Task UpdateDriverStatusOnTripCompletionAsync(string driverId);
-    }
-
+   
     public class DriverStatusManagementService : IDriverStatusManagementService
     {
         private readonly SmartFleetContext _context;

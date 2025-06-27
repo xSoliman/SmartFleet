@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {

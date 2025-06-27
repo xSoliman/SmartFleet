@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {
@@ -145,20 +146,29 @@ namespace SmartFleet.Controllers
                 // Handle profile image if uploaded.
                 if (model.ProfileImageFile != null && model.ProfileImageFile.Length > 0)
                 {
-                    var uploadsFolder = Path.Combine(_env.WebRootPath, "assets/images", "profiles");
-                    if (!Directory.Exists(uploadsFolder))
+                    try
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var uploadsFolder = Path.Combine(_env.WebRootPath, "assets/images", "profiles");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ProfileImageFile.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await model.ProfileImageFile.CopyToAsync(fileStream);
+                        }
+                        driver.ProfileImageUrl = $"/assets/images/profiles/{uniqueFileName}";
                     }
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ProfileImageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    catch (Exception ex)
                     {
-                        await model.ProfileImageFile.CopyToAsync(fileStream);
+                        ModelState.AddModelError("ImageUpload", "An error occurred while uploading the image. Please try again or contact support.");
+                        Console.WriteLine($"Driver image upload error: {ex}");
+                        return View(model);
                     }
-                    driver.ProfileImageUrl = $"/assets/images/profiles/{uniqueFileName}";
                 }
 
                 // Create the user with the password.
@@ -241,21 +251,30 @@ namespace SmartFleet.Controllers
                 // Handle profile image if a new file is uploaded.
                 if (model.ProfileImageFile != null && model.ProfileImageFile.Length > 0)
                 {
-                    var uploadsFolder = Path.Combine(_env.WebRootPath, "assets/images", "profiles");
-                    if (!Directory.Exists(uploadsFolder))
+                    try
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        var uploadsFolder = Path.Combine(_env.WebRootPath, "assets/images", "profiles");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ProfileImageFile.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await model.ProfileImageFile.CopyToAsync(fileStream);
+                        }
+                        // Optionally, delete the old image file if needed.
+                        driver.ProfileImageUrl = $"/assets/images/profiles/{uniqueFileName}";
                     }
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ProfileImageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    catch (Exception ex)
                     {
-                        await model.ProfileImageFile.CopyToAsync(fileStream);
+                        ModelState.AddModelError("ImageUpload", "An error occurred while uploading the image. Please try again or contact support.");
+                        Console.WriteLine($"Driver image upload error: {ex}");
+                        return View(model);
                     }
-                    // Optionally, delete the old image file if needed.
-                    driver.ProfileImageUrl = $"/assets/images/profiles/{uniqueFileName}";
                 }
 
                 // Handle password change if a new password is provided.

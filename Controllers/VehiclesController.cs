@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {
@@ -110,18 +111,27 @@ namespace SmartFleet.Controllers
             {
                 if (imageFile != null && imageFile.Length > 0)
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
-                    Directory.CreateDirectory(uploadsFolder);
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    try
                     {
-                        await imageFile.CopyToAsync(fileStream);
-                    }
+                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
+                        Directory.CreateDirectory(uploadsFolder);
 
-                    vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
+                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(fileStream);
+                        }
+
+                        vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("ImageUpload", "An error occurred while uploading the vehicle image. Please try again or contact support.");
+                        Console.WriteLine($"Vehicle image upload error: {ex}");
+                        return View(vehicle);
+                    }
                 }
                 else
                 {
@@ -204,18 +214,27 @@ namespace SmartFleet.Controllers
 
                     if (imageFile != null && imageFile.Length > 0)
                     {
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
-                        Directory.CreateDirectory(uploadsFolder);
-
-                        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        try
                         {
-                            await imageFile.CopyToAsync(fileStream);
-                        }
+                            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
+                            Directory.CreateDirectory(uploadsFolder);
 
-                        vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
+                            var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await imageFile.CopyToAsync(fileStream);
+                            }
+
+                            vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
+                        }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError("ImageUpload", "An error occurred while uploading the vehicle image. Please try again or contact support.");
+                            Console.WriteLine($"Vehicle image upload error: {ex}");
+                            return View(vehicle);
+                        }
                     }
 
                     vehicle.UpdatedAt = DateTime.Now;

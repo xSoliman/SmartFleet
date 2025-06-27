@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SmartFleet.Hubs;
 using SmartFleet.Services;
+using SmartFleet.Services.Implemenations;
+using SmartFleet.Services.Interfaces;
+using SmartFleet.Services.BackgroundServices;
 
 namespace SmartFleet
 {

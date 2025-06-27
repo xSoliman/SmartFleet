@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using SmartFleet.Models;
 using SmartFleet.Services;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.ViewComponents
 {

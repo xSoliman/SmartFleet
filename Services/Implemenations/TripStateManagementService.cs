@@ -5,14 +5,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using SmartFleet.Services.Interfaces;
 
-namespace SmartFleet.Services
+namespace SmartFleet.Services.Implemenations
 {
-    public interface ITripStateManagementService
-    {
-        Task UpdateTripStatesAsync();
-        Task UpdateSingleTripStateAsync(int tripId);
-    }
+   
 
     public class TripStateManagementService : ITripStateManagementService
     {

@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.SignalR;
 using SmartFleet.Hubs;
 using Newtonsoft.Json;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {

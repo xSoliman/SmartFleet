@@ -5,15 +5,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SmartFleet.Services
+namespace SmartFleet.Services.Implemenations
 {
-    public interface IVehicleStateManagementService
-    {
-        Task UpdateVehicleStatesAsync();
-        Task UpdateSingleVehicleStateAsync(int vehicleId);
-        Task UpdateVehicleStateOnTripAssignmentAsync(int vehicleId);
-        Task UpdateVehicleStateOnTripCompletionAsync(int vehicleId);
-    }
+  
 
     public class VehicleStateManagementService : IVehicleStateManagementService
     {

@@ -238,16 +238,25 @@ namespace SmartFleet.Controllers
             // Handle image update (if uploaded)
             if (ImageFile != null)
             {
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/images");
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                try
                 {
-                    await ImageFile.CopyToAsync(fileStream);
-                }
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/assets/images");
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + ImageFile.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                user.ProfileImageUrl = "/assets/images/" + uniqueFileName;
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(fileStream);
+                    }
+
+                    user.ProfileImageUrl = "/assets/images/" + uniqueFileName;
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("ImageUpload", "An error occurred while uploading the image. Please try again or contact support.");
+                    Console.WriteLine($"Image upload error: {ex}");
+                    return View(model);
+                }
             }
             else if (RemoveImage) // If user wants to remove image
             {

@@ -1,14 +1,11 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using SmartFleet.Services.Interfaces;
 
-namespace SmartFleet.Services
+namespace SmartFleet.Services.Implemenations
 {
-    public interface IDistanceCalculationService
-    {
-        decimal CalculateDistance(decimal lat1, decimal lon1, decimal lat2, decimal lon2);
-        decimal CalculateTripDistance(int tripId, SmartFleet.Data.SmartFleetContext context);
-    }
+   
 
     public class DistanceCalculationService : IDistanceCalculationService
     {
@@ -48,7 +45,7 @@ namespace SmartFleet.Services
         /// <param name="tripId">The trip ID</param>
         /// <param name="context">Database context</param>
         /// <returns>Total distance in kilometers</returns>
-        public decimal CalculateTripDistance(int tripId, SmartFleet.Data.SmartFleetContext context)
+        public decimal CalculateTripDistance(int tripId, Data.SmartFleetContext context)
         {
             var trip = context.Trips
                 .Include(t => t.Vehicle)

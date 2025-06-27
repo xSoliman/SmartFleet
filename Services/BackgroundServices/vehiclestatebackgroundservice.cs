@@ -4,12 +4,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services.Implemenations;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SmartFleet.Services
+namespace SmartFleet.Services.BackgroundServices
 {
     public class VehicleStateBackgroundService : BackgroundService
     {
