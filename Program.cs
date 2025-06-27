@@ -35,8 +35,6 @@ namespace SmartFleet
             options.LoginPath = "/Account/Login";
             options.AccessDeniedPath = "/Account/AccessDenied";
                                      });
-            builder.Services.AddSignalR();
-
 
             builder.Services.AddScoped<INotificationService, NotificationService>();
             // Database initializer 
@@ -51,10 +49,26 @@ namespace SmartFleet
             // Trip State Management Service
             builder.Services.AddScoped<ITripStateManagementService, TripStateManagementService>();
 
+            // Driver Status Management Service
+            builder.Services.AddScoped<IDriverStatusManagementService, DriverStatusManagementService>();
+
+            // Vehicle State Management Service
+            builder.Services.AddScoped<IVehicleStateManagementService, VehicleStateManagementService>();
+
             // Background service for automatic trip state updates
             builder.Services.AddHostedService<TripStateBackgroundService>();
 
+            // Background service for automatic driver status updates
+            builder.Services.AddHostedService<DriverStatusBackgroundService>();
+
+            // Background service for automatic vehicle state updates
+            builder.Services.AddHostedService<VehicleStateBackgroundService>();
+
+            // Add SignalR services
+            builder.Services.AddSignalR();
+
             var app = builder.Build();
+
             // initialize the database
             using (var scope = app.Services.CreateScope())
             {
@@ -70,6 +84,7 @@ namespace SmartFleet
             app.UseStaticFiles();
             app.UseRouting();
             app.MapHub<NotificationHub>("/hubs/Notify");
+            app.MapHub<TrackingHub>("/hubs/Tracking");
             app.UseAuthentication(); 
             app.UseAuthorization();
 

@@ -145,10 +145,10 @@ namespace SmartFleet.Controllers
             };
         }
 
-        public async Task<IActionResult> LogOut()
+        public async Task<IActionResult> Logout()
         {
             await signInManager.SignOutAsync();
-            return View("Login");
+            return RedirectToAction("Login");
         }
 
         public async Task<IActionResult> MyAccount()
@@ -299,6 +299,11 @@ namespace SmartFleet.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
 
     }
 }

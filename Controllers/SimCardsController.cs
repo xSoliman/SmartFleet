@@ -7,23 +7,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
     public class SimCardsController : Controller
     {
         private readonly SmartFleetContext _context;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public SimCardsController(SmartFleetContext context)
+        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         // GET: SimCards
         //search & filter
         public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter)
         {
-            var simCards = _context.SimCards.Include(s => s.Vehicle).AsQueryable();
+            var simCards = _context.SimCards.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchSimNumber))
             {
@@ -52,7 +57,6 @@ namespace SmartFleet.Controllers
             }
 
             var simCard = await _context.SimCards
-                .Include(s => s.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (simCard == null)
             {
@@ -65,7 +69,6 @@ namespace SmartFleet.Controllers
         // GET: SimCards/Create
         public IActionResult Create()
         {
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id");
             return View();
         }
 
@@ -74,7 +77,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,VehicleId,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Create([Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
         {
             if (ModelState.IsValid)
             {
@@ -82,7 +85,6 @@ namespace SmartFleet.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -99,7 +101,6 @@ namespace SmartFleet.Controllers
             {
                 return NotFound();
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -108,7 +109,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
         {
             if (id != simCard.Id)
             {
@@ -119,8 +120,25 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the original SimCard from DB
+                    var originalSimCard = await _context.SimCards.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+                    bool statusChanged = originalSimCard != null && originalSimCard.Status != simCard.Status;
+
                     _context.Update(simCard);
                     await _context.SaveChangesAsync();
+
+                    // --- Notification Logic ---
+                    if (statusChanged)
+                    {
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        string title = "SimCard Status Changed";
+                        string message = $"SimCard {simCard.SimNumber} status changed to {simCard.Status}.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(user.Id, title, message, RelatedTable.SimCard, simCard.Id);
+                        }
+                    }
+                    // --- End Notification Logic ---
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -135,7 +153,6 @@ namespace SmartFleet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", simCard.VehicleId);
             return View(simCard);
         }
 
@@ -148,7 +165,6 @@ namespace SmartFleet.Controllers
             }
 
             var simCard = await _context.SimCards
-                .Include(s => s.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (simCard == null)
             {

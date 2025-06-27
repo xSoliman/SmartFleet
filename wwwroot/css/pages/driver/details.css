@@ -1,90 +1,169 @@
-.details-heading {
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
 .details-layout-container {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: #f5f7fa;
+    padding: 20px;
 }
 
 .details-form-wrapper {
-    width: 50%;
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    background: #fff;
+    padding: 32px 28px 24px 28px;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    margin-top: 15px;
+    margin-bottom: 40px;
     position: relative;
-    margin-top: 30px;
 }
 
-.details-display-group {
-    margin-bottom: 15px;
-    margin-top: 30px;
-}
-
-.details-display-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #333;
-}
-
-.details-display-value {
-    padding: 8px;
-    background: #f9f9f9;
-    color: #555;
+.details-heading {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 28px;
+    text-align: center;
+    color: #222;
 }
 
 .details-navigation {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    margin-bottom: 20px;
 }
 
 .details-back-link {
-    background: #00796b;
-    color: white;
+    color: #495057;
     text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
     padding: 8px 12px;
     border-radius: 4px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    background-color: #e9ecef;
+}
+.details-back-link:hover {
+    color: #212529;
+    text-decoration: none;
+    background-color: #dee2e6;
 }
 
-    .details-back-link:hover {
-        text-decoration: none;
-        background: #004d40;
-    }
+/* Profile Image Section at Top */
+.profile-image-section {
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
 
-    .details-back-link i {
-        margin-right: 5px;
-    }
+.profile-image {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.profile-image-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 3px solid #e9ecef;
+    margin: 0 auto;
+}
+
+.details-display-group {
+    margin-bottom: 22px;
+}
+
+.details-display-label {
+    font-weight: 600;
+    color: #444;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.details-display-value {
+    font-size: 1.15rem;
+    color: #222;
+    background: #f5f7fa;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 2px;
+    word-break: break-word;
+}
+
+/* Status Badge Colors matching index view */
+.badge-status {
+    display: inline-block;
+    padding: 0.25em 0.7em;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+}
+
+.badge-available { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border: 1px solid #b3e6b3;
+}
+
+.badge-notavailable { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border: 1px solid #ffb3b3;
+}
+
+.badge-assignedonscheduledtrip { 
+    background: #fff3e6; 
+    color: #ff8c00; 
+    border: 1px solid #ffd699;
+    font-size: 0.90em;
+    padding: 0.2em 0.5em;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-ontrip { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border: 1px solid #ffe066;
+}
 
 .details-button-group {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 32px;
+    padding-bottom: 16px;
 }
 
 .details-primary-button {
-    background: #00796b;
-    color: white;
+    background: #20B2AA;
+    color: #fff;
     border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
+    padding: 11px 28px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    display: inline-block;
 }
-
-    .details-primary-button:hover {
-        background: #004d40;
-    }
-
-/* Profile Image Styling */
-.profile-image {
-    max-width: 100px;
-    max-height: 100px;
-    border-radius: 50%;
-    margin-top: 10px;
+.details-primary-button:hover {
+    background: #178d87;
+    text-decoration: none;
+    color: #fff;
 }

@@ -4,6 +4,7 @@ using SmartFleet.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace SmartFleet.Services
 {
@@ -17,11 +18,17 @@ namespace SmartFleet.Services
     {
         private readonly SmartFleetContext _context;
         private readonly ILogger<TripStateManagementService> _logger;
+        private readonly IVehicleStateManagementService _vehicleStateService;
+        private readonly INotificationService _notificationService;
+        private readonly HashSet<string> _notifiedDrivers = new(); // To avoid duplicate notifications in one run
 
-        public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger)
+        public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger, 
+            IVehicleStateManagementService vehicleStateService, INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
+            _vehicleStateService = vehicleStateService;
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -46,6 +53,57 @@ namespace SmartFleet.Services
                     {
                         trip.Status = newStatus;
                         _logger.LogInformation($"Trip {trip.Id} status changed from {originalStatus} to {newStatus}");
+                        
+                        // Update vehicle state when trip status changes
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                        // If trip just completed or cancelled, reset vehicle geofence to default
+                        if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
+                        {
+                            var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
+                            if (vehicle != null)
+                            {
+                                var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                                vehicle.GeofenceId = defaultGeofence?.Id;
+                                _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
+                            }
+                        }
+                    }
+
+                    // Notify driver 1 day before trip
+                    if (trip.Status == TripState.Scheduled && trip.DriverId != null)
+                    {
+                        var timeToStart = trip.Order.TripStartDate - now;
+                        if (timeToStart.TotalMinutes <= 1440 && timeToStart.TotalMinutes > 1410) // 1 day window (30 min tolerance)
+                        {
+                            var notifyKey = $"{trip.Id}_1d";
+                            if (!_notifiedDrivers.Contains(notifyKey))
+                            {
+                                await _notificationService.CreateNotificationAsync(
+                                    trip.DriverId,
+                                    "Trip Reminder (1 Day)",
+                                    $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} starts in 1 day at {trip.Order.TripStartDate:yyyy-MM-dd HH:mm}.",
+                                    RelatedTable.Trip,
+                                    trip.Id
+                                );
+                                _notifiedDrivers.Add(notifyKey);
+                            }
+                        }
+                        // Notify 30 minutes before
+                        if (timeToStart.TotalMinutes <= 30 && timeToStart.TotalMinutes > 0)
+                        {
+                            var notifyKey = $"{trip.Id}_30m";
+                            if (!_notifiedDrivers.Contains(notifyKey))
+                            {
+                                await _notificationService.CreateNotificationAsync(
+                                    trip.DriverId,
+                                    "Trip Reminder (30 Minutes)",
+                                    $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} starts in 30 minutes at {trip.Order.TripStartDate:yyyy-MM-dd HH:mm}.",
+                                    RelatedTable.Trip,
+                                    trip.Id
+                                );
+                                _notifiedDrivers.Add(notifyKey);
+                            }
+                        }
                     }
                 }
 
@@ -89,6 +147,21 @@ namespace SmartFleet.Services
                     trip.Status = newStatus;
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Trip {tripId} status changed from {originalStatus} to {newStatus}");
+                    
+                    // Update vehicle state when trip status changes
+                    await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    // If trip just completed or cancelled, reset vehicle geofence to default
+                    if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
+                    {
+                        var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
+                        if (vehicle != null)
+                        {
+                            var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                            vehicle.GeofenceId = defaultGeofence?.Id;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
+                        }
+                    }
                 }
             }
             catch (Exception ex)

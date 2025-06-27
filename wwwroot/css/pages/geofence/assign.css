@@ -1,0 +1,38 @@
+.geofence-search-btn {
+    background: #f7f7f7;
+    color: #222;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: 500;
+    padding: 6px 18px;
+    margin-right: 4px;
+    transition: background 0.15s, border-color 0.15s;
+    box-shadow: none;
+}
+.geofence-search-btn:last-child { margin-right: 0; }
+.geofence-search-btn:hover, .geofence-search-btn:focus {
+    background: #ededed;
+    border-color: #bdbdbd;
+    color: #111;
+    text-decoration: none;
+}
+.geofence-back-link {
+    color: #495057;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+
+}
+.geofence-back-link:hover {
+    color: #212529;
+    text-decoration: none;
+    background-color: #dee2e6;
+} 

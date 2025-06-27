@@ -1,0 +1,119 @@
+@model IEnumerable<SmartFleet.Models.Vehicle>
+@{
+    var geofence = ViewBag.Geofence as SmartFleet.Models.Geofence;
+    ViewData["Title"] = $"Assign Vehicles to {geofence?.Name}";
+    var isPolygon = geofence?.Type == SmartFleet.Models.GeofenceType.Polygon;
+    var isCircle = geofence?.Type == SmartFleet.Models.GeofenceType.Circle;
+}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link rel="stylesheet" href="/css/pages/vehicle/list.css" />
+<link rel="stylesheet" href="/css/pages/geofence/assign.css" />
+<div class="container my-4">
+    <div class="geofence-assign-card">
+        <h1 class="mb-3 text-center" style="font-family: 'Montserrat', 'Lato', Arial, sans-serif; font-weight: 600; font-size: 2rem; color: #222;">Assign Vehicles to @geofence?.Name</h1>
+        <form method="get" class="mb-4 d-flex justify-content-center align-items-center gap-2">
+            <input type="hidden" name="id" value="@geofence?.Id" />
+            <input type="text" name="searchPlate" class="form-control" style="max-width: 220px;" placeholder="Search by License Plate" value="@Context.Request.Query["searchPlate"]" />
+            <button type="submit" class="geofence-search-btn">Search</button>
+            <a asp-action="Assign" asp-route-id="@geofence?.Id" class="geofence-search-btn">Clear</a>
+        </form>
+        <div class="mb-3 text-center">
+            <span class="badge badge-status @(isCircle ? "badge-available" : "badge-on_trip")" style="font-size:1em;">@geofence?.Type</span>
+            @if (isCircle)
+            {
+                <span class="ms-2">Center: <b>@geofence.CenterLat, @geofence.CenterLng</b> | Radius: <b>@geofence.RadiusMeters m</b></span>
+            }
+            else if (isPolygon && !string.IsNullOrEmpty(geofence.PolygonJson))
+            {
+                var points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(geofence.PolygonJson);
+                <span class="ms-2">Polygon with <b>@points.Count</b> points</span>
+            }
+        </div>
+        <div id="geofenceMap" style="height: 250px; width: 100%; margin-bottom: 20px; border-radius: 12px; overflow: hidden;"></div>
+        <div class="table-responsive">
+            <table class="table geofence-assign-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>License Plate</th>
+                        <th>Current Geofence</th>
+                        <th>Assign</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var vehicle in Model)
+                {
+                    var assigned = vehicle.Geofence?.Id == geofence?.Id;
+                    <tr class="@(assigned ? "table-success" : "")">
+                        <td>@vehicle.Model</td>
+                        <td>@vehicle.LicensePlate</td>
+                        <td>
+                            @if (vehicle.Geofence != null)
+                            {
+                                <span class="badge badge-status badge-on_trip" style="font-size:1em;">@vehicle.Geofence.Name</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">None</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!assigned)
+                            {
+                                <form asp-action="AssignVehicle" method="post" style="display:inline;">
+                                    <input type="hidden" name="geofenceId" value="@geofence?.Id" />
+                                    <input type="hidden" name="vehicleId" value="@vehicle.Id" />
+                                    <button type="submit" class="geofence-assign-btn"><i class="fas fa-link me-1"></i> Assign</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="geofence-assign-badge"><i class="fas fa-check-circle me-1"></i> Assigned</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <a asp-action="Index" class="geofence-back-link"><i class="fas fa-arrow-left"></i> Back to Geofences</a>
+        @if (TempData["AssignmentSuccess"] != null)
+        {
+            <div class="alert alert-success mt-3">@TempData["AssignmentSuccess"]</div>
+        }
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var map = L.map('geofenceMap').setView([@geofence.CenterLat, @geofence.CenterLng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+        @if (isCircle)
+        {
+            <text>
+            L.circle([
+                @geofence.CenterLat, @geofence.CenterLng
+            ], {
+                radius: @geofence.RadiusMeters,
+                color: 'blue',
+                fillColor: '#3f8efc',
+                fillOpacity: 0.2
+            }).addTo(map);
+            </text>
+        }
+        else if (isPolygon && !string.IsNullOrEmpty(geofence.PolygonJson))
+        {
+            <text>
+            var polygon = @Html.Raw(geofence.PolygonJson);
+            L.polygon(polygon, {
+                color: 'green',
+                fillColor: '#4caf50',
+                fillOpacity: 0.2
+            }).addTo(map);
+            map.fitBounds(L.polygon(polygon).getBounds());
+            </text>
+        }
+    });
+</script> 

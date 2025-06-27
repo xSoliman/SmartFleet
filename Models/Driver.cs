@@ -2,9 +2,10 @@
 {
     public enum DriverState
     {
-        active,
-        inactive,
-        on_trip
+        Available,
+        NotAvailable,
+        AssignedOnScheduledTrip,
+        OnTrip
     }
     public class Driver : ApplicationUser
     {

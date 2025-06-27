@@ -258,17 +258,28 @@ nav {
 }
 
 .sf-navbar .notification-bell {
-    color: #000 !important;
     font-size: 1.2rem; /* Decreased from 1.6rem */
+    transition: color 0.2s ease;
+}
+
+.sf-navbar .notification-bell.has-unread {
+    color: #FFD700 !important; /* Changed to brighter golden color */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Simple black shadow for visibility */
+}
+
+.sf-navbar .notification-bell.no-unread {
+    color: #000000 !important;
 }
 
 .sf-navbar .notification-badge {
-    background-color: #dc3545 !important;
-    font-size: 0.6rem; /* Decreased from 0.8rem */
+    font-size: 0.75rem; /* Increased from 0.6rem */
+    min-width: 20px; /* Decreased from 24px */
+    height: 20px; /* Decreased from 24px */
     transform: translate(-50%, -50%) !important;
     top: 0 !important;
     right: -5px !important;
     left: auto !important;
+    border-radius: 50%;
 }
 
 .sf-navbar .btn-lg {
@@ -302,9 +313,16 @@ nav {
 }
 
 .sf-navbar .my-account-btn {
-    padding: 0.25rem 0.7rem !important; /* Increased from 0.2rem 0.6rem */
-    font-size: 1rem !important; /* Increased from 0.9rem */
-    font-weight: 500;
+    background-color: transparent !important; /* No fill */
+    border-color: var(--bs-primary) !important; /* Border color */
+    color: var(--bs-primary) !important; /* Text color */
+    font-weight: 600 !important; /* Make font bolder */
+}
+
+.sf-navbar .my-account-btn:hover {
+    background-color: transparent !important; /* No background on hover */
+    color: var(--bs-primary) !important; /* Keep same text color */
+    border-color: var(--bs-primary) !important; /* Keep same border color */
 }
 
 .sf-navbar .navbar-collapse {
@@ -631,4 +649,17 @@ nav {
     font-size: 12px;
     white-space: nowrap;
     z-index: 1000;
+}
+
+.sf-navbar .btn-secondary {
+    font-weight: 600 !important; /* Slightly less bold */
+    font-size: 1.1rem !important; /* Make font larger */
+    padding-left: 2rem !important; /* Increase width */
+    padding-right: 2rem !important; /* Increase width */
+}
+
+.sf-navbar .btn-secondary:hover {
+    background-color: #001027 !important; /* Very close to original */
+    border-color: #001027 !important;
+    opacity: 0.95 !important; /* Very subtle hover effect */
 }

@@ -245,4 +245,178 @@
 
 .search-icon {
     color: black;
+}
+
+/* Assignment Button - SimCard Index Specific */
+.simcard-index-btn-assign {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-left: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.simcard-index-btn-assign:hover {
+    background: #2980b9;
+    color: white;
+    text-decoration: none;
+}
+
+/* Modal Styles - SimCard Index Specific */
+.simcard-index-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.simcard-index-modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    animation: simcardIndexModalSlideIn 0.3s ease;
+}
+
+@keyframes simcardIndexModalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.simcard-index-modal-header {
+    background: #2c3e50;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.simcard-index-modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.simcard-index-modal-close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.simcard-index-modal-close:hover {
+    opacity: 0.7;
+}
+
+.simcard-index-modal-body {
+    padding: 20px;
+}
+
+.simcard-index-modal-body p {
+    margin-bottom: 20px;
+    color: #2c3e50;
+    line-height: 1.5;
+}
+
+.simcard-index-modal-body .simcard-index-form-group {
+    margin-bottom: 20px;
+}
+
+.simcard-index-modal-body label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.simcard-index-modal-body .simcard-index-form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.simcard-index-modal-body .simcard-index-form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.simcard-index-modal-body .simcard-index-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.simcard-index-modal-body .simcard-index-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.simcard-index-modal-body .simcard-index-btn-success {
+    background: #2ecc71;
+    color: white;
+}
+
+.simcard-index-modal-body .simcard-index-btn-success:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+}
+
+.simcard-index-modal-body .simcard-index-btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.simcard-index-modal-body .simcard-index-btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+/* Responsive adjustments for SimCard index modal */
+@media (max-width: 768px) {
+    .simcard-index-modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .simcard-index-modal-body .simcard-index-form-actions {
+        flex-direction: column;
+    }
+    
+    .simcard-index-modal-body .simcard-index-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }  

@@ -69,7 +69,7 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> MaintenanceVehicles()
         {
             var vehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.under_maintenance)
+                .Where(v => v.Status == VehicleState.need_maintenance || v.Status == VehicleState.under_maintenance)
                 .ToListAsync();
 
             return View(vehicles);

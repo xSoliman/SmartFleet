@@ -19,13 +19,23 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly ITripStateManagementService _tripStateService;
+        private readonly IDriverStatusManagementService _driverStatusService;
+        private readonly IVehicleStateManagementService _vehicleStateService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, UserManager<ApplicationUser> userManager)
+        public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
+            IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
+            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService)
         {
             _context = context;
             _tripStateService = tripStateService;
+            _driverStatusService = driverStatusService;
+            _vehicleStateService = vehicleStateService;
             _userManager = userManager;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         public async Task<IActionResult> Index(
@@ -178,6 +188,7 @@ namespace SmartFleet.Controllers
             return View(trip);
         }
 
+        [Authorize(Roles = "FleetManager")]
         public async Task<IActionResult> Create(int? id, string? userId)
         {
             if (id == null || string.IsNullOrEmpty(userId))
@@ -234,7 +245,7 @@ namespace SmartFleet.Controllers
 
             // Get all available vehicles (not filtering by type to show all options)
             var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available)
+                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
                 .ToListAsync();
 
             // Debug: Log the count of available vehicles
@@ -248,7 +259,7 @@ namespace SmartFleet.Controllers
 
             // Get all active drivers
             var availableDrivers = await _context.Drivers
-                .Where(d => d.DriverStatus == DriverState.active)
+                .Where(d => d.DriverStatus == DriverState.Available)
                 .ToListAsync();
 
             // Debug: Log the count of available drivers
@@ -286,6 +297,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "FleetManager")]
         public async Task<IActionResult> Create([Bind("VehicleId,OrderId,DriverId,CreatedBy")] Trip trip)
         {
             // Debug: Log the received data
@@ -335,9 +347,9 @@ namespace SmartFleet.Controllers
             {
                 ModelState.AddModelError("VehicleId", "Selected vehicle not found.");
             }
-            else if (vehicle.Status != VehicleState.available)
+            else if (vehicle.Status != VehicleState.available && vehicle.Status != VehicleState.maintained)
             {
-                ModelState.AddModelError("VehicleId", "Selected vehicle is not available.");
+                ModelState.AddModelError("VehicleId", "Selected vehicle is not available for trips.");
             }
 
             // Validate that the driver exists and is active
@@ -346,9 +358,9 @@ namespace SmartFleet.Controllers
             {
                 ModelState.AddModelError("DriverId", "Selected driver not found.");
             }
-            else if (driver.DriverStatus != DriverState.active)
+            else if (driver.DriverStatus != DriverState.Available)
             {
-                ModelState.AddModelError("DriverId", "Selected driver is not active.");
+                ModelState.AddModelError("DriverId", "Selected driver is not available.");
             }
 
             // Clear navigation property errors since we're only binding IDs
@@ -375,6 +387,22 @@ namespace SmartFleet.Controllers
                     trip.Status = TripState.Scheduled; // Automatically set status to Scheduled
                     _context.Add(trip);
                     await _context.SaveChangesAsync();
+                    
+                    // Update driver status to OnTrip
+                    await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                    
+                    // Update vehicle state to on_scheduled_trip
+                    await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    
+                    // After trip is created and saved in POST Create
+                    await _notificationService.CreateNotificationAsync(
+                        trip.DriverId,
+                        "Trip Assigned",
+                        $"You have been assigned to a new trip (ID: {trip.Id}) from {order.StartLocation} to {order.Destination}. Trip starts at {order.TripStartDate:yyyy-MM-dd HH:mm}.",
+                        RelatedTable.Trip,
+                        trip.Id
+                    );
+                    
                     TempData["SuccessMessage"] = "Trip created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -391,11 +419,11 @@ namespace SmartFleet.Controllers
             
             // Reload available vehicles and drivers
             var availableVehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.available)
+                .Where(v => v.Status == VehicleState.available || v.Status == VehicleState.maintained)
                 .ToListAsync();
             
             var availableDrivers = await _context.Drivers
-                .Where(d => d.DriverStatus == DriverState.active)
+                .Where(d => d.DriverStatus == DriverState.Available)
                 .ToListAsync();
             
             // Create detailed driver display format
@@ -440,7 +468,10 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            var trip = await _context.Trips.FindAsync(id);
+            var trip = await _context.Trips
+                .Include(t => t.Vehicle)
+                .ThenInclude(v => v.Geofence)
+                .FirstOrDefaultAsync(t => t.Id == id);
             if (trip == null)
             {
                 return NotFound();
@@ -449,6 +480,7 @@ namespace SmartFleet.Controllers
             ViewData["OrderId"] = new SelectList(_context.Orders, "Id", "Id", trip.OrderId);
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", trip.VehicleId);
             ViewData["CreatedBy"] = new SelectList(_context.Users, "Id", "Id", trip.CreatedBy);
+            ViewBag.VehicleGeofence = trip.Vehicle?.Geofence;
             return View(trip);
         }
 
@@ -468,8 +500,77 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the original trip to check status changes
+                    var originalTrip = await _context.Trips
+                        .Include(t => t.Driver)
+                        .FirstOrDefaultAsync(t => t.Id == id);
+                    
+                    if (originalTrip == null)
+                    {
+                        return NotFound();
+                    }
+
+                    var originalStatus = originalTrip.Status;
+                    
                     _context.Update(trip);
                     await _context.SaveChangesAsync();
+                    
+                    // Update driver status if trip status changed to completed or cancelled
+                    if ((trip.Status == TripState.Completed || trip.Status == TripState.Cancelled) && 
+                        (originalStatus != TripState.Completed && originalStatus != TripState.Cancelled))
+                    {
+                        await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
+
+                        // Send notification to FleetManager
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        var notificationTitle = $"Trip Ended";
+                        var notificationMessage = $"Trip (ID: {trip.Id}) has ended (Status: {trip.Status}). The attached vehicle and driver are now free.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                user.Id,
+                                notificationTitle,
+                                notificationMessage,
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
+                    }
+                    // Update driver status if trip status changed from completed/cancelled to scheduled
+                    else if ((originalStatus == TripState.Completed || originalStatus == TripState.Cancelled) && 
+                             trip.Status == TripState.Scheduled)
+                    {
+                        await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    }
+                    // Update driver status if trip status changed from scheduled to in-progress
+                    else if (originalStatus == TripState.Scheduled && trip.Status == TripState.InProgress)
+                    {
+                        await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+
+                        // Send notification to FleetManager
+                        var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                        var notificationTitle = $"Trip Started";
+                        var notificationMessage = $"Trip (ID: {trip.Id}) has started. Vehicle: {trip.Vehicle?.Model ?? "Unknown"}, Driver: {trip.DriverId}.";
+                        foreach (var user in fleetManagers)
+                        {
+                            await _notificationService.CreateNotificationAsync(
+                                user.Id,
+                                notificationTitle,
+                                notificationMessage,
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
+                    }
+                    // Update driver status if trip status changed from in-progress to scheduled
+                    else if (originalStatus == TripState.InProgress && trip.Status == TripState.Scheduled)
+                    {
+                        await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -518,13 +619,24 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var trip = await _context.Trips.FindAsync(id);
+            var trip = await _context.Trips
+                .Include(t => t.Driver)
+                .FirstOrDefaultAsync(t => t.Id == id);
+                
             if (trip != null)
             {
+                var driverId = trip.DriverId;
+                var vehicleId = trip.VehicleId;
                 _context.Trips.Remove(trip);
+                await _context.SaveChangesAsync();
+                
+                // Update driver status after trip deletion
+                await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(driverId);
+                
+                // Update vehicle state after trip deletion
+                await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(vehicleId);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -616,7 +728,9 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id)
         {
-            var trip = await _context.Trips.FindAsync(id);
+            var trip = await _context.Trips
+                .Include(t => t.Driver)
+                .FirstOrDefaultAsync(t => t.Id == id);
             if (trip == null)
             {
                 return NotFound();
@@ -631,6 +745,36 @@ namespace SmartFleet.Controllers
 
             trip.Status = TripState.Cancelled;
             await _context.SaveChangesAsync();
+            
+            // Update driver status after trip cancellation
+            await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(trip.DriverId);
+            
+            // Update vehicle state after trip cancellation
+            await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(trip.VehicleId);
+
+            // Send notification to FleetManager
+            var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+            var notificationTitle = $"Trip Ended";
+            var notificationMessage = $"Trip (ID: {trip.Id}) has ended (Status: Cancelled). The attached vehicle and driver are now free.";
+            foreach (var user in fleetManagers)
+            {
+                await _notificationService.CreateNotificationAsync(
+                    user.Id,
+                    notificationTitle,
+                    notificationMessage,
+                    RelatedTable.Trip,
+                    trip.Id
+                );
+            }
+
+            // In Cancel action, after trip.Status = TripState.Cancelled and SaveChangesAsync()
+            await _notificationService.CreateNotificationAsync(
+                trip.DriverId,
+                "Trip Cancelled",
+                $"Your assigned trip (ID: {trip.Id}) scheduled from {trip.Order.StartLocation} to {trip.Order.Destination} at {trip.Order.TripStartDate:yyyy-MM-dd HH:mm} has been cancelled.",
+                RelatedTable.Trip,
+                trip.Id
+            );
 
             TempData["SuccessMessage"] = "Trip cancelled successfully.";
             return RedirectToAction(nameof(Index));

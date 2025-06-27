@@ -43,7 +43,6 @@
     <table id="simcard-table" class="table table-bordered align-middle">
         <thead>
             <tr>
-                <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
                 <th>@Html.DisplayNameFor(model => model.SimNumber)</th>
                 <th>@Html.DisplayNameFor(model => model.Carrier)</th>
                 <th>@Html.DisplayNameFor(model => model.ActivatedAt)</th>
@@ -56,7 +55,6 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@Html.DisplayFor(modelItem => item.Vehicle.Id)</td>
                     <td>@Html.DisplayFor(modelItem => item.SimNumber)</td>
                     <td>@Html.DisplayFor(modelItem => item.Carrier)</td>
                     <td>@Html.DisplayFor(modelItem => item.ActivatedAt)</td>
@@ -76,6 +74,12 @@
                         <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
                             <i class="fas fa-trash-alt deleted_icon"></i>
                         </a>
+                        @if (item.Status == SmartFleet.Models.SimCardStatus.Active)
+                        {
+                            <a href="#" onclick="assignToVehicle(@item.Id, '@item.SimNumber')" class="simcard-index-btn-assign">
+                                <i class="fas fa-link"></i> Assign
+                            </a>
+                        }
                     </td>
                 </tr>
             }
@@ -83,3 +87,103 @@
     </table>
 </div>
 <br />
+
+<!-- Vehicle Assignment Modal -->
+<div id="assignmentModal" class="simcard-index-modal" style="display: none;">
+    <div class="simcard-index-modal-content">
+        <div class="simcard-index-modal-header">
+            <h3>Assign SimCard to Vehicle</h3>
+            <span class="simcard-index-modal-close" onclick="closeAssignmentModal()">&times;</span>
+        </div>
+        <div class="simcard-index-modal-body">
+            <p>Select a vehicle to assign SimCard <strong id="selectedSimNumber"></strong> to:</p>
+            <form id="assignmentForm">
+                <input type="hidden" id="simCardId" name="simCardId" />
+                <div class="simcard-index-form-group">
+                    <label for="vehicleSelect">Vehicle:</label>
+                    <select id="vehicleSelect" name="vehicleId" class="simcard-index-form-control" required>
+                        <option value="">-- Select a Vehicle --</option>
+                    </select>
+                </div>
+                <div class="simcard-index-form-actions">
+                    <button type="submit" class="simcard-index-btn simcard-index-btn-success">
+                        <i class="fas fa-check"></i> Assign SimCard
+                    </button>
+                    <button type="button" class="simcard-index-btn simcard-index-btn-secondary" onclick="closeAssignmentModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function assignToVehicle(simCardId, simNumber) {
+    document.getElementById('selectedSimNumber').textContent = simNumber;
+    document.getElementById('simCardId').value = simCardId;
+    document.getElementById('assignmentModal').style.display = 'block';
+    
+    // Load available vehicles
+    loadAvailableVehicles();
+}
+
+function closeAssignmentModal() {
+    document.getElementById('assignmentModal').style.display = 'none';
+}
+
+function loadAvailableVehicles() {
+    fetch('/api/vehicles/available')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('vehicleSelect');
+            select.innerHTML = '<option value="">-- Select a Vehicle --</option>';
+            
+            data.forEach(vehicle => {
+                const option = document.createElement('option');
+                option.value = vehicle.id;
+                option.textContent = `${vehicle.licensePlate} - ${vehicle.model} (${vehicle.type})`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading vehicles:', error);
+        });
+}
+
+document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const vehicleId = formData.get('vehicleId');
+    const simCardId = formData.get('simCardId');
+    
+    fetch('/Vehicles/AssignSimCard', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `vehicleId=${vehicleId}&simCardId=${simCardId}`
+    })
+    .then(response => {
+        if (response.ok) {
+            closeAssignmentModal();
+            location.reload(); // Refresh to show updated status
+        } else {
+            alert('Error assigning SimCard to vehicle');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error assigning SimCard to vehicle');
+    });
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('assignmentModal');
+    if (event.target == modal) {
+        closeAssignmentModal();
+    }
+}
+</script>

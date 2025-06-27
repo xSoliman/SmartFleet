@@ -37,5 +37,8 @@ namespace SmartFleet.ViewModel
         // For the profile image upload.
         [Display(Name = "Profile Image")]
         public IFormFile? ProfileImageFile { get; set; }
+
+        // For displaying the current profile image
+        public string? ImageUrl { get; set; }
     }
 }

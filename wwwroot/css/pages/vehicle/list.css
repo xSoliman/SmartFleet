@@ -18,6 +18,13 @@
     font-weight: bold;
 }
 
+/* Increase width of actions column */
+#vehicle-table th:last-child,
+#vehicle-table td:last-child {
+    min-width: 300px;
+    width: 300px;
+}
+
 #vehicle-table th {
     background: #f7f7f7;
     color: grey;
@@ -108,10 +115,59 @@
     border-radius: 12px;
     font-size: 0.95em;
     font-weight: bold;
+    border: 1px solid;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
 }
-.badge-available { background: #e6f9e6; color: #16b416; }
-.badge-in_use { background: #fffbe6; color: #e6b800; }
-.badge-under_maintenance { background: #ffeaea; color: #e63946; }
+
+/* Reduce font size for longer status phrases */
+.badge-status:contains("Scheduled Trip"),
+.badge-status:contains("Need Maintenance"),
+.badge-status:contains("Under Maintenance") {
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+}
+
+.badge-available { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border-color: #b3e6b3;
+}
+.badge-need_maintenance { 
+    background: #fff3cd; 
+    color: #856404; 
+    border-color: #ffeaa7;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+}
+.badge-under_maintenance { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border-color: #ffb3b3;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+}
+.badge-maintained { 
+    background: #d1ecf1; 
+    color: #0c5460; 
+    border-color: #a8e6cf;
+}
+.badge-on_trip { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border-color: #ffe066;
+}
+.badge-on_scheduled_trip { 
+    background: #e2e3e5; 
+    color: #383d41; 
+    border-color: #c6c8ca;
+    font-size: 0.80em;
+    padding: 0.2em 0.6em;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 @media (max-width: 900px) {
     #vehicle-table th, #vehicle-table td {

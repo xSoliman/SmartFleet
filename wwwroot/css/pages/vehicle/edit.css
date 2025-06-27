@@ -1,121 +1,443 @@
-.edit-heading {
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
+/* Edit Vehicle Form Styles */
 .edit-layout-container {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
 }
 
 .edit-form-wrapper {
-    width: 50%;
-    background: #f9f9f9;
-    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    padding: 30px;
     border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     position: relative;
-    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+.edit-navigation {
+    margin-bottom: 20px;
+}
+
+.edit-back-link {
+    color: #495057;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+
+.edit-back-link:hover {
+    color: #212529;
+    text-decoration: none;
+    background-color: #dee2e6;
+}
+
+.edit-heading {
+    font-size: 28px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 8px;
+    text-align: center;
 }
 
 .edit-custom-form {
     display: flex;
     flex-direction: column;
-}
-
-.edit-input-row {
-    display: flex;
     gap: 15px;
 }
 
-.edit-input-col {
-    flex: 1;
-}
-
 .edit-input-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .edit-input-label {
-    font-weight: bold;
-    margin-bottom: 5px;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 16px;
+    line-height: 1.4;
 }
 
 .edit-input-field,
 .edit-dropdown {
     width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 12px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #212529;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.edit-input-field:focus,
+.edit-dropdown:focus {
+    outline: none;
+    border-color: #20B2AA;
+    box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
+}
+
+.edit-input-field::placeholder {
+    color: #6c757d;
+    font-weight: 400;
+    line-height: 1.5;
 }
 
 .edit-validation-message {
-    color: red;
+    color: #dc3545;
     font-size: 12px;
+    margin-top: 2px;
 }
 
-.edit-button-group {
-    text-align: center;
+.edit-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
 }
 
-.edit-primary-button {
-    background: #00796b !important;
-    color: white !important;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-
-.edit-primary-button:hover {
-    background: #004d40 !important;
-}
-
-input.edit-primary-button[type="submit"] {
-    color: white !important;
-}
-
-.edit-navigation {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-}
-
-.edit-back-link {
-    background: #00796b;
-    color: white;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
-
-    .edit-back-link:hover {
-        text-decoration: none;
-        background: #004d40;
+@media (max-width: 768px) {
+    .edit-input-row {
+        grid-template-columns: 1fr;
     }
+}
 
-    .edit-back-link i {
-        margin-right: 5px;
-    }
-
-/* Styling for Image Preview */
 .image-preview-container {
-    margin-top: 10px;
+    margin-top: 12px;
     text-align: center;
+    padding: 16px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .image-preview {
-    max-width: 100%;
+    max-width: 200px;
     max-height: 200px;
-    border-radius: 4px;
-    display: none; /* Hidden until an image is uploaded */
-    margin-top: 10px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview.show {
+    display: block;
+}
+
+.no-image-text {
+    color: #6c757d;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.edit-button-group {
+    margin-top: 8px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.edit-primary-button {
+    background-color: #20B2AA;
+    color: #ffffff !important;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.edit-primary-button:hover {
+    background-color: #1a9a94;
+}
+
+.edit-primary-button:active {
+    background-color: #158f89;
+}
+
+/* File input styling */
+.edit-input-field[type="file"] {
+    padding: 6px 10px;
+    border: 2px dashed #dee2e6;
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.edit-input-field[type="file"]:hover {
+    border-color: #20B2AA;
+    background-color: rgba(32, 178, 170, 0.05);
+}
+
+.edit-input-field[type="file"]:focus {
+    border-color: #20B2AA;
+    background-color: #ffffff;
+}
+
+.edit-readonly-label {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* Ensure readonly fields have the same styling as regular input fields */
+.edit-input-field[readonly] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* SimCard Assignment Styles */
+.simcard-assignment-display {
+    padding: 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    margin-bottom: 10px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.current-simcard-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.simcard-number {
+    font-weight: 600;
+    color: #212529;
+    font-size: 16px;
+}
+
+.simcard-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-active {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+}
+
+.badge-inactive {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+}
+
+.no-simcard {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.edit-simcard-btn {
+    background-color: #6c757d;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.edit-simcard-btn:hover {
+    background-color: #5a6268;
+}
+
+/* Modal Styles */
+.edit-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.edit-modal-content {
+    background-color: #ffffff;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.edit-modal-header h3 {
+    margin: 0;
+    color: #212529;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.edit-modal-close {
+    color: #6c757d;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.edit-modal-close:hover {
+    color: #212529;
+}
+
+.edit-modal-body {
+    padding: 24px;
+}
+
+.current-assignment,
+.assign-new-simcard {
+    margin-bottom: 24px;
+}
+
+.current-assignment h4,
+.assign-new-simcard h4 {
+    margin: 0 0 12px 0;
+    color: #212529;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.current-simcard-details p {
+    margin: 8px 0;
+    color: #495057;
+    font-size: 14px;
+}
+
+.no-assignment {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.edit-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.edit-modal-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.edit-modal-btn-success {
+    background-color: #28a745;
+    color: #ffffff;
+}
+
+.edit-modal-btn-success:hover {
+    background-color: #218838;
+}
+
+.edit-modal-btn-danger {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+.edit-modal-btn-danger:hover {
+    background-color: #c82333;
+}
+
+.edit-modal-btn-secondary {
+    background-color: #6c757d;
+    color: #ffffff;
+}
+
+.edit-modal-btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .edit-modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+    
+    .edit-modal-actions {
+        flex-direction: column;
+    }
+    
+    .current-simcard-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
 }

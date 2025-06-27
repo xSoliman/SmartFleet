@@ -27,15 +27,8 @@
             <div asp-validation-summary="ModelOnly" class="edit-validation-message"></div>
             <input type="hidden" asp-for="Id" />
 
-            <!-- Row 1: VehicleId & SimNumber -->
+            <!-- Row 1: SimNumber & Carrier -->
             <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="VehicleId" class="edit-input-label"></label>
-                        <select asp-for="VehicleId" class="edit-dropdown" asp-items="ViewBag.VehicleId"></select>
-                        <span asp-validation-for="VehicleId" class="edit-validation-message"></span>
-                    </div>
-                </div>
                 <div class="edit-input-col">
                     <div class="edit-input-group">
                         <label asp-for="SimNumber" class="edit-input-label"></label>
@@ -43,10 +36,6 @@
                         <span asp-validation-for="SimNumber" class="edit-validation-message"></span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Row 2: Carrier & ActivatedAt -->
-            <div class="edit-input-row">
                 <div class="edit-input-col">
                     <div class="edit-input-group">
                         <label asp-for="Carrier" class="edit-input-label"></label>
@@ -54,27 +43,27 @@
                         <span asp-validation-for="Carrier" class="edit-validation-message"></span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Row 2: ActivatedAt & Status -->
+            <div class="edit-input-row">
                 <div class="edit-input-col">
                     <div class="edit-input-group">
                         <label asp-for="ActivatedAt" class="edit-input-label"></label>
-                        <input asp-for="ActivatedAt" class="edit-input-field" />
+                        <input asp-for="ActivatedAt" type="datetime-local" class="edit-input-field" />
                         <span asp-validation-for="ActivatedAt" class="edit-validation-message"></span>
                     </div>
                 </div>
+                <div class="edit-input-col">
+                    <div class="edit-input-group">
+                        <label asp-for="Status" class="edit-input-label"></label>
+                        <select asp-for="Status" class="edit-dropdown">
+                            <option value="Inactive">Inactive</option>
+                            <option value="Active">Active</option>
+                        </select>
+                        <span asp-validation-for="Status" class="edit-validation-message"></span>
             </div>
-
-            <!-- Status Checkbox (Single Row) -->
-            <div class="edit-input-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Status" /> @Html.DisplayNameFor(model => model.Status)
-                </label>
             </div>
-
-            <!-- CreatedAt (Single Row) -->
-            <div class="edit-input-group">
-                <label asp-for="CreatedAt" class="edit-input-label"></label>
-                <input asp-for="CreatedAt" class="edit-input-field" />
-                <span asp-validation-for="CreatedAt" class="edit-validation-message"></span>
             </div>
 
             <!-- Submit Button -->

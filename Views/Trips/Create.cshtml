@@ -123,6 +123,10 @@
                                     Available vehicles: @ViewBag.AvailableVehiclesCount
                                 </small>
                             }
+                            <div id="vehicle-geofence-info" class="mt-2"></div>
+                            <a href="/Geofences" target="_blank" class="btn btn-sm btn-outline-info mt-1">
+                                <i class="fas fa-map-marker-alt"></i> Manage Geofences
+                            </a>
                         </div>
                     </div>
                     <div class="flex-col-2">
@@ -187,6 +191,36 @@
             $('.create-dropdown').on('change', function() {
                 validateField($(this));
             });
+            
+            // Geofence info for selected vehicle
+            const vehicleDropdown = $('select[name="VehicleId"]');
+            const geofenceInfoDiv = $('#vehicle-geofence-info');
+            function updateGeofenceInfo(vehicleId) {
+                if (!vehicleId) {
+                    geofenceInfoDiv.html('<span class="text-muted">No vehicle selected.</span>');
+                    return;
+                }
+                geofenceInfoDiv.html('<span class="text-info"><i class="fas fa-spinner fa-spin"></i> Loading geofence info...</span>');
+                $.get(`/api/vehicles/${vehicleId}/geofence`, function(data) {
+                    if (data.hasGeofence) {
+                        geofenceInfoDiv.html(
+                            `<span class='badge bg-info text-dark'><i class='fas fa-map-marker-alt'></i> Geofence: <b>${data.geofence.name}</b> (${data.geofence.type})</span> ` +
+                            `<a href='/Geofences/Edit/${data.geofence.id}' target='_blank' class='btn btn-sm btn-outline-info ms-2'><i class='fas fa-edit'></i> Edit</a>`
+                        );
+                    } else {
+                        geofenceInfoDiv.html('<span class="text-warning"><i class="fas fa-exclamation-circle"></i> No geofence assigned to this vehicle.</span>');
+                    }
+                }).fail(function() {
+                    geofenceInfoDiv.html('<span class="text-danger">Could not load geofence info.</span>');
+                });
+            }
+            vehicleDropdown.on('change', function() {
+                updateGeofenceInfo($(this).val());
+            });
+            // Initial load if a vehicle is preselected
+            if (vehicleDropdown.val()) {
+                updateGeofenceInfo(vehicleDropdown.val());
+            }
             
             // Form submission handling
             form.on('submit', function(e) {

@@ -163,7 +163,7 @@ namespace SmartFleet
                         Email = "driver@smartfleet.com",
                         LicenseNumber = "AB12345",
                         LicenseExpiryDate = DateTime.Now.AddYears(2),
-                        DriverStatus = DriverState.active,
+                        DriverStatus = DriverState.Available,
                         ProfileImageUrl = "https://example.com/driver.jpg",
                         CreatedAt = DateTime.Now,
                         EmailConfirmed = true
@@ -243,9 +243,11 @@ namespace SmartFleet
                             Capacity = 5,
                             LicensePlate = "XYZ 1234",
                             Status = VehicleState.available,
-                            Distance = 0,
+                            TotalDistanceTraveled = 0,
+                            RegistrationExpiryDate = DateTime.Now.AddYears(2),
                             VehicleImageUrl = "https://example.com/toyota.jpg",
-                            CreatedAt = DateTime.Now
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now
                         },
                         new Vehicle
                         {
@@ -254,9 +256,11 @@ namespace SmartFleet
                             Capacity = 12,
                             LicensePlate = "XYZ 5678",
                             Status = VehicleState.available,
-                            Distance = 500,
+                            TotalDistanceTraveled = 500,
+                            RegistrationExpiryDate = DateTime.Now.AddYears(1),
                             VehicleImageUrl = "https://example.com/ford.jpg",
-                            CreatedAt = DateTime.Now
+                            CreatedAt = DateTime.Now,
+                            UpdatedAt = DateTime.Now
                         }
                     };
 
@@ -270,7 +274,6 @@ namespace SmartFleet
                     // Seed SimCard
                     var simCard = new SimCard
                     {
-                        VehicleId = toyotaVehicle.Id,
                         SimNumber = "1234567890",
                         Carrier = "CarrierX",
                         ActivatedAt = DateTime.Now,
@@ -281,6 +284,10 @@ namespace SmartFleet
                     await _db.SimCards.AddAsync(simCard);
                     await _db.SaveChangesAsync();
                     _logger.LogInformation("SimCard seeded successfully.");
+
+                    // Update the vehicle to reference the SimCard
+                    toyotaVehicle.SimCardId = simCard.Id;
+                    await _db.SaveChangesAsync();
 
                     // Seed Maintenance
                     var maintenance = new Maintenance
@@ -331,6 +338,15 @@ namespace SmartFleet
                     await _db.Trips.AddAsync(trip);
                     await _db.SaveChangesAsync();
                     _logger.LogInformation("Trip seeded successfully.");
+
+                    // Update driver status to reflect the assigned trip
+                    var driver = await _db.Drivers.FirstOrDefaultAsync(d => d.Id == "2");
+                    if (driver != null)
+                    {
+                        driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("Driver status updated to AssignedOnScheduledTrip due to scheduled trip assignment.");
+                    }
                 }
                 else
                 {

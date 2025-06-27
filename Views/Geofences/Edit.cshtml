@@ -1,0 +1,229 @@
+@model SmartFleet.Models.Geofence
+@using SmartFleet.Models;
+@{
+    ViewData["Title"] = "Edit Geofence";
+}
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+<link rel="stylesheet" href="/css/pages/geofence/create.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+<div class="container my-4">
+    <div class="geofence-create-card">
+        <h1 class="geofence-create-title">Edit Geofence</h1>
+        <form asp-action="Edit" method="post" class="geofence-create-form">
+            <div class="geofence-create-content">
+                <div class="geofence-create-form-col">
+                    <div class="d-flex justify-content-start mb-3">
+                        <a asp-action="Index" class="geofence-back-link">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                    <input type="hidden" asp-for="Id" />
+                    <div class="form-group">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="geofence-create-validation"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Type">Geofence Type</label>
+                        <select asp-for="Type" class="form-control" id="GeofenceType">
+                            <option value="0">Circle</option>
+                            <option value="1">Polygon</option>
+                        </select>
+                        <span asp-validation-for="Type" class="geofence-create-validation"></span>
+                    </div>
+                    <div class="form-group mt-2">
+                        <div class="form-check">
+                            <input asp-for="IsDefault" class="form-check-input" type="checkbox" id="IsDefault" />
+                            <label class="form-check-label" for="IsDefault">Set as default geofence</label>
+                        </div>
+                        <small class="text-muted">Only one geofence can be default. Setting this will unset any other default.</small>
+                    </div>
+                    <div id="circleFields">
+                        <div class="form-group">
+                            <label asp-for="CenterLat"></label>
+                            <input asp-for="CenterLat" class="form-control" id="CenterLat" readonly />
+                            <span asp-validation-for="CenterLat" class="geofence-create-validation"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="CenterLng"></label>
+                            <input asp-for="CenterLng" class="form-control" id="CenterLng" readonly />
+                            <span asp-validation-for="CenterLng" class="geofence-create-validation"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="RadiusMeters"></label>
+                            <input asp-for="RadiusMeters" class="form-control" id="RadiusMeters" type="number" min="10" max="100000" step="10" />
+                            <span asp-validation-for="RadiusMeters" class="geofence-create-validation"></span>
+                        </div>
+                    </div>
+                    <div id="polygonFields" style="display:none;">
+                        <div class="alert alert-info">Draw a polygon on the map using the polygon tool.</div>
+                    </div>
+                    <input type="hidden" asp-for="PolygonJson" id="PolygonJson" />
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <button type="submit" class="geofence-primary-button">
+                            <i class="fas fa-map-marker-alt"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+                <div class="geofence-create-map-col">
+                    <label>Draw Geofence on Map</label>
+                    <div id="map" class="geofence-create-map"></div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    var type = @((int)Model.Type);
+    var currentLat = @Model.CenterLat;
+    var currentLng = @Model.CenterLng;
+    var currentRadius = @Model.RadiusMeters;
+    var polygonJson = @Html.Raw(Model.PolygonJson == null ? "null" : $"'{Model.PolygonJson}'");
+    var map = L.map('map').setView([currentLat || 27.18096, currentLng || 31.18368], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Circle controls
+    var marker = L.marker([currentLat, currentLng], { draggable: true });
+    var circle = L.circle([currentLat, currentLng], { radius: currentRadius });
+
+    // Polygon controls
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    var drawControl = new L.Control.Draw({
+        draw: {
+            polygon: true, // always enabled
+            polyline: false,
+            rectangle: false,
+            circle: false,
+            marker: false,
+            circlemarker: false
+        },
+        edit: {
+            featureGroup: drawnItems
+        }
+    });
+    map.addControl(drawControl);
+
+    function showCircleFields(show) {
+        document.getElementById('circleFields').style.display = show ? '' : 'none';
+        if (show) {
+            marker.addTo(map);
+            circle.addTo(map);
+        } else {
+            map.removeLayer(marker);
+            map.removeLayer(circle);
+        }
+    }
+    function showPolygonFields(show) {
+        document.getElementById('polygonFields').style.display = show ? '' : 'none';
+    }
+    function showDrawToolbar(show) {
+        var drawToolbar = document.querySelector('.leaflet-draw-toolbar-top');
+        if (drawToolbar) drawToolbar.style.display = show ? '' : 'none';
+    }
+
+    // Pre-fill polygon if exists
+    if (type === 1 && polygonJson && polygonJson !== 'null') {
+        var coords = JSON.parse(polygonJson);
+        var polygon = L.polygon(coords);
+        drawnItems.addLayer(polygon);
+        document.getElementById('PolygonJson').value = JSON.stringify(coords);
+        map.fitBounds(polygon.getBounds());
+    }
+
+    // Handle geofence type change
+    document.getElementById('GeofenceType').addEventListener('change', function () {
+        var type = this.value;
+        if (type == '0') {
+            showCircleFields(true);
+            showPolygonFields(false);
+            showDrawToolbar(false);
+            drawnItems.clearLayers();
+            document.getElementById('PolygonJson').value = '';
+        } else {
+            showCircleFields(false);
+            showPolygonFields(true);
+            showDrawToolbar(true);
+            map.removeLayer(marker);
+            map.removeLayer(circle);
+        }
+    });
+
+    // Circle logic
+    marker.on('drag', function (e) {
+        var latlng = marker.getLatLng();
+        document.getElementById('CenterLat').value = latlng.lat.toFixed(6);
+        document.getElementById('CenterLng').value = latlng.lng.toFixed(6);
+        circle.setLatLng(latlng);
+    });
+    document.getElementById('RadiusMeters').addEventListener('input', function () {
+        var r = parseFloat(this.value);
+        if (!isNaN(r)) circle.setRadius(r);
+    });
+    map.on('click', function (e) {
+        if (document.getElementById('GeofenceType').value == '0') {
+            marker.setLatLng(e.latlng);
+            document.getElementById('CenterLat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('CenterLng').value = e.latlng.lng.toFixed(6);
+            circle.setLatLng(e.latlng);
+        }
+    });
+
+    // Polygon logic
+    map.on(L.Draw.Event.CREATED, function (e) {
+        if (document.getElementById('GeofenceType').value == '1') {
+            drawnItems.clearLayers();
+            drawnItems.addLayer(e.layer);
+            var latlngs = e.layer.getLatLngs()[0].map(function (latlng) {
+                return [latlng.lat, latlng.lng];
+            });
+            document.getElementById('PolygonJson').value = JSON.stringify(latlngs);
+        }
+    });
+    map.on(L.Draw.Event.EDITED, function (e) {
+        if (document.getElementById('GeofenceType').value == '1') {
+            var layers = e.layers;
+            layers.eachLayer(function (layer) {
+                var latlngs = layer.getLatLngs()[0].map(function (latlng) {
+                    return [latlng.lat, latlng.lng];
+                });
+                document.getElementById('PolygonJson').value = JSON.stringify(latlngs);
+            });
+        }
+    });
+    map.on(L.Draw.Event.DELETED, function (e) {
+        if (document.getElementById('GeofenceType').value == '1') {
+            document.getElementById('PolygonJson').value = '';
+        }
+    });
+    // On submit, validate polygon if type is polygon
+    document.querySelector('form').addEventListener('submit', function (e) {
+        if (document.getElementById('GeofenceType').value == '1' && !document.getElementById('PolygonJson').value) {
+            alert('Please draw a polygon on the map.');
+            e.preventDefault();
+        }
+    });
+
+    // On page load, set correct UI
+    if (type === 0) {
+        showCircleFields(true);
+        showPolygonFields(false);
+        showDrawToolbar(false);
+    } else {
+        showCircleFields(false);
+        showPolygonFields(true);
+        showDrawToolbar(true);
+    }
+
+    // Block polygon drawing if not in polygon mode
+    map.on(L.Draw.Event.DRAWSTART, function (e) {
+        if (document.getElementById('GeofenceType').value != '1') {
+            map.fire('draw:drawstop');
+        }
+    });
+</script> 

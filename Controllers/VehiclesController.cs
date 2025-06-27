@@ -13,6 +13,7 @@ using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
+    [Authorize(Roles = "FleetManager,SysSupport")]
     public class VehiclesController : BaseController
     {
         private readonly SmartFleetContext _context;
@@ -31,8 +32,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var vehicles = _context.Vehicles.AsQueryable();
@@ -60,8 +60,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to view vehicle details.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -70,6 +69,7 @@ namespace SmartFleet.Controllers
             }
 
             var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (vehicle == null)
             {
@@ -87,8 +87,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             return View();
@@ -97,15 +96,14 @@ namespace SmartFleet.Controllers
         // POST: Vehicles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt")] Vehicle vehicle, IFormFile? imageFile)
+        public async Task<IActionResult> Create([Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
 
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to create vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (ModelState.IsValid)
@@ -130,6 +128,11 @@ namespace SmartFleet.Controllers
                     vehicle.VehicleImageUrl = "/assets/images/icons/download.png";
                 }
 
+                vehicle.CreatedAt = DateTime.Now;
+                vehicle.UpdatedAt = DateTime.Now;
+                // The user-entered TotalDistanceTraveled is treated as the initial distance
+                // and becomes the starting total distance for the new vehicle
+
                 _context.Add(vehicle);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -145,8 +148,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -154,7 +156,9 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
-            var vehicle = await _context.Vehicles.FindAsync(id);
+            var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
+                .FirstOrDefaultAsync(v => v.Id == id);
             if (vehicle == null)
             {
                 return NotFound();
@@ -165,15 +169,14 @@ namespace SmartFleet.Controllers
         // POST: Vehicles/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,Distance,CreatedAt,VehicleImageUrl")] Vehicle vehicle, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt,VehicleImageUrl,SimCardId")] Vehicle vehicle, IFormFile? imageFile)
         {
             ViewData["PageTitle"] = "Vehicles";
 
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to edit vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id != vehicle.Id)
@@ -185,6 +188,20 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the existing vehicle to preserve the current total distance and SimCard assignment
+                    var existingVehicle = await _context.Vehicles.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+                    if (existingVehicle != null)
+                    {
+                        // Add the user-entered initial distance to the existing total distance
+                        vehicle.TotalDistanceTraveled = existingVehicle.TotalDistanceTraveled + vehicle.TotalDistanceTraveled;
+                        
+                        // Preserve the SimCard assignment if not explicitly changed
+                        if (vehicle.SimCardId == null)
+                        {
+                            vehicle.SimCardId = existingVehicle.SimCardId;
+                        }
+                    }
+
                     if (imageFile != null && imageFile.Length > 0)
                     {
                         var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/vehicles");
@@ -200,6 +217,8 @@ namespace SmartFleet.Controllers
 
                         vehicle.VehicleImageUrl = "/uploads/vehicles/" + uniqueFileName;
                     }
+
+                    vehicle.UpdatedAt = DateTime.Now;
 
                     _context.Update(vehicle);
                     await _context.SaveChangesAsync();
@@ -228,8 +247,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             if (id == null)
@@ -255,8 +273,7 @@ namespace SmartFleet.Controllers
             // Check if user has access to vehicles
             if (!await HasAccessToVehiclesAsync())
             {
-                TempData["ErrorMessage"] = "Access denied. You don't have permission to delete vehicles.";
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var vehicle = await _context.Vehicles.FindAsync(id);
@@ -272,6 +289,298 @@ namespace SmartFleet.Controllers
         private bool VehicleExists(int id)
         {
             return _context.Vehicles.Any(e => e.Id == id);
+        }
+
+        // GET: Vehicles/Maintenance/5
+        public async Task<IActionResult> Maintenance(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.Maintenances)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
+        }
+
+        // GET: Vehicles/SimCard/5
+        public async Task<IActionResult> SimCard(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
+        }
+
+        // GET: Vehicles/Tracking/5
+        public async Task<IActionResult> Tracking(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.VehicleLocations)
+                .Include(v => v.SimCard)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            return View(vehicle);
+        }
+
+        // POST: Vehicles/AssignSimCard
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignSimCard(int vehicleId, int simCardId)
+        {
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            try
+            {
+                var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null)
+                {
+                    TempData["ErrorMessage"] = "Vehicle not found.";
+                    return RedirectToAction("SimCard", new { id = vehicleId });
+                }
+
+                var simCard = await _context.SimCards.FindAsync(simCardId);
+                if (simCard == null)
+                {
+                    TempData["ErrorMessage"] = "SimCard not found.";
+                    return RedirectToAction("SimCard", new { id = vehicleId });
+                }
+
+                // Check if SimCard is already assigned to another vehicle
+                var existingVehicle = await _context.Vehicles
+                    .FirstOrDefaultAsync(v => v.SimCardId == simCardId && v.Id != vehicleId);
+                if (existingVehicle != null)
+                {
+                    TempData["ErrorMessage"] = $"SimCard {simCard.SimNumber} is already assigned to vehicle {existingVehicle.LicensePlate}.";
+                    return RedirectToAction("SimCard", new { id = vehicleId });
+                }
+
+                // Assign SimCard to vehicle
+                vehicle.SimCardId = simCardId;
+                vehicle.UpdatedAt = DateTime.Now;
+                
+                _context.Update(vehicle);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"SimCard {simCard.SimNumber} successfully assigned to vehicle {vehicle.LicensePlate}.";
+                return RedirectToAction("SimCard", new { id = vehicleId });
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error assigning SimCard: {ex.Message}";
+                return RedirectToAction("SimCard", new { id = vehicleId });
+            }
+        }
+
+        // POST: Vehicles/RemoveSimCard/5
+        [HttpPost]
+        public async Task<IActionResult> RemoveSimCard(int id)
+        {
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var vehicle = await _context.Vehicles.FindAsync(id);
+                if (vehicle == null)
+                {
+                    return NotFound();
+                }
+
+                vehicle.SimCardId = null;
+                vehicle.UpdatedAt = DateTime.Now;
+                
+                _context.Update(vehicle);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "SimCard removed successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET: api/simcards/available
+        [HttpGet("api/simcards/available")]
+        public async Task<IActionResult> GetAvailableSimCards()
+        {
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var availableSimCards = await _context.SimCards
+                    .Where(s => s.Status == SimCardStatus.Active)
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.SimNumber,
+                        s.Carrier,
+                        s.Status,
+                        IsAssigned = _context.Vehicles.Any(v => v.SimCardId == s.Id)
+                    })
+                    .Where(s => !s.IsAssigned) // Only unassigned SimCards
+                    .ToListAsync();
+
+                return Json(availableSimCards);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // GET: api/vehicles/available
+        [HttpGet("api/vehicles/available")]
+        public async Task<IActionResult> GetAvailableVehicles()
+        {
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var availableVehicles = await _context.Vehicles
+                    .Where(v => v.SimCardId == null) // Only vehicles without SimCards
+                    .Select(v => new
+                    {
+                        v.Id,
+                        v.Model,
+                        v.LicensePlate,
+                        v.Type,
+                        v.Status
+                    })
+                    .ToListAsync();
+
+                return Json(availableVehicles);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // API: Get geofence info for a vehicle
+        [HttpGet("api/vehicles/{id}/geofence")]
+        public async Task<IActionResult> GetVehicleGeofence(int id)
+        {
+            var vehicle = await _context.Vehicles.Include(v => v.Geofence).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehicle == null)
+                return NotFound();
+            if (vehicle.Geofence == null)
+                return Json(new { hasGeofence = false });
+            return Json(new {
+                hasGeofence = true,
+                geofence = new {
+                    id = vehicle.Geofence.Id,
+                    name = vehicle.Geofence.Name,
+                    type = vehicle.Geofence.Type.ToString(),
+                    centerLat = vehicle.Geofence.CenterLat,
+                    centerLng = vehicle.Geofence.CenterLng,
+                    radiusMeters = vehicle.Geofence.RadiusMeters,
+                    polygonJson = vehicle.Geofence.PolygonJson
+                }
+            });
+        }
+
+        // GET: Vehicles/Geofence/5
+        public async Task<IActionResult> Geofence(int? id)
+        {
+            if (id == null) return NotFound();
+            var vehicle = await _context.Vehicles.Include(v => v.Geofence).FirstOrDefaultAsync(v => v.Id == id);
+            if (vehicle == null) return NotFound();
+            var geofences = await _context.Geofence.ToListAsync();
+            ViewBag.Geofences = geofences;
+            return View(vehicle);
+        }
+
+        // POST: Vehicles/AssignGeofence
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignGeofence(int vehicleId, int geofenceId)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+            if (vehicle == null) return NotFound();
+            vehicle.GeofenceId = geofenceId;
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Geofence", new { id = vehicleId });
+        }
+
+        // POST: Vehicles/RemoveGeofence
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveGeofence(int vehicleId)
+        {
+            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+            if (vehicle == null) return NotFound();
+            vehicle.GeofenceId = null;
+            _context.Update(vehicle);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Geofence", new { id = vehicleId });
         }
     }
 }

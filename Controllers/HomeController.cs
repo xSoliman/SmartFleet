@@ -23,25 +23,6 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user != null)
-            {
-                var notifications = _context.Notifications
-                    .Where(n => n.UserId == user.Id)
-                    .OrderByDescending(n => n.CreatedAt)
-                    .ToList();
-
-                var unreadNotifications = notifications.Count(n => !n.IsRead);
-
-                ViewBag.Notifications = notifications;
-                ViewBag.UnreadNotifications = unreadNotifications;
-            }
-            else
-            {
-                ViewBag.Notifications = new List<Notification>();
-                ViewBag.UnreadNotifications = 0;
-            }
-
             ViewBag.UserCount = _context.Users.Count();
             ViewBag.FleetCount = _context.Vehicles.Count();
             ViewBag.TripsCount = _context.Trips.Count();

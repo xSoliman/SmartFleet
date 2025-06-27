@@ -1,0 +1,214 @@
+@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle SimCard";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+</head>
+
+<div class="main-container">
+    <!-- Left Section: SimCard Information -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Index" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicles
+            </a>
+        </div>
+
+        <!-- Vehicle Info Header -->
+        <div class="vehicle-container">
+            <h1 class="vehicle-heading">SimCard Information - @Model.Model</h1>
+            <div class="vehicle-details">
+                <div class="vehicle-item">
+                    <span class="vehicle-label">License Plate:</span>
+                    <span>@Model.LicensePlate</span>
+                </div>
+                <div class="vehicle-item">
+                    <span class="vehicle-label">Status:</span>
+                    <span>
+                        @{
+                            var statusText = Model.Status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            if (statusText == "On Scheduled Trip")
+                            {
+                                statusText = "Scheduled Trip";
+                            }
+                        }
+                        <span class="badge-status badge-@Model.Status.ToString().ToLower()">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SimCard Assignment Section -->
+        <div id="simcard-assignment-container">
+            <h2><i class="fas fa-link"></i> SimCard Assignment</h2>
+            
+            @if (Model.SimCard != null)
+            {
+                <!-- Current SimCard Info -->
+                <div class="current-simcard">
+                    <h3>Currently Assigned SimCard</h3>
+                    <div class="simcard-info">
+                        <div class="simcard-item">
+                            <span class="simcard-label">Sim Number:</span>
+                            <span class="simcard-value">@Model.SimCard.SimNumber</span>
+                        </div>
+                        <div class="simcard-item">
+                            <span class="simcard-label">Carrier:</span>
+                            <span class="simcard-value">@Model.SimCard.Carrier</span>
+                        </div>
+                        <div class="simcard-item">
+                            <span class="simcard-label">Status:</span>
+                            <span class="simcard-value">
+                                <span class="badge-status badge-@Model.SimCard.Status.ToString().ToLower()">
+                                    @Model.SimCard.Status.ToString().Replace("_", " ")
+                                </span>
+                            </span>
+                        </div>
+                        <div class="simcard-item">
+                            <span class="simcard-label">Activated At:</span>
+                            <span class="simcard-value">@Model.SimCard.ActivatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Change SimCard Button -->
+                    <div class="simcard-action-buttons">
+                        <button class="simcard-btn simcard-btn-warning" onclick="showAssignmentForm()">
+                            <i class="fas fa-exchange-alt"></i> Change SimCard
+                        </button>
+                        <button class="simcard-btn simcard-btn-danger" onclick="removeSimCard()">
+                            <i class="fas fa-unlink"></i> Remove SimCard
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- No SimCard Assigned -->
+                <div class="no-simcard">
+                    <div class="simcard-no-content-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>No SimCard Assigned</h3>
+                        <p>This vehicle doesn't have a SimCard assigned.</p>
+                        <p>GPS tracking will not work until a SimCard is assigned.</p>
+                    </div>
+                    
+                    <!-- Assign SimCard Button -->
+                    <div class="simcard-action-buttons">
+                        <button class="simcard-btn simcard-btn-primary" onclick="showAssignmentForm()">
+                            <i class="fas fa-plus"></i> Assign SimCard
+                        </button>
+                    </div>
+                </div>
+            }
+            
+            <!-- Assignment Form (Hidden by default) -->
+            <div id="assignment-form" style="display: none;">
+                <h3>@(Model.SimCard != null ? "Change" : "Assign") SimCard</h3>
+                
+                <form asp-action="AssignSimCard" method="post">
+                    <input type="hidden" name="vehicleId" value="@Model.Id" />
+                    
+                    <div class="simcard-form-group">
+                        <label for="simCardId">Select SimCard:</label>
+                        <select name="simCardId" id="simCardId" class="simcard-form-control" required>
+                            <option value="">-- Select a SimCard --</option>
+                            <!-- This will be populated via AJAX -->
+                        </select>
+                        <small class="simcard-help-text">Choose an available SimCard for this vehicle</small>
+                    </div>
+                    
+                    <div class="simcard-form-actions">
+                        <button type="submit" class="simcard-btn simcard-btn-success">
+                            <i class="fas fa-check"></i> @(Model.SimCard != null ? "Change" : "Assign") SimCard
+                        </button>
+                        <button type="button" class="simcard-btn simcard-btn-secondary" onclick="hideAssignmentForm()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar Section -->
+    <div class="right-container">
+        <h2>Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+        </ul>
+        
+        <!-- Quick Actions -->
+        <div class="vehicle-simcard-quick-actions">
+            <h3>Quick Actions</h3>
+            <ul>
+                <li><a href="/SimCards/Create"><i class="fas fa-plus"></i> Create New SimCard</a></li>
+                <li><a href="/SimCards"><i class="fas fa-list"></i> View All SimCards</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAssignmentForm() {
+    document.getElementById('assignment-form').style.display = 'block';
+    loadAvailableSimCards();
+}
+
+function hideAssignmentForm() {
+    document.getElementById('assignment-form').style.display = 'none';
+}
+
+function loadAvailableSimCards() {
+    fetch('/api/simcards/available')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('simCardId');
+            select.innerHTML = '<option value="">-- Select a SimCard --</option>';
+            
+            data.forEach(simCard => {
+                const option = document.createElement('option');
+                option.value = simCard.id;
+                option.textContent = `${simCard.simNumber} (${simCard.carrier})`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading SimCards:', error);
+        });
+}
+
+function removeSimCard() {
+    if (confirm('Are you sure you want to remove the SimCard from this vehicle? GPS tracking will stop working.')) {
+        fetch('/Vehicles/RemoveSimCard/@Model.Id', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error removing SimCard');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error removing SimCard');
+        });
+    }
+}
+</script> 

@@ -9,25 +9,34 @@ using SmartFleet.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using SmartFleet.Services;
 
 namespace SmartFleet.Controllers
 {
-    // Optionally, add an authorization attribute if needed:
-    [Authorize(Roles = "SysAdmin , Driver")]
+    // Add authorization attribute to restrict access to FleetManager and SysSupport roles only
+    [Authorize(Roles = "FleetManager,SysSupport")]
     public class DriversController : Controller
     {
         private readonly SmartFleetContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _env;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
         public DriversController(SmartFleetContext context,
-                                 UserManager<ApplicationUser > userManager,
-                                 IWebHostEnvironment env)
+                                 UserManager<ApplicationUser> userManager,
+                                 IWebHostEnvironment env,
+                                 INotificationService notificationService,
+                                 IUserRoleService userRoleService)
         {
             _context = context;
             _userManager = userManager;
-            _env = env;  
+            _env = env;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
+
+        [Authorize(Roles = "Driver")]
         public async Task<IActionResult> DriverDashboard()
         {
             string? driverId = User.FindFirst(ClaimTypes.NameIdentifier).ToString();
@@ -50,10 +59,7 @@ namespace SmartFleet.Controllers
             return View(driver);
         }
 
-
-
-
-
+        [Authorize(Roles = "FleetManager,SysSupport")]
         [HttpPost]
         public async Task<IActionResult> UpdateDriverStatus(string id, DriverState status)
         {
@@ -66,11 +72,29 @@ namespace SmartFleet.Controllers
 
             return RedirectToAction("DriverDashboard");
         }
+
         // GET: Drivers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchUserName, string searchLicense, DriverState? statusFilter)
         {
-            // Retrieve all drivers. Adjust as needed for filtering.
-            var drivers = await _context.Users.OfType<Driver>().ToListAsync();
+            var driversQuery = _context.Users.OfType<Driver>().AsQueryable();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(searchUserName))
+            {
+                driversQuery = driversQuery.Where(d => d.UserName.Contains(searchUserName));
+            }
+
+            if (!string.IsNullOrEmpty(searchLicense))
+            {
+                driversQuery = driversQuery.Where(d => d.LicenseNumber.Contains(searchLicense));
+            }
+
+            if (statusFilter.HasValue)
+            {
+                driversQuery = driversQuery.Where(d => d.DriverStatus == statusFilter.Value);
+            }
+
+            var drivers = await driversQuery.ToListAsync();
             return View(drivers);
         }
 
@@ -118,17 +142,15 @@ namespace SmartFleet.Controllers
                     CreatedAt = DateTime.Now
                 };
 
-                // Handle the profile image upload.
+                // Handle profile image if uploaded.
                 if (model.ProfileImageFile != null && model.ProfileImageFile.Length > 0)
                 {
-                    // Define the folder path (e.g., wwwroot/images/profiles)
                     var uploadsFolder = Path.Combine(_env.WebRootPath, "assets/images", "profiles");
                     if (!Directory.Exists(uploadsFolder))
                     {
                         Directory.CreateDirectory(uploadsFolder);
                     }
 
-                    // Use a unique file name (you may wish to use the driver's Id after creation)
                     var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ProfileImageFile.FileName);
                     var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
@@ -136,17 +158,18 @@ namespace SmartFleet.Controllers
                     {
                         await model.ProfileImageFile.CopyToAsync(fileStream);
                     }
-                    // Store the relative URL in the ProfileImageUrl property.
                     driver.ProfileImageUrl = $"/assets/images/profiles/{uniqueFileName}";
                 }
 
-                // Create the identity user with a password.
+                // Create the user with the password.
                 var result = await _userManager.CreateAsync(driver, model.Password);
                 if (result.Succeeded)
                 {
-                    // Optionally, add the driver to a role
-                    // await _userManager.AddToRoleAsync(driver, "Driver");
-
+                    // Assign the Driver role to the user.
+                    await _userManager.AddToRoleAsync(driver, "Driver");
+                    
+                    // Notifications removed - no longer sending notifications for driver creation
+                    
                     return RedirectToAction(nameof(Index));
                 }
                 else
@@ -183,6 +206,7 @@ namespace SmartFleet.Controllers
                 LicenseNumber = driver.LicenseNumber,
                 LicenseExpiryDate = driver.LicenseExpiryDate,
                 DriverStatus = driver.DriverStatus,
+                ImageUrl = driver.ProfileImageUrl,
                 // Do not pre-populate the password
             };
 
@@ -277,7 +301,6 @@ namespace SmartFleet.Controllers
             return View(model);
         }
 
-
         // GET: Drivers/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
@@ -305,6 +328,10 @@ namespace SmartFleet.Controllers
             if (driver != null)
             {
                 var result = await _userManager.DeleteAsync(driver);
+                if (result.Succeeded)
+                {
+                    // Notifications removed - no longer sending notifications for driver deletion
+                }
                 // Optionally, delete the profile image from disk if needed.
             }
             return RedirectToAction(nameof(Index));
