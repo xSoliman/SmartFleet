@@ -4,77 +4,122 @@
 }
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
     <link rel="stylesheet" href="~/css/pages/maintenance/list.css">
 </head>
 
-<div class="maintenance-filter-bar">
-    <form asp-action="Index" method="get">
-        <div class="form-group mx-2">
-            <input type="text" name="searchPlate" value="@Context.Request.Query["searchPlate"]" class="form-control form-control-sm" placeholder="Search Plate" />
+<div class="maintenance-layout-container" style="background: #f8f9fa; min-height: 100vh;">
+    <div class="maintenance-form-wrapper">
+        <div class="maintenance-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 24px;">
+            <div>
+       
+                <h1 class="maintenance-heading" style="text-align:left;">Maintenance Records</h1>
+            </div>
+            <div class="maintenance-actions">
+                <a asp-action="MaintenanceVehicles" class="maintenance-primary-button" style="background:#3498db;">
+                    <i class="fas fa-tools"></i> Vehicles Under Maintenance
+                </a>
+        
+            </div>
         </div>
-        <div class="form-group mx-2">
-            <select name="statusFilter" class="form-control form-control-sm">
-                <option value="">All Statuses</option>
-                @foreach (SmartFleet.Models.RepairState status in Enum.GetValues(typeof(SmartFleet.Models.RepairState)))
-                {
-                    <option value="@status" selected="@(Context.Request.Query["statusFilter"] == status.ToString() ? "selected" : null)">@status</option>
-                }
-            </select>
+        <div class="maintenance-filter-bar" style="margin-bottom: 18px;">
+            <form asp-action="Index" method="get" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                <input type="text" name="searchPlate" value="@Context.Request.Query["searchPlate"]" class="maintenance-input-field" style="max-width:180px;" placeholder="Search Plate" />
+                <select name="statusFilter" class="maintenance-dropdown" style="max-width:160px;">
+                    <option value="">All Statuses</option>
+                    @foreach (SmartFleet.Models.RepairState status in Enum.GetValues(typeof(SmartFleet.Models.RepairState)))
+                    {
+                        <option value="@status" selected="@(Context.Request.Query["statusFilter"] == status.ToString() ? "selected" : null)">@status</option>
+                    }
+                </select>
+                <select name="priorityFilter" class="maintenance-dropdown" style="max-width:160px;">
+                    <option value="">All Priorities</option>
+                    @foreach (SmartFleet.Models.PriorityDegree priority in Enum.GetValues(typeof(SmartFleet.Models.PriorityDegree)))
+                    {
+                        <option value="@priority" selected="@(Context.Request.Query["priorityFilter"] == priority.ToString() ? "selected" : null)">@priority</option>
+                    }
+                </select>
+                <button type="submit" class="maintenance-primary-button" style="padding:8px 18px; font-size:15px;">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <a asp-action="Index" class="maintenance-primary-button" style="background:#757575; padding:8px 18px; font-size:15px;">Clear</a>
+            </form>
         </div>
-        <div class="form-group mx-2">
-            <select name="priorityFilter" class="form-control form-control-sm">
-                <option value="">All Priorities</option>
-                @foreach (SmartFleet.Models.PriorityDegree priority in Enum.GetValues(typeof(SmartFleet.Models.PriorityDegree)))
-                {
-                    <option value="@priority" selected="@(Context.Request.Query["priorityFilter"] == priority.ToString() ? "selected" : null)">@priority</option>
-                }
-            </select>
+        <div class="table-responsive" style="margin-top: 10px;">
+            <table class="table table-bordered" style="background:#fff; border-radius:10px; overflow:hidden;">
+                <thead style="background:#f5f7fa;">
+                    <tr>
+                        <th>License Plate</th>
+                        <th>Issue Description</th>
+                        <th>Repair Status</th>
+                        <th>Priority</th>
+                        <th>Repaired At</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @if (item.Vehicle != null)
+                                {
+                                    <strong>@item.Vehicle.LicensePlate</strong><br />
+                                    <small class="text-muted">@item.Vehicle.Model</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Vehicle not found</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="issue-description">
+                                    @item.IssueDescription
+                                </div>
+                                @if (item.ReportedUser != null)
+                                {
+                                    <small class="text-muted">Reported by: @item.ReportedUser.UserName</small>
+                                }
+                            </td>
+                            <td>
+                                <span class="maintenance-badge-status maintenance-badge-@item.RepairStatus.ToString().ToLower()">
+                                    @item.RepairStatus.ToString().Replace("_", " ")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="maintenance-badge-status maintenance-badge-@item.Priority.ToString().ToLower()">
+                                    @item.Priority.ToString().Replace("_", " ")
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.RepairedAt.HasValue)
+                                {
+                                    <span>@item.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not yet repaired</span>
+                                }
+                            </td>
+                            <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <div class="maintenance-button-group" style="gap:4px;">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#3498db; padding:6px 12px; font-size:15px;">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#20B2AA; padding:6px 12px; font-size:15px;">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#b71c1c; padding:6px 12px; font-size:15px;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-        <div class="maintenance-filter-actions">
-            <button type="submit" class="btn btn-sm custom-btn">
-                <i class="fas fa-filter"></i> Filter
-            </button>
-            <a asp-action="Index" class="btn btn-sm btn-secondary ms-2">Clear</a>
-        </div>
-    </form>
-</div>
-
-<div class="table-responsive">
-    <table class="table table-maintenance table-bordered">
-        <thead>
-            <tr>
-                <th>License Plate</th>
-                <th>Issue Description</th>
-                <th>Repair Status</th>
-                <th>Priority</th>
-                <th>Repaired At</th>
-                <th>Created At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@(item.Vehicle?.LicensePlate ?? "غير متوفر")</td>
-                    <td>@Html.DisplayFor(modelItem => item.IssueDescription)</td>
-                    <td>@Html.DisplayFor(modelItem => item.RepairStatus)</td>
-                    <td class="priority-status">@Html.DisplayFor(modelItem => item.Priority)</td>
-                    <td>@Html.DisplayFor(modelItem => item.RepairedAt)</td>
-                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn edit">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn details">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
-                            <i class="fas fa-trash-alt deleted_icon"></i>
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    </div>
 </div>

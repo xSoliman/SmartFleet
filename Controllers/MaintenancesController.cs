@@ -77,7 +77,7 @@ namespace SmartFleet.Controllers
 
 
         [HttpGet]
-        public IActionResult CreateMaintenance(int? vehicleId = null)
+        public async Task<IActionResult> CreateMaintenance(int? vehicleId = null)
         {
             var userId = Request.Cookies["UserId"];
             if (string.IsNullOrEmpty(userId))
@@ -91,6 +91,24 @@ namespace SmartFleet.Controllers
                 ReportedBy = userId,
                 CreatedAt = DateTime.Now
             };
+
+            // Load vehicle and user information for display
+            if (vehicleId.HasValue && vehicleId.Value > 0)
+            {
+                var vehicle = await _context.Vehicles.FindAsync(vehicleId.Value);
+                ViewBag.VehicleInfo = vehicle ?? null;
+            }
+            else
+            {
+                ViewBag.VehicleInfo = null;
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            ViewBag.UserInfo = user ?? null;
+
+            // Prepare dropdown data
+            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
 
             return View("Create", maintenance);
         }
@@ -109,10 +127,13 @@ namespace SmartFleet.Controllers
             return RedirectToAction(nameof(MaintenanceVehicles));
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "Id");
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id");
+            // Initialize ViewBag data to prevent null reference exceptions
+            ViewBag.VehicleInfo = null;
+            ViewBag.UserInfo = null;
+            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
             return View();
         }
 
@@ -136,8 +157,29 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", new { searchPlate = licensePlate });
             }
 
-            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
+            // Load vehicle and user information for display when validation fails
+            if (maintenance.VehicleId > 0)
+            {
+                var vehicle = await _context.Vehicles.FindAsync(maintenance.VehicleId);
+                ViewBag.VehicleInfo = vehicle ?? null;
+            }
+            else
+            {
+                ViewBag.VehicleInfo = null;
+            }
+
+            if (!string.IsNullOrEmpty(maintenance.ReportedBy))
+            {
+                var user = await _context.Users.FindAsync(maintenance.ReportedBy);
+                ViewBag.UserInfo = user ?? null;
+            }
+            else
+            {
+                ViewBag.UserInfo = null;
+            }
+
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate");
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
             return View(maintenance);
         }
 
@@ -156,8 +198,12 @@ namespace SmartFleet.Controllers
             {
                 return NotFound();
             }
-            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "Id", maintenance.ReportedBy);
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", maintenance.VehicleId);
+
+            // Initialize ViewBag data to prevent null reference exceptions
+            ViewBag.VehicleInfo = null;
+            ViewBag.UserInfo = null;
+            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", maintenance.VehicleId);
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
         }
 
@@ -190,8 +236,30 @@ namespace SmartFleet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "Id", maintenance.ReportedBy);
-            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "Id", maintenance.VehicleId);
+
+            // Load vehicle and user information for display when validation fails
+            if (maintenance.VehicleId > 0)
+            {
+                var vehicle = await _context.Vehicles.FindAsync(maintenance.VehicleId);
+                ViewBag.VehicleInfo = vehicle ?? null;
+            }
+            else
+            {
+                ViewBag.VehicleInfo = null;
+            }
+
+            if (!string.IsNullOrEmpty(maintenance.ReportedBy))
+            {
+                var user = await _context.Users.FindAsync(maintenance.ReportedBy);
+                ViewBag.UserInfo = user ?? null;
+            }
+            else
+            {
+                ViewBag.UserInfo = null;
+            }
+
+            ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", maintenance.VehicleId);
+            ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
         }
        

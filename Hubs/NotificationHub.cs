@@ -55,6 +55,24 @@ namespace SmartFleet.Hubs
             await Clients.Group(groupName).SendAsync("ReceiveNotification", notification);
         }
 
+        // Method to send driver state update to all connected clients
+        public async Task SendDriverStateUpdate(object driverData)
+        {
+            await Clients.All.SendAsync("ReceiveDriverStateUpdate", driverData);
+        }
+
+        // Method to send driver state update to a specific user (driver dashboard)
+        public async Task SendDriverStateUpdateToUser(string userId, object driverData)
+        {
+            await Clients.Group($"User_{userId}").SendAsync("ReceiveDriverStateUpdate", driverData);
+        }
+
+        // Method to send driver state update to fleet managers
+        public async Task SendDriverStateUpdateToFleetManagers(object driverData)
+        {
+            await Clients.Group("FleetManagers").SendAsync("ReceiveDriverStateUpdate", driverData);
+        }
+
         // You can also add methods for specific groups or users if needed.
     }
 

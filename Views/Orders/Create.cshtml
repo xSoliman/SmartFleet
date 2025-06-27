@@ -60,13 +60,13 @@
 
             <div class="order-input-group">
                 <label asp-for="VehicleType" class="order-input-label"></label>
-                <select asp-for="VehicleType" class="order-dropdown" asp-items="ViewBag.VehicleTypes">
+                <select asp-for="VehicleType" class="order-dropdown" asp-items="ViewBag.VehicleTypes" id="vehicleTypeSelect">
                     <option value="">-- Select Vehicle Type --</option>
                 </select>
                 <span asp-validation-for="VehicleType" class="order-validation-message"></span>
             </div>
 
-           
+            <div id="resourceAvailabilityNote" style="font-size: 0.9em; color: #888; margin-bottom: 1em; display: none;"></div>
 
             <div class="order-button-group">
                 <button type="submit" class="order-primary-button">Create</button>
@@ -79,4 +79,5 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/order/create.js"></script>
 }

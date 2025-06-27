@@ -1,98 +1,59 @@
 @model SmartFleet.ViewComponents.NavigationViewModel
 
 <div class="navbar-nav mx-auto py-0">
-    <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Home" ? "active" : "")">Home</a>
-
-    <!-- Orders - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Orders" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Orders" ? "active" : "") @(!Model.HasAccessToOrders ? "text-muted" : "")" 
-           title="@(!Model.HasAccessToOrders ? "Access restricted - Contact administrator" : "")">
+    <a asp-controller="Home" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Home" ? "active" : "")" style="font-size: 1.1rem;">Home</a>
+    
+    @if (Model.HasAccessToOrders)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Orders -->
+        <a asp-controller="Orders" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Orders" ? "active" : "")" style="font-size: 1.1rem;">
             Orders
-            @if (!Model.HasAccessToOrders)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Orders" asp-action="Index" class="dropdown-item @(!Model.HasAccessToOrders ? "text-muted" : "")">All Order</a>
-            <a asp-controller="Orders" asp-action="Create" class="dropdown-item @(!Model.HasAccessToOrders ? "text-muted" : "")">Create New Order</a>
-        </div>
-    </div>
-
-    <!-- Trips - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Trips" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Trips" ? "active" : "") @(!Model.HasAccessToTrips ? "text-muted" : "")"
-           title="@(!Model.HasAccessToTrips ? "Access restricted - Contact administrator" : "")">
+    }
+    
+    @if (Model.HasAccessToTrips)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Trips -->
+        <a asp-controller="Trips" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Trips" ? "active" : "")" style="font-size: 1.1rem;">
             Trips
-            @if (!Model.HasAccessToTrips)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Trips" asp-action="Index" class="dropdown-item @(!Model.HasAccessToTrips ? "text-muted" : "")">All Trips</a>
-            <a asp-controller="Trips" asp-action="Create" class="dropdown-item @(!Model.HasAccessToTrips ? "text-muted" : "")">Add New Trip</a>
-        </div>
-    </div>
-
-    <!-- Maintenance - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Maintenances" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Maintenances" ? "active" : "") @(!Model.HasAccessToMaintenance ? "text-muted" : "")"
-           title="@(!Model.HasAccessToMaintenance ? "Access restricted - Contact administrator" : "")">
+    }
+    
+    @if (Model.HasAccessToMaintenance)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Maintenance -->
+        <a asp-controller="Maintenances" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Maintenances" ? "active" : "")" style="font-size: 1.1rem;">
             Maintenance
-            @if (!Model.HasAccessToMaintenance)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Maintenances" asp-action="Index" class="dropdown-item @(!Model.HasAccessToMaintenance ? "text-muted" : "")">All Maintenances</a>
-        </div>
-    </div>
-
-    <!-- Vehicles - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Vehicles" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Vehicles" ? "active" : "") @(!Model.HasAccessToVehicles ? "text-muted" : "")" 
-           title="@(!Model.HasAccessToVehicles ? "Access restricted - Contact administrator" : "")">
+    }
+    
+    @if (Model.HasAccessToVehicles)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Vehicles -->
+        <a asp-controller="Vehicles" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Vehicles" ? "active" : "")" style="font-size: 1.1rem;">
             Vehicles
-            @if (!Model.HasAccessToVehicles)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Vehicles" asp-action="Index" class="dropdown-item @(!Model.HasAccessToVehicles ? "text-muted" : "")">All Vehicles</a>
-            <a asp-controller="Vehicles" asp-action="Create" class="dropdown-item @(!Model.HasAccessToVehicles ? "text-muted" : "")">Add New Vehicle</a>
-        </div>
-    </div>
-
-    <!-- Drivers - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Drivers" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Drivers" ? "active" : "") @(!Model.HasAccessToDrivers ? "text-muted" : "")"
-           title="@(!Model.HasAccessToDrivers ? "Access restricted - Contact administrator" : "")">
+    }
+    
+    @if (Model.HasAccessToDrivers)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Drivers -->
+        <a asp-controller="Drivers" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Drivers" ? "active" : "")" style="font-size: 1.1rem;">
             Drivers
-            @if (!Model.HasAccessToDrivers)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Drivers" asp-action="Index" class="dropdown-item @(!Model.HasAccessToDrivers ? "text-muted" : "")">All Drivers</a>
-        </div>
-    </div>
-
-    <!-- Tracking - Always visible, locked based on privileges -->
-    <div class="nav-item dropdown">
-        <a asp-controller="Tracking" asp-action="Index" class="nav-link dropdown-toggle @(Model.CurrentController == "Tracking" ? "active" : "") @(!Model.HasAccessToTracking ? "text-muted" : "")"
-           title="@(!Model.HasAccessToTracking ? "Access restricted - Contact administrator" : "")">
+    }
+    
+    @if (Model.HasAccessToTracking)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Tracking -->
+        <a asp-controller="Tracking" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Tracking" ? "active" : "")" style="font-size: 1.1rem;">
             Tracking
-            @if (!Model.HasAccessToTracking)
-            {
-                <i class="fas fa-lock ms-1" style="font-size: 0.8em;"></i>
-            }
         </a>
-        <div class="dropdown-menu m-0">
-            <a asp-controller="Tracking" asp-action="Index" class="dropdown-item @(!Model.HasAccessToTracking ? "text-muted" : "")">Tracking</a>
-        </div>
-    </div>
+    }
 </div> 

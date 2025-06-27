@@ -1,4 +1,3 @@
-
 .details-heading {
     font-size: 30px;
     font-weight: bold;
@@ -81,3 +80,42 @@
     .details-primary-button:hover {
         background: #004d40;
     }
+
+/* Badge Styles */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.badge-pending {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-in_progress {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-completed {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-low {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-normal {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-high {
+    background-color: #dc3545;
+    color: white;
+}

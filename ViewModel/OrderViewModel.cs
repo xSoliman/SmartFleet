@@ -22,5 +22,8 @@ namespace SmartFleet.ViewModel
         public bool IsFleetManager { get; set; }
         public bool IsSysSupport { get; set; }
         public string? CurrentUserId { get; set; }
+        public bool CanCreateOrder { get; set; }
+
+        public Dictionary<int, string>? ResourceAvailability { get; set; } // OrderId -> "Available"/"Not Available"
     }
 } 

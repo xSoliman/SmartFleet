@@ -3,64 +3,86 @@
     ViewData["Title"] = "Maintenance Details";
 }
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="~/css/pages/maintenance/details.css">
-    
+    <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
 </head>
-
-
-<div class="details-layout-container">
-    <div class="details-form-wrapper">
+<div class="maintenance-layout-container">
+    <div class="maintenance-details-form-wrapper">
         <!-- Navigation Back Button -->
-        <div class="details-navigation">
-            <a asp-action="Index" class="details-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+        <div class="maintenance-navigation">
+            <a asp-action="Index" class="maintenance-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Maintenance
             </a>
         </div>
-
         <!-- Heading -->
-        <h1 class="details-heading">Maintenance Details</h1>
-
+        <h1 class="maintenance-details-heading">Maintenance Details</h1>
         <!-- Display Data -->
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.Vehicle)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.Vehicle.Id)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Vehicle</label>
+            <div class="maintenance-details-display-value">
+                @if (Model.Vehicle != null)
+                {
+                    <span>@Model.Vehicle.LicensePlate - @Model.Vehicle.Model</span>
+                }
+                else
+                {
+                    <span class="text-muted">Vehicle not found</span>
+                }
+            </div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.ReportedUser)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.ReportedUser.Id)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Reported By</label>
+            <div class="maintenance-details-display-value">
+                @if (Model.ReportedUser != null)
+                {
+                    <span>@Model.ReportedUser.UserName (@Model.ReportedUser.Email)</span>
+                }
+                else
+                {
+                    <span class="text-muted">User not found</span>
+                }
+            </div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.RepairStatus)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.RepairStatus)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Issue Description</label>
+            <div class="maintenance-details-display-value">@Model.IssueDescription</div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.Priority)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.Priority)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Repair Status</label>
+            <div class="maintenance-details-display-value">
+                <span class="maintenance-badge-status maintenance-badge-@Model.RepairStatus.ToString().ToLower()">
+                    @Model.RepairStatus.ToString().Replace("_", " ")
+                </span>
+            </div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.RepairedAt)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.RepairedAt)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Priority</label>
+            <div class="maintenance-details-display-value">
+                <span class="maintenance-badge-status maintenance-badge-@Model.Priority.ToString().ToLower()">
+                    @Model.Priority.ToString().Replace("_", " ")
+                </span>
+            </div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.CreatedAt)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.CreatedAt)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Created At</label>
+            <div class="maintenance-details-display-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
         </div>
-
-        <div class="details-display-group">
-            <label class="details-display-label">@Html.DisplayNameFor(model => model.IssueDescription)</label>
-            <div class="details-display-value">@Html.DisplayFor(model => model.IssueDescription)</div>
+        <div class="maintenance-details-display-group">
+            <label class="maintenance-details-display-label">Repaired At</label>
+            <div class="maintenance-details-display-value">
+                @if (Model.RepairedAt.HasValue)
+                {
+                    <span>@Model.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                }
+                else
+                {
+                    <span class="text-muted">Not yet repaired</span>
+                }
+            </div>
         </div>
-
         <!-- Button Group -->
-        <div class="details-button-group">
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="details-primary-button">Edit</a>
+        <div class="maintenance-details-button-group">
+            <a asp-action="Edit" asp-route-id="@Model?.Id" class="maintenance-details-primary-button">Edit</a>
         </div>
     </div>
 </div>

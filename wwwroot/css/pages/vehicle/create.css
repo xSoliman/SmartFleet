@@ -24,7 +24,8 @@
 }
 
 .create-back-link {
-    color: #495057;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     text-decoration: none;
     font-size: 15px;
     font-weight: 500;
@@ -34,13 +35,13 @@
     transition: color 0.2s ease;
     padding: 8px 12px;
     border-radius: 4px;
-    background-color: #e9ecef;
+    
 }
 
 .create-back-link:hover {
-    color: #212529;
+    
     text-decoration: none;
-    background-color: #dee2e6;
+    background-color: #1a9a94;
 }
 
 .create-heading {

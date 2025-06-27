@@ -1,69 +1,121 @@
 ﻿@model SmartFleet.Models.Maintenance
 
 @{
-    ViewData["Title"] = "Create Maintenance";}
+    ViewData["Title"] = "Create Maintenance";
+    
+    // Ensure ViewBag data is available
+    if (ViewBag.VehicleInfo == null)
+    {
+        ViewBag.VehicleInfo = null;
+    }
+    if (ViewBag.UserInfo == null)
+    {
+        ViewBag.UserInfo = null;
+    }
+}
 
-<link rel="stylesheet" href="~/css/pages/maintenance/create.css" />
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
+</head>
 
-<div class="container mt-4">
-    <div class="card shadow-sm rounded">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Create Maintenance</h4>
+<div class="maintenance-layout-container">
+    <div class="maintenance-form-wrapper">
+        <div class="maintenance-navigation">
+            <a asp-action="Index" class="maintenance-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Maintenance
+            </a>
         </div>
-        <div class="card-body">
-            <form asp-action="Create" method="post">
-                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <h1 class="maintenance-heading">Create Maintenance</h1>
+        <form asp-action="Create" method="post" class="maintenance-custom-form">
+            <div asp-validation-summary="All" class="maintenance-validation-message"></div>
 
-                <div class="mb-3">
-                    <label class="form-label">Vehicle ID</label>
-                    <input type="text" class="form-control" value="@Model.VehicleId" readonly />
+            <div class="maintenance-input-group">
+                <label class="maintenance-input-label">Vehicle</label>
+                @if (Model.VehicleId > 0)
+                {
+                    var vehicle = ViewBag.VehicleInfo as SmartFleet.Models.Vehicle;
+                    if (vehicle != null)
+                    {
+                        <input type="text" class="maintenance-input-field" value="@vehicle.LicensePlate - @vehicle.Model" readonly />
+                    }
+                    else
+                    {
+                        <input type="text" class="maintenance-input-field" value="Vehicle ID: @Model.VehicleId (Vehicle not found)" readonly />
+                    }
+                }
+                else
+                {
+                    <select asp-for="VehicleId" class="maintenance-dropdown" asp-items="ViewBag.VehicleId">
+                        <option value="">-- Select Vehicle --</option>
+                    </select>
+                }
                     <input type="hidden" asp-for="VehicleId" />
+                <span asp-validation-for="VehicleId" class="maintenance-validation-message"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Reported By (User ID)</label>
-                    <input type="text" class="form-control" value="@Model.ReportedBy" readonly />
+            <div class="maintenance-input-group">
+                <label class="maintenance-input-label">Reported By</label>
+                @if (!string.IsNullOrEmpty(Model.ReportedBy))
+                {
+                    var user = ViewBag.UserInfo as SmartFleet.Models.ApplicationUser;
+                    if (user != null)
+                    {
+                        <input type="text" class="maintenance-input-field" value="@user.UserName (@user.Email)" readonly />
+                    }
+                    else
+                    {
+                        <input type="text" class="maintenance-input-field" value="User ID: @Model.ReportedBy (User not found)" readonly />
+                    }
+                }
+                else
+                {
+                    <select asp-for="ReportedBy" class="maintenance-dropdown" asp-items="ViewBag.ReportedBy">
+                        <option value="">-- Select User --</option>
+                    </select>
+                }
                     <input type="hidden" asp-for="ReportedBy" />
+                <span asp-validation-for="ReportedBy" class="maintenance-validation-message"></span>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="RepairStatus" class="form-label"></label>
-                        <select asp-for="RepairStatus" class="form-select" asp-items="Html.GetEnumSelectList<RepairState>()"></select>
-                        <span asp-validation-for="RepairStatus" class="text-danger"></span>
+            <div class="maintenance-input-group">
+                <label asp-for="IssueDescription" class="maintenance-input-label">Issue Description</label>
+                <textarea asp-for="IssueDescription" class="maintenance-input-field" rows="3" placeholder="Describe the maintenance issue..."></textarea>
+                <span asp-validation-for="IssueDescription" class="maintenance-validation-message"></span>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Priority" class="form-label"></label>
-                        <select asp-for="Priority" class="form-select" asp-items="Html.GetEnumSelectList<PriorityDegree>()"></select>
-                        <span asp-validation-for="Priority" class="text-danger"></span>
-                    </div>
-                </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="RepairedAt" class="form-label"></label>
-                        <input asp-for="RepairedAt" class="form-control" type="date" />
-                        <span asp-validation-for="RepairedAt" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="CreatedAt" class="form-label"></label>
-                        <input asp-for="CreatedAt" class="form-control" type="date" />
-                        <span asp-validation-for="CreatedAt" class="text-danger"></span>
+            <div class="maintenance-input-row">
+                <div class="maintenance-input-group">
+                    <label asp-for="RepairStatus" class="maintenance-input-label">Repair Status</label>
+                    <select asp-for="RepairStatus" class="maintenance-dropdown" asp-items="Html.GetEnumSelectList<RepairState>()"></select>
+                    <span asp-validation-for="RepairStatus" class="maintenance-validation-message"></span>
+                </div>
+                <div class="maintenance-input-group">
+                    <label asp-for="Priority" class="maintenance-input-label">Priority</label>
+                    <select asp-for="Priority" class="maintenance-dropdown" asp-items="Html.GetEnumSelectList<PriorityDegree>()"></select>
+                    <span asp-validation-for="Priority" class="maintenance-validation-message"></span>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="IssueDescription" class="form-label"></label>
-                    <textarea asp-for="IssueDescription" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="IssueDescription" class="text-danger"></span>
+            <div class="maintenance-input-row">
+                <div class="maintenance-input-group">
+                    <label asp-for="RepairedAt" class="maintenance-input-label">Repaired At (Optional)</label>
+                    <input asp-for="RepairedAt" class="maintenance-input-field" type="datetime-local" />
+                    <span asp-validation-for="RepairedAt" class="maintenance-validation-message"></span>
                 </div>
+                <div class="maintenance-input-group">
+                    <label asp-for="CreatedAt" class="maintenance-input-label">Created At</label>
+                    <input asp-for="CreatedAt" class="maintenance-input-field" type="datetime-local" />
+                    <span asp-validation-for="CreatedAt" class="maintenance-validation-message"></span>
+                </div>
+            </div>
 
-                <div class="text-end">
-                    <button type="submit" class="btn btn-success">Create</button>
-                    <a asp-action="MaintenanceVehicles" class="btn btn-secondary">Back</a>
+            <div class="maintenance-button-group">
+                <button type="submit" class="maintenance-primary-button">
+                    <i class="fas fa-plus"></i> Create Maintenance
+                </button>
                 </div>
             </form>
-        </div>
     </div>
 </div>
 

@@ -19,15 +19,18 @@ namespace SmartFleet.Services
         private readonly SmartFleetContext _context;
         private readonly ILogger<TripStateManagementService> _logger;
         private readonly IVehicleStateManagementService _vehicleStateService;
+        private readonly IDriverStatusManagementService _driverStatusService;
         private readonly INotificationService _notificationService;
         private readonly HashSet<string> _notifiedDrivers = new(); // To avoid duplicate notifications in one run
 
         public TripStateManagementService(SmartFleetContext context, ILogger<TripStateManagementService> logger, 
-            IVehicleStateManagementService vehicleStateService, INotificationService notificationService)
+            IVehicleStateManagementService vehicleStateService, IDriverStatusManagementService driverStatusService,
+            INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
             _vehicleStateService = vehicleStateService;
+            _driverStatusService = driverStatusService;
             _notificationService = notificationService;
         }
 
@@ -56,13 +59,52 @@ namespace SmartFleet.Services
                         
                         // Update vehicle state when trip status changes
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                        
+                        // Update driver state when trip status changes
+                        if (trip.DriverId != null)
+                        {
+                            await _driverStatusService.UpdateSingleDriverStatusAsync(trip.DriverId);
+                            _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {trip.Id} state change");
+                        }
+                        
+                        // Send notification to the order creator about automatic status change
+                        if (trip.Order != null)
+                        {
+                            string statusMessage = "";
+                            string title = "";
+                            
+                            switch (newStatus)
+                            {
+                                case TripState.InProgress:
+                                    title = "Trip Started Automatically";
+                                    statusMessage = "has started automatically based on the scheduled time";
+                                    break;
+                                case TripState.Completed:
+                                    title = "Trip Completed Automatically";
+                                    statusMessage = "has been completed automatically based on the scheduled end time";
+                                    break;
+                                default:
+                                    title = "Trip Status Updated";
+                                    statusMessage = $"status has been updated to {newStatus}";
+                                    break;
+                            }
+                            
+                            await _notificationService.CreateNotificationAsync(
+                                trip.Order.UserId,
+                                title,
+                                $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} {statusMessage}.",
+                                RelatedTable.Trip,
+                                trip.Id
+                            );
+                        }
+                        
                         // If trip just completed or cancelled, reset vehicle geofence to default
                         if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
                         {
                             var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
                             if (vehicle != null)
                             {
-                                var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                                var defaultGeofence = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault);
                                 vehicle.GeofenceId = defaultGeofence?.Id;
                                 _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");
                             }
@@ -150,13 +192,52 @@ namespace SmartFleet.Services
                     
                     // Update vehicle state when trip status changes
                     await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
+                    
+                    // Update driver state when trip status changes
+                    if (trip.DriverId != null)
+                    {
+                        await _driverStatusService.UpdateSingleDriverStatusAsync(trip.DriverId);
+                        _logger.LogInformation($"Updated driver {trip.DriverId} status due to trip {tripId} state change");
+                    }
+                    
+                    // Send notification to the order creator about automatic status change
+                    if (trip.Order != null)
+                    {
+                        string statusMessage = "";
+                        string title = "";
+                        
+                        switch (newStatus)
+                        {
+                            case TripState.InProgress:
+                                title = "Trip Started Automatically";
+                                statusMessage = "has started automatically based on the scheduled time";
+                                break;
+                            case TripState.Completed:
+                                title = "Trip Completed Automatically";
+                                statusMessage = "has been completed automatically based on the scheduled end time";
+                                break;
+                            default:
+                                title = "Trip Status Updated";
+                                statusMessage = $"status has been updated to {newStatus}";
+                                break;
+                        }
+                        
+                        await _notificationService.CreateNotificationAsync(
+                            trip.Order.UserId,
+                            title,
+                            $"Your trip (ID: {trip.Id}) from {trip.Order.StartLocation} to {trip.Order.Destination} {statusMessage}.",
+                            RelatedTable.Trip,
+                            trip.Id
+                        );
+                    }
+                    
                     // If trip just completed or cancelled, reset vehicle geofence to default
                     if (newStatus == TripState.Completed || newStatus == TripState.Cancelled)
                     {
                         var vehicle = await _context.Vehicles.FindAsync(trip.VehicleId);
                         if (vehicle != null)
                         {
-                            var defaultGeofence = await _context.Geofence.FirstOrDefaultAsync(g => g.IsDefault);
+                            var defaultGeofence = await _context.Geofences.FirstOrDefaultAsync(g => g.IsDefault);
                             vehicle.GeofenceId = defaultGeofence?.Id;
                             await _context.SaveChangesAsync();
                             _logger.LogInformation($"Vehicle {vehicle.Id} geofence reset to default after trip {trip.Id} completion/cancellation.");

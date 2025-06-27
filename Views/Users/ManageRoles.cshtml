@@ -1,0 +1,352 @@
+@model List<SmartFleet.ViewModel.UserRoleManagementViewModel>
+
+@{
+    ViewData["Title"] = "Manage User Roles";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/css/pages/users/users.css" rel="stylesheet" />
+
+<div class="users-management-page">
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="text-dark mb-1">
+                            <i class="fas fa-user-cog me-2 text-primary"></i>
+                            Manage User Roles
+                        </h2>
+                        <p class="text-muted mb-0">Add and remove roles for users in the system</p>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Index", "Users")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Back to Users List
+                        </a>
+                        <a href="@Url.Action("CreateRole", "Users")" class="btn btn-info">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Create New Role
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Role Management Table -->
+        <div class="main-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users-cog me-2"></i>
+                    Role Management
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table users-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Current Roles</th>
+                                <th>Add Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@user.UserName</strong>
+                                    </td>
+                                    <td>@user.Email</td>
+                                    <td>
+                                        @if (user.CurrentRoles.Any())
+                                        {
+                                            @foreach (var role in user.CurrentRoles)
+                                            {
+                                                var badgeClass = role switch
+                                                {
+                                                    "SysSupport" => "badge-sys-support",
+                                                    "FleetManager" => "badge-fleet-manager",
+                                                    "Driver" => "badge-driver",
+                                                    "MaintanceManager" => "badge-maintenance",
+                                                    "commissioner" => "badge-commissioner",
+                                                    "NormalUser" => "badge-normal",
+                                                    _ => "badge-default"
+                                                };
+                                                <span class="badge @badgeClass me-1">@role</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-default">No roles</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <form asp-action="AddRole" method="post" class="role-add-form">
+                                            <input type="hidden" name="userId" value="@user.UserId" />
+                                            <div class="d-flex align-items-center gap-2">
+                                                <select name="roleName" class="form-select role-select">
+                                                    <option value="">Select Role</option>
+                                                    @foreach (var role in (List<string>)ViewBag.AllRoles)
+                                                    {
+                                                        @if (!user.CurrentRoles.Contains(role))
+                                                        {
+                                                            <option value="@role">@role</option>
+                                                        }
+                                                    }
+                                                </select>
+                                                <button type="submit" class="btn-action btn-success" title="Add Role">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        @if (user.CurrentRoles.Any())
+                                        {
+                                            <div class="role-remove-actions">
+                                                @foreach (var role in user.CurrentRoles)
+                                                {
+                                                    <form asp-action="RemoveRole" method="post" class="d-inline">
+                                                        <input type="hidden" name="userId" value="@user.UserId" />
+                                                        <input type="hidden" name="roleName" value="@role" />
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm role-remove-btn" 
+                                                                onclick="return confirm('Are you sure you want to remove @role role from @user.UserName?')"
+                                                                title="Remove @role role">
+                                                            <i class="fas fa-times me-1"></i>
+                                                            @role
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No roles to remove</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Roles Info -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="main-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Available System Roles
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="roles-info-grid">
+                            @foreach (var role in (List<string>)ViewBag.AllRoles)
+                            {
+                                var badgeClass = role switch
+                                {
+                                    "SysSupport" => "badge-sys-support",
+                                    "FleetManager" => "badge-fleet-manager",
+                                    "Driver" => "badge-driver",
+                                    "MaintanceManager" => "badge-maintenance",
+                                    "commissioner" => "badge-commissioner",
+                                    "NormalUser" => "badge-normal",
+                                    _ => "badge-default"
+                                };
+                                
+                                var roleDescription = role switch
+                                {
+                                    "SysSupport" => "System Support - Full permissions",
+                                    "FleetManager" => "Fleet Manager - Manage vehicles and trips",
+                                    "Driver" => "Driver - Execute assigned trips",
+                                    "MaintanceManager" => "Maintenance Manager - Vehicle maintenance",
+                                    "commissioner" => "Commissioner - Approve/reject requests",
+                                    "NormalUser" => "Normal User - Create requests",
+                                    _ => "Custom Role"
+                                };
+
+                                var roleIcon = role switch
+                                {
+                                    "SysSupport" => "fas fa-crown",
+                                    "FleetManager" => "fas fa-users-cog",
+                                    "Driver" => "fas fa-id-card",
+                                    "MaintanceManager" => "fas fa-tools",
+                                    "commissioner" => "fas fa-stamp",
+                                    "NormalUser" => "fas fa-user",
+                                    _ => "fas fa-user-tag"
+                                };
+
+                                <div class="role-info-card">
+                                    <div class="role-header">
+                                        <div class="role-icon">
+                                            <i class="@roleIcon"></i>
+                                        </div>
+                                        <span class="badge @badgeClass">@role</span>
+                                    </div>
+                                    <p class="role-description">@roleDescription</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Role Add Form */
+    .role-add-form {
+        max-width: 250px;
+    }
+
+    .role-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        min-width: 150px;
+        transition: all 0.3s ease;
+    }
+
+    .role-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+    }
+
+    /* Role Remove Actions */
+    .role-remove-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .role-remove-btn {
+        border-radius: 20px;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        transition: all 0.3s ease;
+        border: 1px solid #dc3545;
+    }
+
+    .role-remove-btn:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* Roles Info Grid */
+    .roles-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .role-info-card {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .role-info-card:hover {
+        border-color: #0d6efd;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .role-info-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .role-icon {
+        font-size: 1.5rem;
+        color: #6c757d;
+    }
+
+    .role-badge {
+        font-size: 0.9rem;
+    }
+
+    .role-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .role-add-form {
+            max-width: 100%;
+        }
+
+        .role-add-form .d-flex {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .role-select {
+            min-width: auto;
+            width: 100%;
+        }
+
+        .role-remove-actions {
+            flex-direction: column;
+        }
+
+        .role-remove-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .roles-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .users-table {
+            font-size: 0.8rem;
+        }
+
+        .users-table td,
+        .users-table th {
+            padding: 8px 6px;
+        }
+
+        .role-info-card {
+            padding: 15px;
+        }
+    }
+</style> 

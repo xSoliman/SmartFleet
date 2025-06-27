@@ -4,6 +4,8 @@ using SmartFleet.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
+using SmartFleet.Hubs;
 
 namespace SmartFleet.Services
 {
@@ -19,11 +21,14 @@ namespace SmartFleet.Services
     {
         private readonly SmartFleetContext _context;
         private readonly ILogger<DriverStatusManagementService> _logger;
+        private readonly IHubContext<NotificationHub> _notificationHub;
 
-        public DriverStatusManagementService(SmartFleetContext context, ILogger<DriverStatusManagementService> logger)
+        public DriverStatusManagementService(SmartFleetContext context, ILogger<DriverStatusManagementService> logger, 
+            IHubContext<NotificationHub> notificationHub)
         {
             _context = context;
             _logger = logger;
+            _notificationHub = notificationHub;
         }
 
         /// <summary>
@@ -72,7 +77,28 @@ namespace SmartFleet.Services
                 if (originalStatus != newStatus)
                 {
                     driver.DriverStatus = newStatus;
+                    await _context.SaveChangesAsync();
                     _logger.LogInformation($"Driver {driver.UserName} status changed from {originalStatus} to {newStatus}");
+                    
+                    // Send real-time notification about driver state change
+                    var driverUpdateData = new
+                    {
+                        DriverId = driver.Id,
+                        DriverName = driver.UserName,
+                        OldStatus = originalStatus.ToString(),
+                        NewStatus = newStatus.ToString(),
+                        Timestamp = DateTime.Now,
+                        Message = $"Driver {driver.UserName} status changed from {originalStatus} to {newStatus}"
+                    };
+                    
+                    // Send to all connected clients
+                    await _notificationHub.Clients.All.SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send specific notification to the driver
+                    await _notificationHub.Clients.Group($"User_{driver.Id}").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send to fleet managers group
+                    await _notificationHub.Clients.Group("FleetManagers").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
                 }
             }
             catch (Exception ex)
@@ -98,6 +124,8 @@ namespace SmartFleet.Services
                     return;
                 }
 
+                var originalStatus = driver.DriverStatus;
+                
                 // Check if driver has any active trips (Scheduled or InProgress)
                 var hasScheduledTrips = driver.Trips?.Any(t => t.Status == TripState.Scheduled) ?? false;
                 var hasInProgressTrips = driver.Trips?.Any(t => t.Status == TripState.InProgress) ?? false;
@@ -113,6 +141,30 @@ namespace SmartFleet.Services
                     driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Driver {driver.UserName} status set to AssignedOnScheduledTrip due to scheduled trip");
+                }
+                
+                // Send real-time notification if status changed
+                if (originalStatus != driver.DriverStatus)
+                {
+                    var driverUpdateData = new
+                    {
+                        DriverId = driver.Id,
+                        DriverName = driver.UserName,
+                        OldStatus = originalStatus.ToString(),
+                        NewStatus = driver.DriverStatus.ToString(),
+                        Timestamp = DateTime.Now,
+                        Message = $"Driver {driver.UserName} assigned to trip - Status: {driver.DriverStatus}",
+                        TripAssignment = true
+                    };
+                    
+                    // Send to all connected clients
+                    await _notificationHub.Clients.All.SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send specific notification to the driver
+                    await _notificationHub.Clients.Group($"User_{driver.Id}").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send to fleet managers group
+                    await _notificationHub.Clients.Group("FleetManagers").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
                 }
             }
             catch (Exception ex)
@@ -138,6 +190,8 @@ namespace SmartFleet.Services
                     return;
                 }
 
+                var originalStatus = driver.DriverStatus;
+                
                 // Check if driver still has any active trips
                 var hasScheduledTrips = driver.Trips?.Any(t => t.Status == TripState.Scheduled) ?? false;
                 var hasInProgressTrips = driver.Trips?.Any(t => t.Status == TripState.InProgress) ?? false;
@@ -156,6 +210,30 @@ namespace SmartFleet.Services
                     driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Driver {driver.UserName} status set to AssignedOnScheduledTrip after in-progress trip completion");
+                }
+                
+                // Send real-time notification if status changed
+                if (originalStatus != driver.DriverStatus)
+                {
+                    var driverUpdateData = new
+                    {
+                        DriverId = driver.Id,
+                        DriverName = driver.UserName,
+                        OldStatus = originalStatus.ToString(),
+                        NewStatus = driver.DriverStatus.ToString(),
+                        Timestamp = DateTime.Now,
+                        Message = $"Driver {driver.UserName} trip completed - Status: {driver.DriverStatus}",
+                        TripCompletion = true
+                    };
+                    
+                    // Send to all connected clients
+                    await _notificationHub.Clients.All.SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send specific notification to the driver
+                    await _notificationHub.Clients.Group($"User_{driver.Id}").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
+                    
+                    // Send to fleet managers group
+                    await _notificationHub.Clients.Group("FleetManagers").SendAsync("ReceiveDriverStateUpdate", driverUpdateData);
                 }
             }
             catch (Exception ex)

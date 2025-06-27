@@ -16,6 +16,7 @@
             <a href="/Geofences" class="dashboard-card card text-center shadow-sm p-4 h-100">
                 <i class="fas fa-map-marker-alt fa-3x text-info mb-2"></i>
                 <h5>Geofences</h5>
+                <span class="fs-4 fw-bold">@ViewBag.GeofencesCount</span>
             </a>
         </div>
         <div class="col-md-6 col-lg-3">
@@ -60,13 +61,16 @@
                 <span class="fs-4 fw-bold">@ViewBag.NotificationsCount</span>
             </a>
         </div>
-        <div class="col-md-6 col-lg-3">
-            <a href="/Account/MyAccount" class="dashboard-card card text-center shadow-sm p-4 h-100">
-                <i class="fas fa-users fa-3x text-dark mb-2"></i>
-                <h5>Users</h5>
-                <span class="fs-4 fw-bold">@ViewBag.UserCount</span>
-            </a>
-        </div>
+        @if (User.IsInRole("SysSupport"))
+        {
+            <div class="col-md-6 col-lg-3">
+                <a href="/Users" class="dashboard-card card text-center shadow-sm p-4 h-100">
+                    <i class="fas fa-users-cog fa-3x text-purple mb-2"></i>
+                    <h5>User Management</h5>
+                    <span class="fs-4 fw-bold">@ViewBag.UserCount</span>
+                </a>
+            </div>
+        }
         <div class="col-md-6 col-lg-3">
             <a href="/Events" class="dashboard-card card text-center shadow-sm p-4 h-100">
                 <i class="fas fa-history fa-3x text-info mb-2"></i>
@@ -157,6 +161,9 @@
 }
 .dashboard-card span {
     color: #222;
+}
+.text-purple {
+    color: #6f42c1 !important;
 }
 </style>
 @section Scripts {

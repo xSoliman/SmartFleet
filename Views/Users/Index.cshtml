@@ -1,0 +1,226 @@
+@model SmartFleet.ViewModel.UserManagementViewModel
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "_Layout";
+}
+
+<link rel="stylesheet" href="~/css/pages/users/users.css" />
+
+<div class="users-management-page">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0 text-dark">User Management</h2>
+            <div class="action-buttons">
+                <a asp-action="CreateUser" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Create User
+                </a>
+                <a asp-action="CreateRole" class="btn btn-success">
+                    <i class="fas fa-plus-circle me-2"></i>Create Role
+                </a>
+                <a asp-action="ManageRoles" class="btn btn-info">
+                    <i class="fas fa-cogs me-2"></i>Manage Roles
+                </a>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-2"></i>
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card total-users">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="number">@Model.TotalUsers</div>
+                        <p class="label">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card active-users">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="number">@Model.ActiveUsers</div>
+                        <p class="label">Active Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card inactive-users">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-user-times"></i>
+                        </div>
+                        <div class="number">@Model.InactiveUsers</div>
+                        <p class="label">Inactive Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card drivers">
+                    <div class="card-body">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div class="number">@Model.DriversCount</div>
+                        <p class="label">Drivers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card main-card">
+            <div class="card-header">
+                <h5><i class="fas fa-list me-2"></i>Users List</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table users-table mb-0">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-user me-1"></i>User</th>
+                                <th><i class="fas fa-envelope me-1"></i>Email</th>
+                                <th><i class="fas fa-phone me-1"></i>Phone</th>
+                                <th><i class="fas fa-id-badge me-1"></i>Roles</th>
+                                <th><i class="fas fa-toggle-on me-1"></i>Status</th>
+                                <th><i class="fas fa-info-circle me-1"></i>Driver Info</th>
+                                <th><i class="fas fa-tools me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model.Users)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="fw-bold">@user.UserName</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-break">@user.Email</td>
+                                    <td>@user.PhoneNumber</td>
+                                    <td>
+                                        @if (Model.UserRoles.ContainsKey(user.Id))
+                                        {
+                                            @foreach (var role in Model.UserRoles[user.Id])
+                                            {
+                                                var badgeClass = role.ToLower() switch
+                                                {
+                                                    "syssupport" => "badge-sys-support",
+                                                    "fleetmanager" => "badge-fleet-manager",
+                                                    "driver" => "badge-driver",
+                                                    "maintenancemanager" => "badge-maintenance",
+                                                    "commissioner" => "badge-commissioner",
+                                                    "normal" => "badge-normal",
+                                                    _ => "badge-default"
+                                                };
+                                                <span class="badge @badgeClass">@role</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-default">No Roles</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="status-badge active">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge inactive">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (Model.DriverDetails.ContainsKey(user.Id))
+                                        {
+                                            var driver = Model.DriverDetails[user.Id];
+                                            <div class="driver-info">
+                                                <div><strong>License:</strong> @driver.LicenseNumber</div>
+                                                <div><strong>Expiry:</strong> @driver.LicenseExpiryDate?.ToString("MMM dd, yyyy")</div>
+                                                <div><strong>Status:</strong> @driver.DriverStatus</div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons-group">
+                                            <form asp-action="ToggleAccountStatus" method="post" style="display: inline;">
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                @if (user.IsActive)
+                                                {
+                                                    <button type="submit" class="btn btn-action btn-warning" title="Deactivate">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="submit" class="btn btn-action btn-success" title="Activate">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                }
+                                            </form>
+                                            <form asp-action="DeleteUser" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                <button type="submit" class="btn btn-action btn-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple counter animation
+    document.addEventListener('DOMContentLoaded', function() {
+        const numbers = document.querySelectorAll('.stats-card .number');
+        numbers.forEach(function(number) {
+            const target = parseInt(number.textContent);
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(function() {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                number.textContent = Math.floor(current);
+            }, 20);
+        });
+    });
+</script> 

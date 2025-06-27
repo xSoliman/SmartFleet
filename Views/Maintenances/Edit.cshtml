@@ -6,104 +6,97 @@
 
     var repairStatusList = Html.GetEnumSelectList<RepairState>();
     var priorityList = Html.GetEnumSelectList<PriorityDegree>();
+    
+    // Ensure ViewBag data is available
+    if (ViewBag.VehicleInfo == null)
+    {
+        ViewBag.VehicleInfo = null;
+    }
+    if (ViewBag.UserInfo == null)
+    {
+        ViewBag.UserInfo = null;
+    }
 }
 <head>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="~/css/pages/maintenance/edit.css">
+    <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
     
 </head>
 
 
-<div class="edit-layout-container">
-    <div class="edit-form-wrapper">
-        <div class="edit-navigation">
-            <a asp-action="Index" class="edit-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+<div class="maintenance-layout-container">
+    <div class="maintenance-form-wrapper">
+        <div class="maintenance-navigation">
+            <a asp-action="Index" class="maintenance-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Maintenance
             </a>
         </div>
 
-        <h1 class="edit-heading">Edit Maintenance</h1>
+        <h1 class="maintenance-heading">Edit Maintenance</h1>
 
-        <form asp-action="Edit" class="edit-custom-form">
-            <div asp-validation-summary="ModelOnly" class="edit-validation-message"></div>
+        <form asp-action="Edit" class="maintenance-custom-form">
+            <div asp-validation-summary="All" class="maintenance-validation-message"></div>
             <input type="hidden" asp-for="Id" />
 
             
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="VehicleId" class="edit-input-label"></label>
-                        <select asp-for="VehicleId" class="edit-dropdown" asp-items="ViewBag.VehicleId"></select>
-                        <span asp-validation-for="VehicleId" class="edit-validation-message"></span>
-                    </div>
+            <div class="maintenance-input-group">
+                <label class="maintenance-input-label">Vehicle</label>
+                <select asp-for="VehicleId" class="maintenance-dropdown" asp-items="ViewBag.VehicleId">
+                    <option value="">-- Select Vehicle --</option>
+                </select>
+                <span asp-validation-for="VehicleId" class="maintenance-validation-message"></span>
+            </div>
+
+            <div class="maintenance-input-group">
+                <label class="maintenance-input-label">Reported By</label>
+                <select asp-for="ReportedBy" class="maintenance-dropdown" asp-items="ViewBag.ReportedBy">
+                    <option value="">-- Select User --</option>
+                </select>
+                <span asp-validation-for="ReportedBy" class="maintenance-validation-message"></span>
+            </div>
+
+            <div class="maintenance-input-group">
+                <label asp-for="IssueDescription" class="maintenance-input-label">Issue Description</label>
+                <textarea asp-for="IssueDescription" class="maintenance-input-field" rows="3" placeholder="Describe the maintenance issue..."></textarea>
+                <span asp-validation-for="IssueDescription" class="maintenance-validation-message"></span>
+            </div>
+
+            <div class="maintenance-input-row">
+                <div class="maintenance-input-group">
+                    <label asp-for="RepairStatus" class="maintenance-input-label">Repair Status</label>
+                    <select asp-for="RepairStatus" class="maintenance-dropdown" asp-items="repairStatusList"></select>
+                    <span asp-validation-for="RepairStatus" class="maintenance-validation-message"></span>
                 </div>
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="ReportedBy" class="edit-input-label"></label>
-                        <select asp-for="ReportedBy" class="edit-dropdown" asp-items="ViewBag.ReportedBy"></select>
-                        <span asp-validation-for="ReportedBy" class="edit-validation-message"></span>
-                    </div>
+                <div class="maintenance-input-group">
+                    <label asp-for="Priority" class="maintenance-input-label">Priority</label>
+                    <select asp-for="Priority" class="maintenance-dropdown" asp-items="priorityList"></select>
+                    <span asp-validation-for="Priority" class="maintenance-validation-message"></span>
                 </div>
             </div>
 
-
-
-
-
-
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="RepairStatus" class="edit-input-label"></label>
-                        <select asp-for="RepairStatus" class="edit-dropdown" asp-items="repairStatusList"></select>
-                        <span asp-validation-for="RepairStatus" class="edit-validation-message"></span>
-                    </div>
+            <div class="maintenance-input-row">
+                <div class="maintenance-input-group">
+                    <label asp-for="RepairedAt" class="maintenance-input-label">Repaired At (Optional)</label>
+                    <input asp-for="RepairedAt" class="maintenance-input-field" type="datetime-local" />
+                    <span asp-validation-for="RepairedAt" class="maintenance-validation-message"></span>
                 </div>
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="Priority" class="edit-input-label"></label>
-                        <select asp-for="Priority" class="edit-dropdown" asp-items="priorityList"></select>
-                        <span asp-validation-for="Priority" class="edit-validation-message"></span>
-                    </div>
+                <div class="maintenance-input-group">
+                    <label asp-for="CreatedAt" class="maintenance-input-label">Created At</label>
+                    <input asp-for="CreatedAt" class="maintenance-input-field" type="datetime-local" />
+                    <span asp-validation-for="CreatedAt" class="maintenance-validation-message"></span>
                 </div>
             </div>
 
-
-
-           
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="RepairedAt" class="edit-input-label"></label>
-                        <input asp-for="RepairedAt" class="edit-input-field" />
-                        <span asp-validation-for="RepairedAt" class="edit-validation-message"></span>
-                    </div>
-                </div>
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="CreatedAt" class="edit-input-label"></label>
-                        <input asp-for="CreatedAt" class="edit-input-field" />
-                        <span asp-validation-for="CreatedAt" class="edit-validation-message"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="edit-input-group">
-                <label asp-for="IssueDescription" class="edit-input-label"></label>
-                <textarea asp-for="IssueDescription" class="edit-input-field" rows="2" ></textarea>
-                <span asp-validation-for="IssueDescription" class="edit-validation-message"></span>
-            </div>
-
-            <div class="edit-button-group">
-                <input type="submit" value="Save" class="edit-primary-button" />
+            <div class="maintenance-button-group">
+                <button type="submit" class="maintenance-primary-button">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

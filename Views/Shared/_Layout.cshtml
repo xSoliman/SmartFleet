@@ -36,7 +36,7 @@
 
     <!-- Navbar & Hero Start -->
     <div id="sf-header">
-        <div class="container-fluid nav-bar sticky-top px-0 py-2 sf-navbar">
+        <div class="container-fluid nav-bar sticky-top px-0 py-0 sf-navbar">
             <div class="container">
                 <nav class="navbar navbar-expand-xl navbar-light">
                     <div class="d-flex align-items-center">
@@ -104,9 +104,10 @@
     <!-- Template Javascript -->
     <script src="~/js/home.js"></script>
     <script src="~/js/notification.js"></script>
+    <script src="~/js/site.js"></script>
 
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 
 </html>
-@await RenderSectionAsync("Scripts", required: false)
 

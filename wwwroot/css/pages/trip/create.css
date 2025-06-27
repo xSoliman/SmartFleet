@@ -122,8 +122,8 @@
 }
 
 .create-primary-button {
-    background: linear-gradient(135deg, #13a013 0%, #0f8a0f 100%);
-    color: white !important;
+    background-color: #20B2AA;
+    color: #ffffff !important;
     border: none;
     padding: 12px 24px;
     border-radius: 6px;
@@ -138,7 +138,7 @@
 }
 
 .create-primary-button:hover {
-    background: linear-gradient(135deg, #0f8a0f 0%, #0d7a0d 100%);
+    background-color: #1a9a94;
     transform: translateY(-1px);
     box-shadow: 0 5px 15px rgba(19, 160, 19, 0.4);
     color: white !important;
@@ -426,11 +426,11 @@
     font-size: 12px;
 }
 
-/* Responsive Design */
+/* Responsive adjustments */
 @media (max-width: 768px) {
     .create-form-wrapper {
         padding: 15px;
-        margin: 8px;
+        margin: 10px;
     }
     
     .flex-row {
@@ -446,20 +446,17 @@
     }
     
     .create-section {
-        padding: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     
     .create-layout-container {
-        margin-bottom: 25px;
+        padding: 5px;
     }
 }
 
-/* Animation for form elements */
 .create-input-group {
-    animation: fadeInUp 0.6s ease forwards;
-    opacity: 0;
-    transform: translateY(20px);
+    margin-bottom: 8px;
+    position: relative;
 }
 
 .create-input-group:nth-child(1) { animation-delay: 0.1s; }
@@ -470,48 +467,50 @@
 .create-input-group:nth-child(6) { animation-delay: 0.6s; }
 
 @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* Enhanced dropdown styling */
 .create-dropdown {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 14px;
-    padding-right: 30px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #e1e8ed;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+    line-height: 1.4;
 }
 
-/* Loading state for submit button */
 .create-primary-button:disabled {
-    background: #95a5a6;
+    background-color: #6c757d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
 
-/* Success state styling */
 .create-input-field.is-valid,
 .create-dropdown.is-valid {
-    border-color: #13a013;
-    background: #f8fff8;
+    border-color: #28a745;
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
 }
 
 .create-input-field.is-invalid,
 .create-dropdown.is-invalid {
-    border-color: #e74c3c;
-    background: #fff8f8;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
 }
 
-/* Responsive improvements */
 @media (max-width: 576px) {
     .create-button-group {
         flex-direction: column;
-        width: 100%;
+        gap: 10px;
     }
     
     .create-secondary-button,
@@ -521,17 +520,15 @@
     }
     
     .route-info {
-        padding: 6px;
+        flex-direction: column;
     }
     
     .route-point {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 3px;
+        margin-bottom: 5px;
     }
     
     .route-label {
         min-width: auto;
-        margin-right: 0;
+        margin-right: 10px;
     }
 }
