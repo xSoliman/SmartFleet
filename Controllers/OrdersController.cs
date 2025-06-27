@@ -137,10 +137,10 @@ namespace SmartFleet.Controllers
                 orders = orders.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
             }
 
-            // Sort by priority: Approved orders without trips first, then pending orders, then others
+            // Sort by priority: Pending orders first, then approved orders without trips, then others
             // Within each group, sort by CreatedAt ascending (oldest first)
-            orders = orders.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 : 
-                                        o.Status == OrderState.Pending ? 1 : 2)
+            orders = orders.OrderBy(o => o.Status == OrderState.Pending ? 0 : 
+                                        o.Status == OrderState.Approved && o.Trip == null ? 1 : 2)
                            .ThenBy(o => o.CreatedAt);
 
             var viewModel = new OrderViewModel
@@ -157,7 +157,8 @@ namespace SmartFleet.Controllers
                 IsCommissioner = isCommissioner,
                 IsFleetManager = isFleetManager,
                 IsSysSupport = isSysSupport,
-                CurrentUserId = currentUser.Id
+                CurrentUserId = currentUser.Id,
+                CanCreateOrder = await _userRoleService.CanCreateOrder(currentUser)
             };
 
             // Populate resource availability for commissioner

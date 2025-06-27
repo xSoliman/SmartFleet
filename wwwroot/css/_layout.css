@@ -330,7 +330,7 @@ body {
     min-width: 18px;
     height: 18px;
     transform: translate(-50%, -50%) !important;
-    top: 0 !important;
+    top: 2px !important;
     right: -5px !important;
     left: auto !important;
     border-radius: 50%;

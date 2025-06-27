@@ -115,13 +115,15 @@
                 @if (Model.Status == SmartFleet.Models.OrderState.Pending)
                 {
                     <form asp-action="Approve" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        <button type="submit" class="details-primary-button btn-success" 
+                        <button type="submit" class="btn btn-sm btn-success text-white" 
+                                style="padding: 0.15rem 0.4rem;"
                                 onclick="return confirm('Are you sure you want to approve this order?')">
                             <i class="fas fa-check"></i> Approve Order
                         </button>
                     </form>
                     <form asp-action="Reject" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        <button type="submit" class="details-primary-button btn-danger" 
+                        <button type="submit" class="btn btn-sm btn-danger text-white" 
+                                style="padding: 0.15rem 0.4rem;"
                                 onclick="return confirm('Are you sure you want to reject this order?')">
                             <i class="fas fa-times"></i> Reject Order
                         </button>
@@ -136,14 +138,14 @@
                     @if (Model.Trip != null)
                     {
                         <!-- Trip already exists -->
-                        <span class="details-primary-button btn-secondary disabled">
+                        <span class="btn btn-sm btn-secondary disabled" style="padding: 0.15rem 0.4rem;">
                             <i class="fas fa-check-circle"></i> Trip Created
                         </span>
                     }
                     else
                     {
                         <!-- No trip exists, can create one -->
-                        <a asp-controller="Trips" asp-action="Create" asp-route-id="@Model.Id" asp-route-userId="@Model.UserId" class="details-primary-button btn-success">
+                        <a asp-controller="Trips" asp-action="Create" asp-route-id="@Model.Id" asp-route-userId="@Model.UserId" class="btn btn-sm btn-success text-white" style="padding: 0.15rem 0.4rem;">
                             <i class="fas fa-route"></i> Create Trip
                         </a>
                     }
@@ -152,7 +154,7 @@
             else
             {
                 <!-- Other roles can edit orders -->
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="details-primary-button">Edit</a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem;">Edit</a>
             }
         </div>
 

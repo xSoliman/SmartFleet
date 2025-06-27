@@ -49,7 +49,7 @@
     display: none;
     position: absolute;
     top: 100%;
-    left: -120px;
+    left: -180px;
     z-index: 1000;
     background: white;
 }
@@ -72,12 +72,12 @@
     text-overflow: ellipsis;
     margin: 0;
     flex: 1;
-    padding-left: 5rem;
+
 }
 
 .notification-header-section .btn {
     margin-left: auto;
-    margin-right: -2.5rem;
+
     flex-shrink: 0;
     font-weight: 600;
 }

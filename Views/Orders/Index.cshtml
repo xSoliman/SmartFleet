@@ -26,11 +26,14 @@
     </div>
 }
 
-<p class="add-order">
-    <a asp-action="Create" class="btn btn-add-car">
-        <i class="fas fa-plus driver-icon"></i> Make Order
-    </a>
-</p>
+@if (Model.CanCreateOrder)
+{
+    <p class="add-order">
+        <a asp-action="Create" class="btn btn-add-car">
+            <i class="fas fa-plus driver-icon"></i> Make Order
+        </a>
+    </p>
+}
 
 <div class="order-filter-bar">
     <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
@@ -101,8 +104,7 @@
                 }
                 <th>Vehicle Type</th>
                 <th>Passengers</th>
-                <th>Start Location</th>
-                <th>End Location</th>
+                <th>Destination</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 @if (Model.IsCommissioner)
@@ -111,7 +113,7 @@
                 }
                 <th>Status</th>
                 <th>Created At</th>
-                <th>Actions</th>
+                <th style="width: 300px;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -124,7 +126,6 @@
                     }
                     <td>@item.VehicleType</td>
                     <td>@item.PassengerCount</td>
-                    <td>@item.StartLocation</td>
                     <td>@item.Destination</td>
                     <td>@item.TripStartDate.ToShortDateString()</td>
                     <td>@item.TripEndDate.ToShortDateString()</td>
@@ -163,24 +164,21 @@
                     </td>
                     <td>@item.CreatedAt.ToShortDateString()</td>
                     <td>
-                        <!-- Details - Available for all users -->
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                        
                         @if (Model.IsCommissioner)
                         {
                             <!-- Commissioner can only approve/reject pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
                             {
                                 <form asp-action="Approve" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-success" 
+                                    <button type="submit" class="btn btn-sm btn-success text-white" 
+                                            style="padding: 0.1rem 0.4rem; margin-right: 5px;"
                                             onclick="return confirm('Are you sure you want to approve this order?')">
                                         <i class="fas fa-check"></i> Approve
                                     </button>
                                 </form>
                                 <form asp-action="Reject" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-danger" 
+                                    <button type="submit" class="btn btn-sm btn-danger text-white" 
+                                            style="padding: 0.1rem 0.4rem; margin-right: 5px;"
                                             onclick="return confirm('Are you sure you want to reject this order?')">
                                         <i class="fas fa-times"></i> Reject
                                     </button>
@@ -195,14 +193,14 @@
                                 @if (item.Trip != null)
                                 {
                                     <!-- Trip already exists -->
-                                    <span class="btn btn-secondary disabled">
+                                    <span class="btn btn-sm btn-secondary disabled" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
                                         <i class="fas fa-check-circle"></i> Trip Created
                                     </span>
                                 }
                                 else
                                 {
                                     <!-- No trip exists, can create one -->
-                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-success">
+                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-sm btn-success text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
                                         <i class="fas fa-route"></i> Create Trip
                                     </a>
                                 }
@@ -211,17 +209,18 @@
                         else if (Model.IsSysSupport)
                         {
                             <!-- SysSupport can edit, delete, and cancel only their own orders -->
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
-                                <i class="fas fa-trash-alt deleted_icon"></i>
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
+                                <i class="fas fa-trash-alt"></i> Delete
                             </a>
                             <!-- SysSupport can only cancel their own pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending && item.UserId == Model.CurrentUserId)
                             {
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-warning" 
+                                    <button type="submit" class="btn btn-sm btn-warning text-white" 
+                                            style="padding: 0.15rem 0.4rem; margin-right: 5px;"
                                             onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
@@ -233,17 +232,23 @@
                             <!-- NormalUser, Driver, MaintenanceManager can only edit/cancel pending orders -->
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
                             {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem; margin-right: 5px;">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-warning" 
+                                    <button type="submit" class="btn btn-sm btn-warning text-white" 
+                                            style="padding: 0.15rem 0.4rem; margin-right: 5px;"
                                             onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
                             }
                         }
+                        
+                        <!-- Details - Available for all users -->
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-details" style="padding: 0.15rem 0.4rem;">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
                     </td>
                 </tr>
             }
