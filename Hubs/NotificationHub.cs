@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace SmartFleet.Hubs
 {
-    [Authorize]
     public class NotificationHub : Hub
     {
         // This class can be used to send notifications to connected clients.
@@ -13,12 +15,70 @@ namespace SmartFleet.Hubs
 
         public override async Task OnConnectedAsync()
         {
+            Console.WriteLine($"🔔 SignalR Connection Attempt - Connection ID: {Context.ConnectionId}");
+            Console.WriteLine($"🔔 User Identity: {Context.User?.Identity?.Name ?? "NULL"}");
+            Console.WriteLine($"🔔 User Authenticated: {Context.User?.Identity?.IsAuthenticated ?? false}");
+            
+            // Try to get token from query string if user is not authenticated
+            if (Context.User?.Identity?.IsAuthenticated != true)
+            {
+                var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+                Console.WriteLine($"🔔 Token from query: {(!string.IsNullOrEmpty(token) ? "FOUND" : "NULL")}");
+                
+                if (!string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        // Manual JWT validation (simplified for SignalR)
+                        var handler = new JwtSecurityTokenHandler();
+                        var jsonToken = handler.ReadJwtToken(token);
+                        
+                        var jwtUserId = jsonToken.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+                        var jwtUserName = jsonToken.Claims.FirstOrDefault(x => x.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value;
+                        
+                        Console.WriteLine($"🔔 JWT User ID: {jwtUserId ?? "NULL"}");
+                        Console.WriteLine($"🔔 JWT User Name: {jwtUserName ?? "NULL"}");
+                        
+                        if (!string.IsNullOrEmpty(jwtUserId))
+                        {
+                            // Add user to their personal group for targeted notifications
+                            await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{jwtUserId}");
+                            
+                            // Add to all users group for broadcast notifications
+                            await Groups.AddToGroupAsync(Context.ConnectionId, "AllUsers");
+                            
+                            Console.WriteLine($"✅ JWT User {jwtUserName} (ID: {jwtUserId}) connected to notification hub with connection {Context.ConnectionId}");
+                            await base.OnConnectedAsync();
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ JWT Token validation failed: {ex.Message}");
+                    }
+                }
+            }
+            
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+            
+            Console.WriteLine($"🔔 User ID: {userId ?? "NULL"}");
+            Console.WriteLine($"🔔 User Name: {userName ?? "NULL"}");
+            
             if (!string.IsNullOrEmpty(userId))
             {
                 // Add user to their personal group for targeted notifications
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"User_{userId}");
-                Console.WriteLine($"User {userId} connected to notification hub");
+                
+                // Add to all users group for broadcast notifications
+                await Groups.AddToGroupAsync(Context.ConnectionId, "AllUsers");
+                
+                Console.WriteLine($"✅ User {userName} (ID: {userId}) connected to notification hub with connection {Context.ConnectionId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ Anonymous user attempted to connect to notification hub with connection {Context.ConnectionId}");
+                // Don't reject connection, just don't add to groups
             }
             
             await base.OnConnectedAsync();

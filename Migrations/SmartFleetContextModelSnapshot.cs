@@ -271,6 +271,43 @@ namespace SmartFleet.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("SmartFleet.Models.Geofence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CenterLat")
+                        .HasColumnType("decimal(9, 6)");
+
+                    b.Property<decimal>("CenterLng")
+                        .HasColumnType("decimal(9, 6)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PolygonJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("RadiusMeters")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Geofences");
+                });
+
             modelBuilder.Entity("SmartFleet.Models.Maintenance", b =>
                 {
                     b.Property<int>("Id")
@@ -414,26 +451,21 @@ namespace SmartFleet.Migrations
 
                     b.Property<string>("Carrier")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SimNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("VehicleId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("VehicleId")
-                        .IsUnique()
-                        .HasFilter("[VehicleId] IS NOT NULL");
 
                     b.ToTable("SimCards");
                 });
@@ -445,6 +477,9 @@ namespace SmartFleet.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -463,6 +498,9 @@ namespace SmartFleet.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("OrderId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -472,12 +510,17 @@ namespace SmartFleet.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApplicationUserId");
+
                     b.HasIndex("CreatedBy");
 
                     b.HasIndex("DriverId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("OrderId1")
+                        .IsUnique()
+                        .HasFilter("[OrderId1] IS NOT NULL");
 
                     b.HasIndex("VehicleId");
 
@@ -498,29 +541,50 @@ namespace SmartFleet.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("Distance")
-                        .HasColumnType("decimal(9, 6)");
+                    b.Property<int?>("GeofenceId")
+                        .HasColumnType("int");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Model")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("RegistrationExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("SimCardId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("TotalDistanceTraveled")
+                        .HasColumnType("decimal(9, 6)");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("VehicleImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("WasInsideGeofence")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("GeofenceId");
+
+                    b.HasIndex("SimCardId");
 
                     b.ToTable("Vehicles");
                 });
@@ -532,6 +596,12 @@ namespace SmartFleet.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceModel")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Latitude")
                         .HasColumnType("decimal(9, 6)");
@@ -670,21 +740,16 @@ namespace SmartFleet.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("SmartFleet.Models.SimCard", b =>
-                {
-                    b.HasOne("SmartFleet.Models.Vehicle", "Vehicle")
-                        .WithOne("SimCard")
-                        .HasForeignKey("SmartFleet.Models.SimCard", "VehicleId");
-
-                    b.Navigation("Vehicle");
-                });
-
             modelBuilder.Entity("SmartFleet.Models.Trip", b =>
                 {
-                    b.HasOne("SmartFleet.Models.ApplicationUser", "CreatedByUser")
+                    b.HasOne("SmartFleet.Models.ApplicationUser", null)
                         .WithMany("Trips")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("SmartFleet.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
                         .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("SmartFleet.Models.Driver", "Driver")
@@ -694,10 +759,14 @@ namespace SmartFleet.Migrations
                         .IsRequired();
 
                     b.HasOne("SmartFleet.Models.Order", "Order")
-                        .WithOne("Trip")
-                        .HasForeignKey("SmartFleet.Models.Trip", "OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("SmartFleet.Models.Order", null)
+                        .WithOne("Trip")
+                        .HasForeignKey("SmartFleet.Models.Trip", "OrderId1");
 
                     b.HasOne("SmartFleet.Models.Vehicle", "Vehicle")
                         .WithMany("Trips")
@@ -712,6 +781,21 @@ namespace SmartFleet.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("SmartFleet.Models.Vehicle", b =>
+                {
+                    b.HasOne("SmartFleet.Models.Geofence", "Geofence")
+                        .WithMany()
+                        .HasForeignKey("GeofenceId");
+
+                    b.HasOne("SmartFleet.Models.SimCard", "SimCard")
+                        .WithMany()
+                        .HasForeignKey("SimCardId");
+
+                    b.Navigation("Geofence");
+
+                    b.Navigation("SimCard");
                 });
 
             modelBuilder.Entity("SmartFleet.Models.VehicleLocation", b =>
@@ -756,8 +840,6 @@ namespace SmartFleet.Migrations
             modelBuilder.Entity("SmartFleet.Models.Vehicle", b =>
                 {
                     b.Navigation("Maintenances");
-
-                    b.Navigation("SimCard");
 
                     b.Navigation("Trips");
 

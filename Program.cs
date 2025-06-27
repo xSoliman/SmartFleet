@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using SmartFleet.Hubs;
 using SmartFleet.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace SmartFleet
 {
@@ -15,6 +18,7 @@ namespace SmartFleet
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddControllers();
 
             builder.Services.AddDbContext<SmartFleetContext>(options =>
             {
@@ -30,11 +34,71 @@ namespace SmartFleet
                 })
                 .AddEntityFrameworkStores<SmartFleetContext>();
 
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            builder.Services.AddAuthentication(options =>
+                    {
+                        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    })
                     .AddCookie(options => {
-            options.LoginPath = "/Account/Login";
-            options.AccessDeniedPath = "/Account/AccessDenied";
-                                     });
+                        options.LoginPath = "/Account/Login";
+                        options.AccessDeniedPath = "/Account/AccessDenied";
+                    })
+                    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                            ValidAudience = builder.Configuration["Jwt:Audience"],
+                            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+                            ClockSkew = TimeSpan.Zero
+                        };
+
+                        // Configure JWT for SignalR
+                        options.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {
+                                var path = context.HttpContext.Request.Path;
+                                if (path.StartsWithSegments("/hubs"))
+                                {
+                                    // Try query parameter first (for web clients)
+                                    var accessToken = context.Request.Query["access_token"];
+                                    
+                                    // If not found, try Authorization header (for mobile clients)
+                                    if (string.IsNullOrEmpty(accessToken))
+                                    {
+                                        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                                        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                                        {
+                                            accessToken = authHeader.Substring("Bearer ".Length).Trim();
+                                        }
+                                    }
+                                    
+                                    if (!string.IsNullOrEmpty(accessToken))
+                                    {
+                                        context.Token = accessToken;
+                                    }
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
+                    });
+
+            // Add CORS for mobile app with SignalR support
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("MobileAppPolicy", policy =>
+                {
+                    policy.SetIsOriginAllowed(_ => true)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials();
+                });
+            });
 
             builder.Services.AddScoped<INotificationService, NotificationService>();
             // Database initializer 
@@ -42,6 +106,9 @@ namespace SmartFleet
             
             // User Role Service
             builder.Services.AddScoped<IUserRoleService, UserRoleService>();
+            
+            // JWT Service
+            builder.Services.AddScoped<IJwtService, JwtService>();
 
             // Distance Calculation Service
             builder.Services.AddScoped<IDistanceCalculationService, DistanceCalculationService>();
@@ -55,14 +122,10 @@ namespace SmartFleet
             // Vehicle State Management Service
             builder.Services.AddScoped<IVehicleStateManagementService, VehicleStateManagementService>();
 
-            // Background service for automatic trip state updates
-            builder.Services.AddHostedService<TripStateBackgroundService>();
-
-            // Background service for automatic driver status updates
-            builder.Services.AddHostedService<DriverStatusBackgroundService>();
-
-            // Background service for automatic vehicle state updates
-            builder.Services.AddHostedService<VehicleStateBackgroundService>();
+            // Background services disabled for API testing
+            // builder.Services.AddHostedService<TripStateBackgroundService>();
+            // builder.Services.AddHostedService<DriverStatusBackgroundService>();
+            // builder.Services.AddHostedService<VehicleStateBackgroundService>();
 
             // Add SignalR services
             builder.Services.AddSignalR();
@@ -83,11 +146,19 @@ namespace SmartFleet
 
             app.UseStaticFiles();
             app.UseRouting();
-            app.MapHub<NotificationHub>("/hubs/Notify");
-            app.MapHub<TrackingHub>("/hubs/Tracking");
+            
+            // Enable CORS
+            app.UseCors("MobileAppPolicy");
+            
             app.UseAuthentication(); 
             app.UseAuthorization();
+            
+            app.MapHub<NotificationHub>("/hubs/Notify");
+            app.MapHub<TrackingHub>("/hubs/Tracking");
 
+            // Map API Controllers first
+            app.MapControllers();
+            
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
