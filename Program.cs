@@ -67,6 +67,8 @@ namespace SmartFleet
             // Background service for automatic vehicle state updates
             builder.Services.AddHostedService<VehicleStateBackgroundService>();
 
+            builder.Services.AddScoped<IPaginationService, PaginationService>();
+
             // Add SignalR services
             builder.Services.AddSignalR();
 

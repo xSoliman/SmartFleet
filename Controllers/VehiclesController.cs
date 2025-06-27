@@ -18,15 +18,17 @@ namespace SmartFleet.Controllers
     public class VehiclesController : BaseController
     {
         private readonly SmartFleetContext _context;
+        private readonly IPaginationService _paginationService;
 
-        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService) 
+        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService) 
             : base(userManager, userRoleService)
         {
             _context = context;
+            _paginationService = paginationService;
         }
 
         // GET: Vehicles + search & filter
-        public async Task<IActionResult> Index(string searchModel, string searchPlate, VehicleType? typeFilter, VehicleState? stateFilter)
+        public async Task<IActionResult> Index(string searchModel, string searchPlate, VehicleType? typeFilter, VehicleState? stateFilter, int pageNumber = 1)
         {
             ViewData["PageTitle"] = "Vehicles";
 
@@ -36,6 +38,7 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
 
+            int pageSize = 10; // Fixed page size
             var vehicles = _context.Vehicles.AsQueryable();
 
             if (!string.IsNullOrEmpty(searchModel))
@@ -50,7 +53,17 @@ namespace SmartFleet.Controllers
             if (stateFilter.HasValue)
                 vehicles = vehicles.Where(v => v.Status == stateFilter);
 
-            return View(await vehicles.ToListAsync());
+            int totalCount = await vehicles.CountAsync();
+            var pagedVehicles = await _paginationService.GetPaginatedAsync(vehicles.OrderBy(v => v.Model), pageNumber, pageSize);
+
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchModel = searchModel;
+            ViewBag.SearchPlate = searchPlate;
+            ViewBag.TypeFilter = typeFilter;
+            ViewBag.StateFilter = stateFilter;
+
+            return View(pagedVehicles);
         }
 
         // GET: Vehicles/Details/5

@@ -23,18 +23,22 @@ namespace SmartFleet.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
+        private readonly IPaginationService _paginationService;
 
         public DriversController(SmartFleetContext context,
                                  UserManager<ApplicationUser> userManager,
                                  IWebHostEnvironment env,
                                  INotificationService notificationService,
-                                 IUserRoleService userRoleService)
+                                 IUserRoleService userRoleService,
+                                 IPaginationService paginationService)
         {
             _context = context;
             _userManager = userManager;
             _env = env;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
+            _paginationService = paginationService;
+
         }
 
         [Authorize(Roles = "Driver")]
@@ -50,9 +54,10 @@ namespace SmartFleet.Controllers
             if (driver == null) return NotFound();
 
             // Load only trips assigned to this driver
-            var trips = await _context.Trips
-                .Where(t => t.DriverId == driverId)
-                .ToListAsync();
+            var trips = await _paginationService.GetPaginatedAsync(
+                _context.Trips
+                    .Where(t => t.DriverId == driverId)
+                    .OrderByDescending(t => t.CreatedAt), 1, 10);
 
             driver.Trips = trips;
 
@@ -75,8 +80,9 @@ namespace SmartFleet.Controllers
         }
 
         // GET: Drivers
-        public async Task<IActionResult> Index(string searchUserName, string searchLicense, DriverState? statusFilter)
+        public async Task<IActionResult> Index(string searchUserName, string searchLicense, DriverState? statusFilter, int pageNumber = 1)
         {
+            int pageSize = 10; // Fixed page size
             var driversQuery = _context.Users.OfType<Driver>().AsQueryable();
 
             // Apply filters
@@ -95,7 +101,15 @@ namespace SmartFleet.Controllers
                 driversQuery = driversQuery.Where(d => d.DriverStatus == statusFilter.Value);
             }
 
-            var drivers = await driversQuery.ToListAsync();
+            int totalCount = await driversQuery.CountAsync();
+            var drivers = await _paginationService.GetPaginatedAsync(driversQuery.OrderBy(d => d.UserName), pageNumber, pageSize);
+
+            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchUserName = searchUserName;
+            ViewBag.SearchLicense = searchLicense;
+            ViewBag.StatusFilter = statusFilter;
+
             return View(drivers);
         }
 
