@@ -36,22 +36,49 @@ namespace SmartFleet.Services
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
 
-                // Send real-time notification via SignalR
-                await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
+                // Send real-time notification via SignalR to specific user
+                await _hubContext.Clients.Group($"User_{userId}").SendAsync("ReceiveNotification", new
                 {
-                    id = notification.Id,
+                    id = notification.Id.ToString(),
                     title = notification.Title,
                     message = notification.Message,
+                    type = "info",
                     createdAt = notification.CreatedAt,
                     isRead = notification.IsRead,
-                    relatedTable = notification.RelatedTable,
-                    relatedId = notification.RelatedId
+                    userId = notification.UserId
                 });
+
+                Console.WriteLine($"📨 Notification sent via SignalR to User_{userId}: {title}");
             }
             catch (Exception ex)
             {
-                // Log the error (you might want to add proper logging here)
+                Console.WriteLine($"❌ Failed to create notification: {ex.Message}");
                 throw new Exception($"Failed to create notification: {ex.Message}", ex);
+            }
+        }
+
+        public async Task CreateBroadcastNotificationAsync(string title, string message, RelatedTable relatedTable, int? relatedId = null)
+        {
+            try
+            {
+                // Send real-time notification via SignalR to all connected users
+                await _hubContext.Clients.Group("AllUsers").SendAsync("ReceiveNotification", new
+                {
+                    id = Guid.NewGuid().ToString(),
+                    title = title,
+                    message = message,
+                    type = "info",
+                    createdAt = DateTime.UtcNow,
+                    isRead = false,
+                    userId = "broadcast"
+                });
+
+                Console.WriteLine($"📢 Broadcast notification sent via SignalR: {title}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Failed to send broadcast notification: {ex.Message}");
+                throw new Exception($"Failed to send broadcast notification: {ex.Message}", ex);
             }
         }
 

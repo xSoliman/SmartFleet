@@ -51,16 +51,16 @@ namespace SmartFleet.Services.Implemenations
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            // All roles have access to orders (but with different permissions)
-            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintanceManager" || r == "commissioner" || r == "NormalUser" || r == "Driver");
+            // NormalUser, Commissioner, FleetManager, SysSupport have access to orders
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "commissioner" || r == "NormalUser");
         }
 
         public async Task<bool> HasAccessToTrips(ApplicationUser user)
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            // All roles except commissioner have access to trips
-            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintanceManager" || r == "NormalUser" || r == "Driver");
+            // NormalUser, Driver, FleetManager, SysSupport have access to trips
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "NormalUser" || r == "Driver");
         }
 
         public async Task<bool> HasAccessToTracking(ApplicationUser user)
@@ -152,6 +152,25 @@ namespace SmartFleet.Services.Implemenations
             // FleetManager can cancel any scheduled trip
             // SysSupport can cancel any scheduled trip
             return roles.Any(r => r == "NormalUser" || r == "FleetManager" || r == "SysSupport");
+        }
+
+        // New methods for maintenance permissions
+        public async Task<bool> CanCreateMaintenance(ApplicationUser user)
+        {
+            if (user == null) return false;
+            var roles = await GetUserRoles(user);
+            // Only MaintenanceManager and SysSupport can create maintenance records
+            // FleetManager cannot create maintenance records
+            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
+        }
+
+        public async Task<bool> CanEditMaintenance(ApplicationUser user)
+        {
+            if (user == null) return false;
+            var roles = await GetUserRoles(user);
+            // Only MaintenanceManager and SysSupport can edit maintenance records
+            // FleetManager cannot edit maintenance records
+            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
         }
     }
 } 

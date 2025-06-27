@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace SmartFleet.ViewModel
 {
@@ -13,8 +14,9 @@ namespace SmartFleet.ViewModel
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Phone number is required")]
         [Display(Name = "Phone Number")]
-        public string? PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]
@@ -41,5 +43,8 @@ namespace SmartFleet.ViewModel
         [Display(Name = "License Expiry Date")]
         [DataType(DataType.Date)]
         public DateTime? LicenseExpiryDate { get; set; }
+
+        [Display(Name = "Profile Image")]
+        public IFormFile? ProfileImage { get; set; }
     }
 } 

@@ -107,7 +107,7 @@
                 <th>Destination</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                @if (Model.IsCommissioner)
+                @if (Model.IsCommissioner || Model.IsFleetManager)
                 {
                     <th>Resources Availability</th>
                 }
@@ -129,10 +129,29 @@
                     <td>@item.Destination</td>
                     <td>@item.TripStartDate.ToShortDateString()</td>
                     <td>@item.TripEndDate.ToShortDateString()</td>
-                    @if (Model.IsCommissioner)
+                    @if (Model.IsCommissioner || Model.IsFleetManager)
                     {
                         <td>
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
+                            {
+                                if (Model.ResourceAvailability != null && Model.ResourceAvailability.ContainsKey(item.Id))
+                                {
+                                    var avail = Model.ResourceAvailability[item.Id];
+                                    if (avail == "Available")
+                                    {
+                                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unknown</span>
+                                }
+                            }
+                            else if (item.Status == SmartFleet.Models.OrderState.Approved && item.Trip == null)
                             {
                                 if (Model.ResourceAvailability != null && Model.ResourceAvailability.ContainsKey(item.Id))
                                 {

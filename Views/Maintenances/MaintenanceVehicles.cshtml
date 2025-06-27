@@ -1,7 +1,13 @@
 ﻿@model List<SmartFleet.Models.Vehicle>
+@using SmartFleet.Services
+@using Microsoft.AspNetCore.Identity
+@inject IUserRoleService UserRoleService
+@inject UserManager<SmartFleet.Models.ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Vehicles Under Maintenance";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var canCreateMaintenance = currentUser != null && await UserRoleService.CanCreateMaintenance(currentUser);
 }
 
 <head>
@@ -61,9 +67,12 @@
                                 </form>
                             </td>
                             <td>
+                                @if (canCreateMaintenance)
+                                {
                                 <a class="maintenance-primary-button" style="background:#20B2AA; padding:6px 12px; font-size:15px;" asp-controller="Maintenances" asp-action="CreateMaintenance" asp-route-VehicleId="@vehicle.Id">
                                     <i class="fas fa-plus-circle me-1"></i>Add Maintenance
                                 </a>
+                                }
                             </td>
                         </tr>
                     }

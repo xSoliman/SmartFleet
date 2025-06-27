@@ -255,47 +255,6 @@ namespace SmartFleet.Controllers
             return View(model);
         }
 
-        // GET: Users/CreateRole - صفحة إنشاء دور جديد
-        public async Task<IActionResult> CreateRole()
-        {
-            var existingRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
-            ViewBag.ExistingRoles = existingRoles;
-            return View(new CreateRoleViewModel());
-        }
-
-        // POST: Users/CreateRole - إنشاء دور جديد
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var roleExists = await _roleManager.RoleExistsAsync(model.RoleName);
-                if (roleExists)
-                {
-                    ModelState.AddModelError("RoleName", "This role already exists.");
-                }
-                else
-                {
-                    var result = await _roleManager.CreateAsync(new IdentityRole(model.RoleName));
-                    if (result.Succeeded)
-                    {
-                        TempData["SuccessMessage"] = $"Role {model.RoleName} created successfully.";
-                        return RedirectToAction(nameof(CreateRole));
-                    }
-
-                    foreach (var error in result.Errors)
-                    {
-                        ModelState.AddModelError("", error.Description);
-                    }
-                }
-            }
-
-            var existingRoles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
-            ViewBag.ExistingRoles = existingRoles;
-            return View(model);
-        }
-
         // POST: Users/ToggleAccountStatus - تفعيل/إلغاء تفعيل المستخدم
         [HttpPost]
         [ValidateAntiForgeryToken]

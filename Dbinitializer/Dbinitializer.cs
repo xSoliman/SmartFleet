@@ -169,6 +169,7 @@ namespace SmartFleet
                         LicenseExpiryDate = DateTime.Now.AddYears(2),
                         DriverStatus = DriverState.Available,
                         ProfileImageUrl = "https://example.com/driver.jpg",
+                        AccountStatus = true,
                         CreatedAt = DateTime.Now,
                         EmailConfirmed = true
                     };

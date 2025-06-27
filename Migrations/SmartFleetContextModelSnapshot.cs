@@ -498,6 +498,9 @@ namespace SmartFleet.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("OrderId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -513,8 +516,11 @@ namespace SmartFleet.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.HasIndex("OrderId")
-                        .IsUnique();
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("OrderId1")
+                        .IsUnique()
+                        .HasFilter("[OrderId1] IS NOT NULL");
 
                     b.HasIndex("VehicleId");
 
@@ -753,6 +759,12 @@ namespace SmartFleet.Migrations
                         .IsRequired();
 
                     b.HasOne("SmartFleet.Models.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SmartFleet.Models.Order", null)
                         .WithOne("Trip")
                         .HasForeignKey("SmartFleet.Models.Trip", "OrderId")
                         .OnDelete(DeleteBehavior.NoAction)

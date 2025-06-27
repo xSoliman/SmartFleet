@@ -22,12 +22,27 @@
         <!-- Heading -->
         <h1 class="details-heading">Order Details</h1>
 
-        <!-- Resource Availability for Commissioner -->
-        @if (ViewBag.IsCommissioner == true)
+        <!-- Resource Availability for Commissioner and Fleet Manager -->
+        @if (ViewBag.IsCommissioner == true || ViewBag.IsFleetManager == true)
         {
             <div class="details-resource-availability" style="margin-bottom: 1.5rem;">
                 <label class="details-display-label">Resources Availability</label>
                 @if (Model.Status == SmartFleet.Models.OrderState.Pending)
+                {
+                    if (ViewBag.ResourceAvailability == "Available")
+                    {
+                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
+                    }
+                    else if (ViewBag.ResourceAvailability == "Not Available")
+                    {
+                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Unknown</span>
+                    }
+                }
+                else if (Model.Status == SmartFleet.Models.OrderState.Approved && Model.Trip == null)
                 {
                     if (ViewBag.ResourceAvailability == "Available")
                     {
