@@ -27,10 +27,11 @@ namespace SmartFleet.Controllers
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
         public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
             IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
-            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
+            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
         {
             _context = context;
             _tripStateService = tripStateService;
@@ -40,6 +41,7 @@ namespace SmartFleet.Controllers
             _notificationService = notificationService;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
+            _searchService = searchService;
         }
 
         /// <summary>
@@ -118,81 +120,58 @@ namespace SmartFleet.Controllers
         {
             var currentUser = await _userManager.GetUserAsync(User);
             var userRoles = await _userManager.GetRolesAsync(currentUser);
-
             var isDriver = userRoles.Contains("Driver");
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSystemSupport = userRoles.Contains("SysSupport");
             var isNormalUser = userRoles.Contains("NormalUser");
             var isCommissioner = userRoles.Contains("commissioner");
             var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
-
             IQueryable<Trip> tripsQuery = _context.Trips
                 .Include(t => t.Vehicle)
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
                 .Include(t => t.CreatedByUser);
-
             List<Trip> assignedTrips = new List<Trip>();
-
             if (isFleetManager || isSystemSupport)
             {
                 // Fleet Managers and System Support see all trips
-                // Do nothing here - show all trips
             }
             else if (isDriver)
             {
-                // Drivers see only trips assigned to them
                 tripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
             }
             else if (isNormalUser)
             {
-                // Normal users see trips from their own orders
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
             }
             else if (isCommissioner)
             {
-                // Commissioner has no access to trips
                 TempData["ErrorMessage"] = "You don't have access to trips.";
                 return RedirectToAction("Index", "Home");
             }
             else if (isMaintenanceManager)
             {
-                // Maintenance Manager has no access to trips
                 TempData["ErrorMessage"] = "You don't have access to trips.";
                 return RedirectToAction("Index", "Home");
             }
             else
             {
-                // Other users see trips from orders they created
                 tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
             }
-
-            // Apply filters
+            var filters = new List<System.Linq.Expressions.Expression<Func<Trip, bool>>>();
             if (!string.IsNullOrEmpty(destination))
-            {
-                tripsQuery = tripsQuery.Where(t => t.Order.Destination.Contains(destination));
-            }
+                filters.Add(t => t.Order.Destination.Contains(destination));
             if (!string.IsNullOrEmpty(searchDriverName))
-            {
-                tripsQuery = tripsQuery.Where(t => t.Driver.UserName.Contains(searchDriverName));
-            }
+                filters.Add(t => t.Driver.UserName.Contains(searchDriverName));
             if (vehicleType.HasValue)
-            {
-                tripsQuery = tripsQuery.Where(t => t.Vehicle.Type == vehicleType.Value);
-            }
+                filters.Add(t => t.Vehicle.Type == vehicleType.Value);
             if (stateFilter.HasValue)
-            {
-                tripsQuery = tripsQuery.Where(t => t.Status == stateFilter.Value);
-            }
+                filters.Add(t => t.Status == stateFilter.Value);
             if (startDate.HasValue)
-            {
-                tripsQuery = tripsQuery.Where(t => t.Order.TripStartDate >= startDate.Value);
-            }
+                filters.Add(t => t.Order.TripStartDate >= startDate.Value);
             if (endDate.HasValue)
-            {
-                tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate <= endDate.Value);
-            }
-
+                filters.Add(t => t.Order.TripEndDate <= endDate.Value);
+            tripsQuery = _searchService.ApplyFilters(tripsQuery, filters);
             int pageSize = 10;
             int totalCount = await tripsQuery.CountAsync();
             var pagedTrips = await _paginationService.GetPaginatedAsync(tripsQuery.OrderBy(t => t.Status).ThenBy(t => t.Order.TripStartDate), pageNumber, pageSize);

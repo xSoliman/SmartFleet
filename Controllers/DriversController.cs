@@ -24,13 +24,15 @@ namespace SmartFleet.Controllers
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
         public DriversController(SmartFleetContext context,
                                  UserManager<ApplicationUser> userManager,
                                  IWebHostEnvironment env,
                                  INotificationService notificationService,
                                  IUserRoleService userRoleService,
-                                 IPaginationService paginationService)
+                                 IPaginationService paginationService,
+                                 ISearchService searchService)
         {
             _context = context;
             _userManager = userManager;
@@ -38,7 +40,7 @@ namespace SmartFleet.Controllers
             _notificationService = notificationService;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
-
+            _searchService = searchService;
         }
 
         [Authorize(Roles = "Driver")]
@@ -82,34 +84,23 @@ namespace SmartFleet.Controllers
         // GET: Drivers
         public async Task<IActionResult> Index(string searchUserName, string searchLicense, DriverState? statusFilter, int pageNumber = 1)
         {
-            int pageSize = 10; // Fixed page size
+            int pageSize = 10;
             var driversQuery = _context.Users.OfType<Driver>().AsQueryable();
-
-            // Apply filters
+            var filters = new List<System.Linq.Expressions.Expression<Func<Driver, bool>>>();
             if (!string.IsNullOrEmpty(searchUserName))
-            {
-                driversQuery = driversQuery.Where(d => d.UserName.Contains(searchUserName));
-            }
-
+                filters.Add(d => d.UserName.Contains(searchUserName));
             if (!string.IsNullOrEmpty(searchLicense))
-            {
-                driversQuery = driversQuery.Where(d => d.LicenseNumber.Contains(searchLicense));
-            }
-
+                filters.Add(d => d.LicenseNumber.Contains(searchLicense));
             if (statusFilter.HasValue)
-            {
-                driversQuery = driversQuery.Where(d => d.DriverStatus == statusFilter.Value);
-            }
-
+                filters.Add(d => d.DriverStatus == statusFilter.Value);
+            driversQuery = _searchService.ApplyFilters(driversQuery, filters);
             int totalCount = await driversQuery.CountAsync();
             var drivers = await _paginationService.GetPaginatedAsync(driversQuery.OrderBy(d => d.UserName), pageNumber, pageSize);
-
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             ViewBag.CurrentPage = pageNumber;
             ViewBag.SearchUserName = searchUserName;
             ViewBag.SearchLicense = searchLicense;
             ViewBag.StatusFilter = statusFilter;
-
             return View(drivers);
         }
 

@@ -21,13 +21,15 @@ namespace SmartFleet.Controllers
         private readonly IPaginationService _paginationService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserRoleService _userRoleService;
+        private readonly ISearchService _searchService;
 
-        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService)
+        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, ISearchService searchService)
         {
             _context = context;
             _paginationService = paginationService;
             _userManager = userManager;
             _userRoleService = userRoleService;
+            _searchService = searchService;
         }
 
         public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter, int pageNumber = 1)
@@ -73,20 +75,14 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            var filters = new List<System.Linq.Expressions.Expression<Func<Maintenance, bool>>>();
             if (!string.IsNullOrEmpty(searchPlate))
-            {
-                query = query.Where(m => m.Vehicle.LicensePlate.Contains(searchPlate));
-            }
-
+                filters.Add(m => m.Vehicle.LicensePlate.Contains(searchPlate));
             if (statusFilter.HasValue)
-            {
-                query = query.Where(m => m.RepairStatus == statusFilter.Value);
-            }
-
+                filters.Add(m => m.RepairStatus == statusFilter.Value);
             if (priorityFilter.HasValue)
-            {
-                query = query.Where(m => m.Priority == priorityFilter.Value);
-            }
+                filters.Add(m => m.Priority == priorityFilter.Value);
+            query = _searchService.ApplyFilters(query, filters);
 
             int pageSize = 10;
             int totalCount = await query.CountAsync();

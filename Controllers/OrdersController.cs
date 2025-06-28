@@ -24,15 +24,17 @@ namespace SmartFleet.Controllers
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
         public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager, 
-            INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
+            INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
         {
             _context = context;
             _userManager = userManager;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
+            _searchService = searchService;
         }
 
         // GET: Orders
@@ -109,41 +111,22 @@ namespace SmartFleet.Controllers
             }
 
             // Original filters (only for admin users)
+            var filters = new List<System.Linq.Expressions.Expression<Func<Order, bool>>>();
             if ((isFleetManager || isSysSupport || isCommissioner) && !string.IsNullOrEmpty(searchUserId))
-            {
-                ordersQuery = ordersQuery.Where(o => o.User != null && o.User.UserName.Contains(searchUserId));
-            }
-
+                filters.Add(o => o.User != null && o.User.UserName.Contains(searchUserId));
             if (!string.IsNullOrEmpty(searchStartLocation))
-            {
-                ordersQuery = ordersQuery.Where(o => o.StartLocation.Contains(searchStartLocation));
-            }
-
+                filters.Add(o => o.StartLocation.Contains(searchStartLocation));
             if (!string.IsNullOrEmpty(searchDestination))
-            {
-                ordersQuery = ordersQuery.Where(o => o.Destination.Contains(searchDestination));
-            }
-
+                filters.Add(o => o.Destination.Contains(searchDestination));
             if ((isFleetManager || isSysSupport || isCommissioner) && typeFilter.HasValue)
-            {
-                ordersQuery = ordersQuery.Where(o => o.VehicleType == typeFilter.Value);
-            }
-
+                filters.Add(o => o.VehicleType == typeFilter.Value);
             if (stateFilter.HasValue)
-            {
-                ordersQuery = ordersQuery.Where(o => o.Status == stateFilter.Value);
-            }
-
-            // Date range filtering
+                filters.Add(o => o.Status == stateFilter.Value);
             if (startDate.HasValue)
-            {
-                ordersQuery = ordersQuery.Where(o => o.CreatedAt.Date >= startDate.Value.Date);
-            }
-
+                filters.Add(o => o.CreatedAt.Date >= startDate.Value.Date);
             if (endDate.HasValue)
-            {
-                ordersQuery = ordersQuery.Where(o => o.CreatedAt.Date <= endDate.Value.Date);
-            }
+                filters.Add(o => o.CreatedAt.Date <= endDate.Value.Date);
+            ordersQuery = _searchService.ApplyFilters(ordersQuery, filters);
 
             // Sort by priority: For FleetManager, show 'Create Trip' (approved, no trip) first, then pending, then others. For Commissioner/others, pending first, then 'Create Trip', then others
             if (isFleetManager)

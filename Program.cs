@@ -131,6 +131,7 @@ namespace SmartFleet
             // builder.Services.AddHostedService<VehicleStateBackgroundService>();
 
             builder.Services.AddScoped<IPaginationService, PaginationService>();
+            builder.Services.AddScoped<ISearchService, SearchService>();
 
             // Add SignalR services
             builder.Services.AddSignalR();

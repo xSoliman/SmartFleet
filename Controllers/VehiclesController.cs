@@ -19,12 +19,14 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
-        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService) 
+        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService) 
             : base(userManager, userRoleService)
         {
             _context = context;
             _paginationService = paginationService;
+            _searchService = searchService;
         }
 
         // GET: Vehicles + search & filter
@@ -40,19 +42,16 @@ namespace SmartFleet.Controllers
 
             int pageSize = 10; // Fixed page size
             var vehicles = _context.Vehicles.AsQueryable();
-
+            var filters = new List<System.Linq.Expressions.Expression<Func<Vehicle, bool>>>();
             if (!string.IsNullOrEmpty(searchModel))
-                vehicles = vehicles.Where(v => v.Model.Contains(searchModel));
-
+                filters.Add(v => v.Model.Contains(searchModel));
             if (!string.IsNullOrEmpty(searchPlate))
-                vehicles = vehicles.Where(v => v.LicensePlate.Contains(searchPlate));
-
+                filters.Add(v => v.LicensePlate.Contains(searchPlate));
             if (typeFilter.HasValue)
-                vehicles = vehicles.Where(v => v.Type == typeFilter);
-
+                filters.Add(v => v.Type == typeFilter);
             if (stateFilter.HasValue)
-                vehicles = vehicles.Where(v => v.Status == stateFilter);
-
+                filters.Add(v => v.Status == stateFilter);
+            vehicles = _searchService.ApplyFilters(vehicles, filters);
             int totalCount = await vehicles.CountAsync();
             var pagedVehicles = await _paginationService.GetPaginatedAsync(vehicles.OrderBy(v => v.Model), pageNumber, pageSize);
 
