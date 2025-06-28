@@ -59,4 +59,13 @@
             Tracking
         </a>
     }
+    
+    @if (Model.HasAccessToReports)
+    {
+        <span class="nav-separator mx-3">|</span>
+        <!-- Reports -->
+        <a asp-controller="Reports" asp-action="Index" class="nav-item nav-link @(Model.CurrentController == "Reports" ? "active" : "")" style="font-size: 1.1rem;">
+            <i class="fas fa-chart-line me-1"></i>Reports
+        </a>
+    }
 </div> 

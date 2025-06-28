@@ -11,6 +11,7 @@ namespace SmartFleet.Services.Interfaces
         Task<bool> HasAccessToTrips(ApplicationUser user);
         Task<bool> HasAccessToTracking(ApplicationUser user);
         Task<bool> HasAccessToDashboard(ApplicationUser user);
+        Task<bool> HasAccessToReports(ApplicationUser user);
         Task<bool> CanCreateOrder(ApplicationUser user);
         Task<bool> CanEditOrder(ApplicationUser user, OrderState orderStatus);
         Task<bool> CanCancelOrder(ApplicationUser user, OrderState orderStatus);

@@ -77,6 +77,13 @@ namespace SmartFleet.Services.Implemenations
             return roles.Any(r => r == "SysSupport" || r == "FleetManager");
         }
 
+        public async Task<bool> HasAccessToReports(ApplicationUser user)
+        {
+            if (user == null) return false;
+            var roles = await GetUserRoles(user);
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager");
+        }
+
         // New methods for order permissions
         public async Task<bool> CanCreateOrder(ApplicationUser user)
         {
