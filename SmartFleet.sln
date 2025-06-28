@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.36105.23 d17.13
+VisualStudioVersion = 17.13.36105.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartFleet", "SmartFleet.csproj", "{BBDC4DCC-8D98-EC74-C4AE-DB845E75AFE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartFleet.Tests", "..\SmartFleet.Tests\SmartFleet.Tests.csproj", "{5F29F790-8121-4811-A8BB-2BEF5C281B67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BBDC4DCC-8D98-EC74-C4AE-DB845E75AFE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBDC4DCC-8D98-EC74-C4AE-DB845E75AFE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBDC4DCC-8D98-EC74-C4AE-DB845E75AFE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F29F790-8121-4811-A8BB-2BEF5C281B67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F29F790-8121-4811-A8BB-2BEF5C281B67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F29F790-8121-4811-A8BB-2BEF5C281B67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F29F790-8121-4811-A8BB-2BEF5C281B67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

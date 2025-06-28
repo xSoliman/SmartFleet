@@ -15,17 +15,17 @@ namespace SmartFleet.Data
         {
         }
 
-        public new DbSet<ApplicationUser> Users { get; set; }
-        public DbSet<Vehicle> Vehicles { get; set; }
-        public DbSet<SimCard> SimCards { get; set; }
-        public DbSet<VehicleLocation> VehicleLocations { get; set; }
-        public DbSet<Driver> Drivers { get; set; }
-        public DbSet<Maintenance> Maintenances { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<Trip> Trips { get; set; }
-        public DbSet<Event> Events { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Geofence> Geofences { get; set; }
+        public virtual new DbSet<ApplicationUser> Users { get; set; }
+        public virtual DbSet<Vehicle> Vehicles { get; set; }
+        public virtual DbSet<SimCard> SimCards { get; set; }
+        public virtual DbSet<VehicleLocation> VehicleLocations { get; set; }
+        public virtual DbSet<Driver> Drivers { get; set; }
+        public virtual DbSet<Maintenance> Maintenances { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<Trip> Trips { get; set; }
+        public virtual DbSet<Event> Events { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<Geofence> Geofences { get; set; }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
