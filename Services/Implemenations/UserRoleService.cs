@@ -44,7 +44,7 @@ namespace SmartFleet.Services.Implemenations
         {
             if (user == null) return false;
             var roles = await GetUserRoles(user);
-            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintanceManager");
+            return roles.Any(r => r == "SysSupport" || r == "FleetManager" || r == "MaintenanceManager");
         }
 
         public async Task<bool> HasAccessToOrders(ApplicationUser user)
@@ -161,7 +161,7 @@ namespace SmartFleet.Services.Implemenations
             var roles = await GetUserRoles(user);
             // Only MaintenanceManager and SysSupport can create maintenance records
             // FleetManager cannot create maintenance records
-            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
+            return roles.Any(r => r == "MaintenanceManager" || r == "SysSupport");
         }
 
         public async Task<bool> CanEditMaintenance(ApplicationUser user)
@@ -170,7 +170,7 @@ namespace SmartFleet.Services.Implemenations
             var roles = await GetUserRoles(user);
             // Only MaintenanceManager and SysSupport can edit maintenance records
             // FleetManager cannot edit maintenance records
-            return roles.Any(r => r == "MaintanceManager" || r == "SysSupport");
+            return roles.Any(r => r == "MaintenanceManager" || r == "SysSupport");
         }
     }
 } 

@@ -50,7 +50,7 @@ namespace SmartFleet.Controllers
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSysSupport = userRoles.Contains("SysSupport");
             var isDriver = userRoles.Contains("Driver");
-            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
             var isNormalUser = userRoles.Contains("NormalUser");
 
             // Check access permissions
@@ -160,8 +160,8 @@ namespace SmartFleet.Controllers
             }
 
             int pageSize = 10;
-            int totalCount = await orders.CountAsync();
-            var pagedOrders = await _paginationService.GetPaginatedAsync(orders, pageNumber, pageSize);
+            int totalCount = await ordersQuery.CountAsync();
+            var pagedOrders = await _paginationService.GetPaginatedAsync(ordersQuery, pageNumber, pageSize);
 
             var viewModel = new OrderViewModel
             {
@@ -223,7 +223,7 @@ namespace SmartFleet.Controllers
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSysSupport = userRoles.Contains("SysSupport");
             var isDriver = userRoles.Contains("Driver");
-            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
             var isNormalUser = userRoles.Contains("NormalUser");
 
             // Check access permissions

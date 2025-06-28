@@ -15,7 +15,7 @@ namespace SmartFleet.Data
         {
         }
 
-        public DbSet<ApplicationUser> Users { get; set; }
+        public new DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<SimCard> SimCards { get; set; }
         public DbSet<VehicleLocation> VehicleLocations { get; set; }
@@ -124,6 +124,7 @@ namespace SmartFleet.Data
             .HasOne(vl => vl.Vehicle)
             .WithMany(v => v.VehicleLocations)
             .HasForeignKey(vl => vl.VehicleId);
+
 
             // Fix cascade delete conflicts for Trips
             modelBuilder.Entity<Trip>()

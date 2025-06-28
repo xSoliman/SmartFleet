@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace SmartFleet.Models
 {
@@ -46,6 +47,8 @@ namespace SmartFleet.Models
         public VehicleState Status { get; set; }
         [Display(Name = "Total Distance Traveled (km)")]
         // This value is updated automatically from GPS data
+         [Precision(12, 2)]
+
         public decimal TotalDistanceTraveled { get; set; }
         [Display(Name = "Registration Expiry Date")]
         [DataType(DataType.Date)]

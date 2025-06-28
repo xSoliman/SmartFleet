@@ -18,6 +18,8 @@ namespace SmartFleet.Services.Interfaces
         Task<bool> CanCreateTrip(ApplicationUser user);
         Task<bool> CanEditTrip(ApplicationUser user);
         Task<bool> CanCancelTrip(ApplicationUser user, TripState tripStatus);
+        Task<bool> CanCreateMaintenance(ApplicationUser user);
+        Task<bool> CanEditMaintenance(ApplicationUser user);
         Task<List<string>> GetUserRoles(ApplicationUser user);
         Task<List<ApplicationUser>> GetUsersByRole(string roleName);
     }

@@ -145,7 +145,7 @@ namespace SmartFleet.Controllers
             return role?.ToLower() switch
             {
                 "fleetmanager" or "syssupport" => RedirectToAction("Dashboard", "Home"),
-                "maintancemanager" => RedirectToAction("Index", "Maintenances"),
+                "maintenancemanager" => RedirectToAction("Index", "Maintenances"),
                 "commissioner" => RedirectToAction("Index", "Orders"),
                 "driver" => RedirectToAction("Index", "Trips"),
                 "normaluser" or _ => RedirectToAction("Index", "Home")

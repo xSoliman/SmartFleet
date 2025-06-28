@@ -19,17 +19,37 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly IPaginationService _paginationService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserRoleService _userRoleService;
 
-        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService)
+        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService)
         {
             _context = context;
+            _paginationService = paginationService;
+            _userManager = userManager;
+            _userRoleService = userRoleService;
         }
 
         public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter, int pageNumber = 1)
-        public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter)
-            int pageSize = 10;
-        public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Check access permissions
+            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have access to maintenance.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var userRoles = await _userRoleService.GetUserRoles(currentUser);
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
+
             var query = _context.Maintenances
                 .Include(m => m.Vehicle)
                 .Include(m => m.ReportedUser)
@@ -68,6 +88,7 @@ namespace SmartFleet.Controllers
                 query = query.Where(m => m.Priority == priorityFilter.Value);
             }
 
+            int pageSize = 10;
             int totalCount = await query.CountAsync();
             var pagedMaintenances = await _paginationService.GetPaginatedAsync(query.OrderByDescending(m => m.CreatedAt), pageNumber, pageSize);
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);

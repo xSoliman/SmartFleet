@@ -101,7 +101,7 @@ namespace SmartFleet.Controllers
                     ViewBag.Label3 = "Active Trips";
                     ViewBag.Label4 = "Total Trips";
                 }
-                else if (userRoles.Contains("MaintanceManager"))
+                else if (userRoles.Contains("MaintenanceManager"))
                 {
                     // Maintenance Manager Statistics
                     ViewBag.Stat1 = _context.Maintenances.Count(m => m.RepairStatus == RepairState.pending);

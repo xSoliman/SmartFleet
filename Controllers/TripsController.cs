@@ -81,7 +81,7 @@ namespace SmartFleet.Controllers
         /// <summary>
         /// Gets available drivers for trip assignment, excluding unavailable drivers and those with intersecting trips
         /// </summary>
-        private async Task<List<Driver>> GetAvailableDriversAsync(DateTime? tripStartDate = null, DateTime? tripEndDate = null, string currentDriverId = null)
+        private async Task<List<Driver>> GetAvailableDriversAsync(DateTime? tripStartDate = null, DateTime? tripEndDate = null, string? currentDriverId = null)
         {
             var query = _context.Drivers.AsQueryable();
             
@@ -124,7 +124,7 @@ namespace SmartFleet.Controllers
             var isSystemSupport = userRoles.Contains("SysSupport");
             var isNormalUser = userRoles.Contains("NormalUser");
             var isCommissioner = userRoles.Contains("commissioner");
-            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
 
             IQueryable<Trip> tripsQuery = _context.Trips
                 .Include(t => t.Vehicle)
@@ -249,7 +249,7 @@ namespace SmartFleet.Controllers
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isDriver = userRoles.Contains("Driver");
             var isNormalUser = userRoles.Contains("NormalUser");
-            var isMaintenanceManager = userRoles.Contains("MaintanceManager");
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
 
             // Update trip state before displaying details
             await _tripStateService.UpdateSingleTripStateAsync(id.Value);
