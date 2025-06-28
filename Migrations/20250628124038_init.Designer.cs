@@ -12,7 +12,7 @@ using SmartFleet.Data;
 namespace SmartFleet.Migrations
 {
     [DbContext(typeof(SmartFleetContext))]
-    [Migration("20250627175909_init")]
+    [Migration("20250628124038_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -562,6 +562,7 @@ namespace SmartFleet.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalDistanceTraveled")
+                        .HasPrecision(12, 2)
                         .HasColumnType("decimal(9, 6)");
 
                     b.Property<string>("Type")

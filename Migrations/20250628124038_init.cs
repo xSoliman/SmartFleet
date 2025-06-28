@@ -122,7 +122,7 @@ namespace SmartFleet.Migrations
                     VehicleImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LicensePlate = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TotalDistanceTraveled = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    TotalDistanceTraveled = table.Column<decimal>(type: "decimal(9,6)", precision: 12, scale: 2, nullable: false),
                     RegistrationExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),

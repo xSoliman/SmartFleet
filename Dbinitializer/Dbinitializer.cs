@@ -40,6 +40,7 @@ namespace SmartFleet
 
         public async Task InitializeAsync()
         {
+            
             try
             {
                 // Check if database exists and has been migrated
@@ -112,7 +113,7 @@ namespace SmartFleet
                     var createdUser = await _ApplicationUserManager.FindByEmailAsync("SmartFleet@Support.com");
                     if (createdUser != null)
                     {
-                        await _ApplicationUserManager.AddToRoleAsync(createdUser, "SysSupport");
+                        await _ApplicationUserManager.AddToRoleAsync(createdUser,Roles.SysSupport.ToString());
                         _logger.LogInformation("Admin user created and assigned to SysSupport role successfully.");
                     }
                 }
@@ -126,243 +127,243 @@ namespace SmartFleet
 
         private async Task SeedInitialDataAsync()
         {
-            try
+            using (var transaction = await _db.Database.BeginTransactionAsync())
             {
-                // Check if admin user exists, if not create it
-                if (!await _db.Users.AnyAsync(u => u.Email == "admin@smartfleet.com"))
+                try
                 {
-                    // Seed ApplicationUser
-                    var adminUser = new ApplicationUser
+                    // Check if driver user exists, if not create it
+                    if (!await _db.Users.AnyAsync(u => u.Email == "driver@smartfleet.com"))
                     {
-                        Id = "1",
-                        UserName = "admin@smartfleet.com",
-                        Email = "admin@smartfleet.com",
-                        ProfileImageUrl = "https://example.com/admin.jpg",
-                        AccountStatus = true,
-                        CreatedAt = DateTime.Now,
-                        EmailConfirmed = true
-                    };
-
-                    var adminResult = await _ApplicationUserManager.CreateAsync(adminUser, "Password123!");
-                    if (adminResult.Succeeded)
-                    {
-                        await _ApplicationUserManager.AddToRoleAsync(adminUser, "FleetManager");
-                        _logger.LogInformation("Admin user seeded successfully.");
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to seed admin user: {Errors}",
-                            string.Join(", ", adminResult.Errors.Select(e => e.Description)));
-                    }
-                }
-
-                // Check if driver user exists, if not create it
-                if (!await _db.Users.AnyAsync(u => u.Email == "driver@smartfleet.com"))
-                {
-                    // Seed Driver
-                    var driverUser = new Driver
-                    {
-                        Id = "2",
-                        UserName = "driver@smartfleet.com",
-                        Email = "driver@smartfleet.com",
-                        LicenseNumber = "AB12345",
-                        LicenseExpiryDate = DateTime.Now.AddYears(2),
-                        DriverStatus = DriverState.Available,
-                        ProfileImageUrl = "https://example.com/driver.jpg",
-                        AccountStatus = true,
-                        CreatedAt = DateTime.Now,
-                        EmailConfirmed = true
-                    };
-
-                    var driverResult = await _ApplicationUserManager.CreateAsync(driverUser, "Password123!");
-                    if (driverResult.Succeeded)
-                    {
-                        await _ApplicationUserManager.AddToRoleAsync(driverUser, "Driver");
-                        _logger.LogInformation("Driver user seeded successfully.");
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to seed driver user: {Errors}",
-                            string.Join(", ", driverResult.Errors.Select(e => e.Description)));
-                    }
-                }
-
-                // Seed Commissioner
-                var commissionerUser = new ApplicationUser
-                {
-                    Id = "3",
-                    UserName = "commissioner@smartfleet.com",
-                    Email = "commissioner@smartfleet.com",
-                    ProfileImageUrl = "https://example.com/commissioner.jpg",
-                    AccountStatus = true,
-                    CreatedAt = DateTime.Now,
-                    EmailConfirmed = true
-                };
-
-                var commissionerResult = await _ApplicationUserManager.CreateAsync(commissionerUser, "Password123!");
-                if (commissionerResult.Succeeded)
-                {
-                    await _ApplicationUserManager.AddToRoleAsync(commissionerUser, "commissioner");
-                    _logger.LogInformation("Commissioner user seeded successfully.");
-                }
-                else
-                {
-                    _logger.LogError("Failed to seed commissioner user: {Errors}",
-                        string.Join(", ", commissionerResult.Errors.Select(e => e.Description)));
-                }
-
-                // Seed Maintenance Manager
-                var maintenanceManagerUser = new ApplicationUser
-                {
-                    Id = "4",
-                    UserName = "maintenance@smartfleet.com",
-                    Email = "maintenance@smartfleet.com",
-                    ProfileImageUrl = "https://example.com/maintenance.jpg",
-                    AccountStatus = true,
-                    CreatedAt = DateTime.Now,
-                    EmailConfirmed = true
-                };
-
-                var maintenanceManagerResult = await _ApplicationUserManager.CreateAsync(maintenanceManagerUser, "Password123!");
-                if (maintenanceManagerResult.Succeeded)
-                {
-                    await _ApplicationUserManager.AddToRoleAsync(maintenanceManagerUser, "MaintenanceManager");
-                    _logger.LogInformation("Maintenance Manager user seeded successfully.");
-                }
-                else
-                {
-                    _logger.LogError("Failed to seed maintenance manager user: {Errors}",
-                        string.Join(", ", maintenanceManagerResult.Errors.Select(e => e.Description)));
-                }
-
-                // Only seed other data if it doesn't already exist
-                if (!await _db.Vehicles.AnyAsync())
-                {
-                    // Seed Vehicles
-                    var vehicles = new[]
-                    {
-                        new Vehicle
+                        // Seed Driver
+                        var driverUser = new Driver
                         {
-                            Model = "Toyota Corolla",
-                            Type = VehicleType.Car,
-                            Capacity = 5,
-                            LicensePlate = "XYZ 1234",
-                            Status = VehicleState.available,
-                            TotalDistanceTraveled = 0,
-                            RegistrationExpiryDate = DateTime.Now.AddYears(2),
-                            VehicleImageUrl = "https://example.com/toyota.jpg",
+                            Id = "2",
+                            UserName = "driver@smartfleet.com",
+                            Email = "driver@smartfleet.com",
+                            LicenseNumber = "AB12345",
+                            LicenseExpiryDate = DateTime.Now.AddYears(2),
+                            DriverStatus = DriverState.Available,
+                            ProfileImageUrl = "https://example.com/driver.jpg",
+                            AccountStatus = true,
                             CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now
-                        },
-                        new Vehicle
+                            EmailConfirmed = true
+                        };
+
+                        var driverResult = await _ApplicationUserManager.CreateAsync(driverUser, "Password123!");
+                        if (driverResult.Succeeded)
                         {
-                            Model = "Ford Transit",
-                            Type = VehicleType.Van,
-                            Capacity = 12,
-                            LicensePlate = "XYZ 5678",
-                            Status = VehicleState.available,
-                            TotalDistanceTraveled = 500,
-                            RegistrationExpiryDate = DateTime.Now.AddYears(1),
-                            VehicleImageUrl = "https://example.com/ford.jpg",
-                            CreatedAt = DateTime.Now,
-                            UpdatedAt = DateTime.Now
+                            await _ApplicationUserManager.AddToRoleAsync(driverUser, Roles.Driver.ToString());
+                            _logger.LogInformation("Driver user seeded successfully.");
                         }
-                    };
-
-                    await _db.Vehicles.AddRangeAsync(vehicles);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Vehicles seeded successfully.");
-
-                    // Get the vehicle IDs after saving
-                    var toyotaVehicle = await _db.Vehicles.FirstAsync(v => v.LicensePlate == "XYZ 1234");
-
-                    // Seed SimCard
-                    var simCard = new SimCard
-                    {
-                        SimNumber = "1234567890",
-                        Carrier = "CarrierX",
-                        ActivatedAt = DateTime.Now,
-                        Status = SimCardStatus.Active,
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await _db.SimCards.AddAsync(simCard);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("SimCard seeded successfully.");
-
-                    // Update the vehicle to reference the SimCard
-                    toyotaVehicle.SimCardId = simCard.Id;
-                    await _db.SaveChangesAsync();
-
-                    // Seed Maintenance
-                    var maintenance = new Maintenance
-                    {
-                        VehicleId = toyotaVehicle.Id,
-                        ReportedBy = "1",
-                        IssueDescription = "Flat tire",
-                        RepairStatus = RepairState.pending,
-                        Priority = PriorityDegree.high,
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await _db.Maintenances.AddAsync(maintenance);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Maintenance record seeded successfully.");
-
-                    // Seed Order
-                    var order = new Order
-                    {
-                        UserId = "1",
-                        VehicleType = VehicleType.Car,
-                        PassengerCount = 3,
-                        StartLocation = "University",
-                        Destination = "Airport",
-                        TripStartDate = DateTime.Now.AddHours(1),
-                        TripEndDate = DateTime.Now.AddHours(3),
-                        Reason = "Business Trip",
-                        Status = OrderState.Pending,
-                        CreatedAt = DateTime.Now
-                    };
-
-                    await _db.Orders.AddAsync(order);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Order seeded successfully.");
-
-                    // Seed Trip
-                    var trip = new Trip
-                    {
-                        VehicleId = toyotaVehicle.Id,
-                        OrderId = order.Id,
-                        DriverId = "2",
-                        Distance = 0, // Initialize to 0, will be calculated automatically
-                        Status = TripState.Scheduled,
-                        CreatedAt = DateTime.Now,
-                        CreatedBy = "1"
-                    };
-
-                    await _db.Trips.AddAsync(trip);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Trip seeded successfully.");
-
-                    // Update driver status to reflect the assigned trip
-                    var driver = await _db.Drivers.FirstOrDefaultAsync(d => d.Id == "2");
-                    if (driver != null)
-                    {
-                        driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
-                        await _db.SaveChangesAsync();
-                        _logger.LogInformation("Driver status updated to AssignedOnScheduledTrip due to scheduled trip assignment.");
+                        else
+                        {
+                            _logger.LogError("Failed to seed driver user: {Errors}",
+                                string.Join(", ", driverResult.Errors.Select(e => e.Description)));
+                        }
                     }
-                }
-                else
-                {
-                    _logger.LogInformation("Other data already exists. Skipping vehicle and related data seeding.");
-                }
 
-                _logger.LogInformation("Commissioner user and other missing data seeded successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while seeding initial data.");
+                    // Seed Commissioner
+                    var commissionerUser = new ApplicationUser
+                    {
+                        Id = "3",
+                        UserName = "commissioner@smartfleet.com",
+                        Email = "commissioner@smartfleet.com",
+                        AccountStatus = true,
+                        CreatedAt = DateTime.Now,
+                        EmailConfirmed = true
+                    };
+
+                    var commissionerResult = await _ApplicationUserManager.CreateAsync(commissionerUser, "Password123!");
+                    if (commissionerResult.Succeeded)
+                    {
+                        await _ApplicationUserManager.AddToRoleAsync(commissionerUser, Roles.commissioner.ToString());
+                        _logger.LogInformation("Commissioner user seeded successfully.");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to seed commissioner user: {Errors}",
+                            string.Join(", ", commissionerResult.Errors.Select(e => e.Description)));
+                    }
+
+                    // Seed Maintenance Manager
+                    var maintenanceManagerUser = new ApplicationUser
+                    {
+                        Id = "4",
+                        UserName = "maintenance@smartfleet.com",
+                        Email = "maintenance@smartfleet.com",
+                        AccountStatus = true,
+                        CreatedAt = DateTime.Now,
+                        EmailConfirmed = true
+                    };
+
+                    var maintenanceManagerResult = await _ApplicationUserManager.CreateAsync(maintenanceManagerUser, "Password123!");
+                    if (maintenanceManagerResult.Succeeded)
+                    {
+                        await _ApplicationUserManager.AddToRoleAsync(maintenanceManagerUser, Roles.MaintenanceManager.ToString());
+                        _logger.LogInformation("Maintenance Manager user seeded successfully.");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to seed maintenance manager user: {Errors}",
+                            string.Join(", ", maintenanceManagerResult.Errors.Select(e => e.Description)));
+                    }
+
+                    // Only seed other data if it doesn't already exist
+                    if (!await _db.Vehicles.AnyAsync())
+                    {
+                        // 1. Seed 20 NormalUser users
+                        var normalUsers = new List<ApplicationUser>();
+                        for (int i = 1; i <= 20; i++)
+                        {
+                            var user = new ApplicationUser
+                            {
+                                UserName = $"normaluser{i}@smartfleet.com",
+                                Email = $"normaluser{i}@smartfleet.com",
+                                AccountStatus = true,
+                                CreatedAt = DateTime.Now.AddMinutes(-i),
+                                EmailConfirmed = true
+                            };
+                            var result = await _ApplicationUserManager.CreateAsync(user, "Password123!");
+                            if (result.Succeeded)
+                            {
+                                await _ApplicationUserManager.AddToRoleAsync(user, Roles.NormalUser.ToString());
+                                normalUsers.Add(user);
+                            }
+                            else
+                            {
+                                _logger.LogError($"Failed to create normal user {i}: {{0}}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                            }
+                        }
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 NormalUser users seeded successfully.");
+
+                        // 2. Seed 20 Vehicles
+                        var vehicles = new List<Vehicle>();
+                        for (int i = 1; i <= 20; i++)
+                        {
+                            vehicles.Add(new Vehicle
+                            {
+                                Model = $"Model-{i}",
+                                Type = (VehicleType)(i % Enum.GetValues(typeof(VehicleType)).Length),
+                                Capacity = 4 + (i % 5),
+                                LicensePlate = $"XYZ-{1000 + i}",
+                                Status = VehicleState.available,
+                                TotalDistanceTraveled = (decimal)(i * 10.5),
+                                RegistrationExpiryDate = DateTime.Now.AddYears(1).AddDays(i),
+                                VehicleImageUrl = $"https://example.com/vehicle{i}.jpg",
+                                CreatedAt = DateTime.Now.AddMinutes(-i),
+                                UpdatedAt = DateTime.Now.AddMinutes(-i)
+                            });
+                        }
+                        await _db.Vehicles.AddRangeAsync(vehicles);
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 Vehicles seeded successfully.");
+
+                        // 3. Seed 20 SimCards and assign to vehicles
+                        var simCards = new List<SimCard>();
+                        for (int i = 1; i <= 20; i++)
+                        {
+                            simCards.Add(new SimCard
+                            {
+                                SimNumber = $"SIM{i:0000000000}",
+                                Carrier = $"Carrier{i % 3 + 1}",
+                                ActivatedAt = DateTime.Now.AddDays(-i),
+                                Status = SimCardStatus.Active,
+                                CreatedAt = DateTime.Now.AddDays(-i)
+                            });
+                        }
+                        await _db.SimCards.AddRangeAsync(simCards);
+                        await _db.SaveChangesAsync();
+                        // Assign sim cards to vehicles
+                        for (int i = 0; i < 20; i++)
+                        {
+                            vehicles[i].SimCardId = simCards[i].Id;
+                        }
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 SimCards seeded and assigned to vehicles successfully.");
+
+                        // 4. Seed 20 Maintenances (each for a vehicle, reported by a user)
+                        var maintenances = new List<Maintenance>();
+                        for (int i = 0; i < 20; i++)
+                        {
+                            maintenances.Add(new Maintenance
+                            {
+                                VehicleId = vehicles[i].Id,
+                                ReportedBy = normalUsers[i].Id,
+                                IssueDescription = $"Issue {i + 1}",
+                                RepairStatus = RepairState.pending,
+                                Priority = (PriorityDegree)(i % Enum.GetValues(typeof(PriorityDegree)).Length),
+                                CreatedAt = DateTime.Now.AddMinutes(-i)
+                            });
+                        }
+                        await _db.Maintenances.AddRangeAsync(maintenances);
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 Maintenances seeded successfully.");
+
+                        // 5. Seed 20 Orders (each by a user)
+                        var orders = new List<Order>();
+                        for (int i = 0; i < 20; i++)
+                        {
+                            orders.Add(new Order
+                            {
+                                UserId = normalUsers[i].Id,
+                                VehicleType = (VehicleType)(i % Enum.GetValues(typeof(VehicleType)).Length),
+                                PassengerCount = 2 + (i % 4),
+                                StartLocation = $"Location-{i + 1}",
+                                Destination = $"Destination-{i + 1}",
+                                TripStartDate = DateTime.Now.AddHours(i),
+                                TripEndDate = DateTime.Now.AddHours(i + 2),
+                                Reason = $"Reason {i + 1}",
+                                Status = OrderState.Pending,
+                                CreatedAt = DateTime.Now.AddMinutes(-i)
+                            });
+                        }
+                        await _db.Orders.AddRangeAsync(orders);
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 Orders seeded successfully.");
+
+                        // 6. Seed 20 Trips (each for a vehicle, order, and driver)
+                        // Use the seeded driver with Id = "2" for all trips
+                        var driver = await _db.Drivers.FirstOrDefaultAsync(d => d.Id == "2");
+                        var trips = new List<Trip>();
+                        for (int i = 0; i < 20; i++)
+                        {
+                            trips.Add(new Trip
+                            {
+                                VehicleId = vehicles[i].Id,
+                                OrderId = orders[i].Id,
+                                DriverId = driver?.Id ?? "2",
+                                Distance = 0,
+                                Status = TripState.Scheduled,
+                                CreatedAt = DateTime.Now.AddMinutes(-i),
+                                CreatedBy = normalUsers[i].Id
+                            });
+                        }
+                        await _db.Trips.AddRangeAsync(trips);
+                        await _db.SaveChangesAsync();
+                        _logger.LogInformation("20 Trips seeded successfully.");
+
+                        // Optionally update driver status
+                        if (driver != null)
+                        {
+                            driver.DriverStatus = DriverState.AssignedOnScheduledTrip;
+                            await _db.SaveChangesAsync();
+                            _logger.LogInformation("Driver status updated to AssignedOnScheduledTrip due to scheduled trip assignment.");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Other data already exists. Skipping vehicle and related data seeding.");
+                    }
+
+                    _logger.LogInformation("Commissioner user and other missing data seeded successfully.");
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "An error occurred while seeding initial data.");
+                }
             }
         }
     }

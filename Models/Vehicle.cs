@@ -47,7 +47,7 @@ namespace SmartFleet.Models
         public VehicleState Status { get; set; }
         [Display(Name = "Total Distance Traveled (km)")]
         // This value is updated automatically from GPS data
-         [Precision(12, 2)]
+         [Precision(12, 7)]
 
         public decimal TotalDistanceTraveled { get; set; }
         [Display(Name = "Registration Expiry Date")]
