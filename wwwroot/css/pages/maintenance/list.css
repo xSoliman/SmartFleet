@@ -379,7 +379,7 @@
 
 .badge-pending {
     background-color: #ffc107;
-    color: #212529;
+    color: white;
 }
 
 .badge-in_progress {
@@ -431,4 +431,226 @@
 
 .breadcrumb-item.active {
     color: #6c757d;
+}  
+
+/* Maintenance Vehicles Table Styles */
+.maintenance-vehicles-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    max-width: 1200px;
+    overflow: hidden;
+}
+
+.maintenance-vehicles-header {
+    background: #f8f9fa;
+    padding: 20px 25px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.maintenance-vehicles-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.maintenance-vehicles-title i {
+    color: #20B2AA;
+}
+
+.maintenance-vehicles-actions-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+.btn-back-to-maintenance {
+    background: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: none;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-back-to-maintenance:hover {
+    background: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.maintenance-vehicles-table {
+    width: 100%;
+}
+
+.maintenance-vehicles-table .table {
+    margin-bottom: 0;
+    border: none;
+}
+
+.maintenance-vehicles-table thead th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+    vertical-align: middle;
+    padding: 15px 10px;
+    border: none;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.maintenance-vehicles-table tbody td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px 10px;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.maintenance-vehicles-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.maintenance-vehicles-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.vehicle-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.vehicle-license {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.vehicle-model {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.vehicle-type {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: capitalize;
+}
+
+.btn-add-maintenance-report {
+    background: #20B2AA;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: none;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-add-maintenance-report:hover {
+    background: #1a9ba3;
+    color: white;
+    text-decoration: none;
+}
+
+.no-vehicles-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+.no-vehicles-message i {
+    font-size: 2.5rem;
+    color: #dee2e6;
+    margin-bottom: 15px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .maintenance-vehicles-container {
+        margin: 10px;
+        border-radius: 8px;
+    }
+
+    .maintenance-vehicles-header {
+        padding: 15px;
+    }
+
+    .maintenance-vehicles-title {
+        font-size: 1.3rem;
+    }
+
+    .maintenance-vehicles-table thead th,
+    .maintenance-vehicles-table tbody td {
+        padding: 10px 6px;
+        font-size: 0.85rem;
+    }
+
+    .vehicle-license {
+        font-size: 0.9rem;
+    }
+
+    .vehicle-model {
+        font-size: 0.8rem;
+    }
+
+    .vehicle-type {
+        font-size: 1rem;
+    }
+
+    .btn-add-maintenance-report {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}  
+
+.maintenance-button-group {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.maintenance-button-group .btn {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.maintenance-button-group .btn.delete {
+    border: none;
+    background: none;
+    padding: 8px 15px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    margin: 0;
+    cursor: pointer;
+}
+
+.maintenance-button-group form {
+    margin: 0;
+    display: inline;
 }  

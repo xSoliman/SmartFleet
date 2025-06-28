@@ -21,45 +21,86 @@
     <link rel="stylesheet" href="~/css/pages/maintenance/list.css">
 </head>
 
-<div class="maintenance-layout-container" style="background: #f8f9fa; min-height: 100vh;">
+<div class="maintenance-layout-container" style="background: #f8f9fa; min-height: 100vh; padding: 20px;">
     <div class="maintenance-form-wrapper">
-        <div class="maintenance-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 24px;">
-            <div>
-                <h2 class="maintenance-heading" style="text-align:left;"><i class="fas fa-tools me-2"></i>Vehicles Needing Maintenance</h2>
+        <!-- Header -->
+        <div class="maintenance-vehicles-container">
+            <div class="maintenance-vehicles-header">
+                <h2 class="maintenance-vehicles-title">
+                    <i class="fas fa-tools"></i>
+                    Vehicles Needing Maintenance
+                </h2>
+                <div class="maintenance-vehicles-actions-header">
+                    <a asp-action="Index" class="btn-back-to-maintenance">
+                        <i class="fas fa-list"></i>
+                        Back to Maintenance Records
+                    </a>
+                </div>
             </div>
-            <div class="maintenance-actions">
-                <a asp-action="Index" class="maintenance-primary-button" style="background:#757575;">
-                    <i class="fas fa-list"></i> All Maintenance Records
-                </a>
-            </div>
-        </div>
-        <div class="table-responsive" style="margin-top: 10px;">
-            <table class="table table-bordered" style="background:#fff; border-radius:10px; overflow:hidden;">
-                <thead style="background:#f5f7fa;">
-                    <tr>
-                        <th><i class="fas fa-car me-1"></i>License Plate</th>
-                        <th><i class="fas fa-cogs me-1"></i>Model</th>
-                        <th><i class="fas fa-clipboard-list me-1"></i>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var vehicle in Model)
-                    {
-                        <tr>
-                            <td>@vehicle.LicensePlate</td>
-                            <td>@vehicle.Model</td>
-                            <td>
+
+            <!-- Table -->
+            <div class="maintenance-vehicles-table">
+                @if (Model != null && Model.Any())
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <i class="fas fa-car me-2"></i>
+                                    Vehicle Information
+                                </th>
+                                <th>
+                                    <i class="fas fa-cogs me-2"></i>
+                                    Vehicle Type
+                                </th>
                                 @if (isMaintenanceManager && canCreateMaintenance)
                                 {
-                                    <a class="maintenance-primary-button" style="background:#20B2AA; padding:8px 16px; font-size:15px;" asp-controller="Maintenances" asp-action="CreateMaintenance" asp-route-VehicleId="@vehicle.Id">
-                                        <i class="fas fa-plus-circle me-1"></i>Add Maintenance Report
-                                    </a>
+                                    <th>
+                                        <i class="fas fa-clipboard-list me-2"></i>
+                                        Actions
+                                    </th>
                                 }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var vehicle in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="vehicle-info">
+                                            <div class="vehicle-license">@vehicle.LicensePlate</div>
+                                            <div class="vehicle-model">@vehicle.Model</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="vehicle-type">@vehicle.Type</span>
+                                    </td>
+                                    @if (isMaintenanceManager && canCreateMaintenance)
+                                    {
+                                        <td>
+                                            <a class="btn-add-maintenance-report" 
+                                               asp-controller="Maintenances" 
+                                               asp-action="CreateMaintenance" 
+                                               asp-route-VehicleId="@vehicle.Id">
+                                                <i class="fas fa-plus-circle"></i>
+                                                Add Maintenance Report
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="no-vehicles-message">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No vehicles currently need maintenance.</p>
+                        <p>All vehicles are in good condition!</p>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

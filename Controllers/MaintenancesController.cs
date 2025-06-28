@@ -87,10 +87,11 @@ namespace SmartFleet.Controllers
             int pageSize = 10;
             int totalCount = await query.CountAsync();
             
-            // Sort by pending status first, then by high priority
+            // Sort by pending status first, then by priority (high, normal, low), then by creation date
             var sortedQuery = query.OrderBy(m => m.RepairStatus != RepairState.pending) // pending first
-                                   .ThenBy(m => m.Priority != PriorityDegree.high) // high priority first
-                                   .ThenByDescending(m => m.CreatedAt); // then by creation date
+                                   .ThenBy(m => m.Priority == PriorityDegree.low) // low priority last
+                                   .ThenBy(m => m.Priority == PriorityDegree.normal) // normal priority second to last
+                                   .ThenByDescending(m => m.CreatedAt); // then by creation date (newest first)
             
             var pagedMaintenances = await _paginationService.GetPaginatedAsync(sortedQuery, pageNumber, pageSize);
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -467,38 +468,6 @@ namespace SmartFleet.Controllers
             return View(maintenance);
         }
 
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Check access permissions
-            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
-            {
-                TempData["ErrorMessage"] = "You don't have access to maintenance.";
-                return RedirectToAction("Index", "Home");
-            }
-
-            var maintenance = await _context.Maintenances
-                .Include(m => m.ReportedUser)
-                .Include(m => m.Vehicle)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (maintenance == null)
-            {
-                return NotFound();
-            }
-
-            return View(maintenance);
-        }
-
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -516,20 +485,30 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Check edit permissions
+            if (!await _userRoleService.CanEditMaintenance(currentUser))
+            {
+                TempData["ErrorMessage"] = "You don't have permission to delete maintenance records.";
+                return RedirectToAction("Index");
+            }
+
             var maintenance = await _context.Maintenances
                 .Include(m => m.Vehicle)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            string? licensePlate = null;
-
             if (maintenance != null)
             {
-                licensePlate = maintenance.Vehicle?.LicensePlate;
+                var licensePlate = maintenance.Vehicle?.LicensePlate ?? "Unknown";
                 _context.Maintenances.Remove(maintenance);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Maintenance record for vehicle {licensePlate} has been deleted successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Maintenance record not found.";
             }
 
-            return RedirectToAction(nameof(Index), new { searchPlate = licensePlate });
+            return RedirectToAction(nameof(Index));
         }
 
         private bool MaintenanceExists(int id)
