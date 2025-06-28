@@ -32,6 +32,7 @@ namespace SmartFleet.ViewComponents
                 HasAccessToTrips = isAuthenticated && await _userRoleService.HasAccessToTrips(currentUser),
                 HasAccessToTracking = isAuthenticated && await _userRoleService.HasAccessToTracking(currentUser),
                 HasAccessToDashboard = isAuthenticated && await _userRoleService.HasAccessToDashboard(currentUser),
+                HasAccessToReports = isAuthenticated && await _userRoleService.HasAccessToReports(currentUser),
                 IsAuthenticated = isAuthenticated,
                 CurrentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "",
                 CurrentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? ""
@@ -50,6 +51,7 @@ namespace SmartFleet.ViewComponents
         public bool HasAccessToTrips { get; set; }
         public bool HasAccessToTracking { get; set; }
         public bool HasAccessToDashboard { get; set; }
+        public bool HasAccessToReports { get; set; }
         public bool IsAuthenticated { get; set; }
         public string CurrentController { get; set; } = "";
         public string CurrentAction { get; set; } = "";

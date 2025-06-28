@@ -1,0 +1,594 @@
+/* Reports Page Styles */
+.reports-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1rem 0;
+}
+
+/* Header Styling */
+.header-content h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content p {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Action Buttons */
+.action-buttons .btn-enhanced {
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.action-buttons .btn-enhanced:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.action-buttons .btn-enhanced:hover:before {
+    left: 100%;
+}
+
+.action-buttons .btn-enhanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* KPI Cards */
+.kpi-card {
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.kpi-card .card-body {
+    padding: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.kpi-card .icon-wrapper {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    opacity: 0.1;
+    z-index: 1;
+}
+
+.kpi-card .number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.kpi-card .label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card .stats-subtitle {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* KPI Card Variants */
+.fleet-utilization .icon-wrapper { background: linear-gradient(45deg, #007bff, #0056b3); }
+.driver-efficiency .icon-wrapper { background: linear-gradient(45deg, #28a745, #20c997); }
+.total-distance .icon-wrapper { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+.completion-rate .icon-wrapper { background: linear-gradient(45deg, #17a2b8, #138496); }
+
+/* Stats Cards */
+.stats-card {
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stats-card .icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stats-card .number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0.5rem 0;
+}
+
+.stats-card .label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.stats-card .stats-subtitle {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Stats Card Variants */
+.total-vehicles .icon-wrapper { background: linear-gradient(45deg, #007bff, #0056b3); }
+.active-vehicles .icon-wrapper { background: linear-gradient(45deg, #28a745, #20c997); }
+.vehicles-on-trip .icon-wrapper { background: linear-gradient(45deg, #17a2b8, #138496); }
+.vehicles-maintenance .icon-wrapper { background: linear-gradient(45deg, #dc3545, #c82333); }
+.total-drivers .icon-wrapper { background: linear-gradient(45deg, #6f42c1, #5a32a3); }
+.total-trips .icon-wrapper { background: linear-gradient(45deg, #fd7e14, #e8590c); }
+.total-orders .icon-wrapper { background: linear-gradient(45deg, #ffc107, #e0a800); }
+.total-maintenance .icon-wrapper { background: linear-gradient(45deg, #6c757d, #5a6268); }
+
+/* Chart Cards */
+.chart-card {
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.chart-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.chart-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+.chart-card .card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Activity Cards */
+.activity-card {
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.activity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.activity-card .card-header {
+    background: #f8f9fa;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.activity-card .card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+    background-color: #f8f9fa;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.activity-icon.trips { background: linear-gradient(45deg, #007bff, #0056b3); }
+.activity-icon.orders { background: linear-gradient(45deg, #28a745, #20c997); }
+.activity-icon.maintenance { background: linear-gradient(45deg, #dc3545, #c82333); }
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.activity-description {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+.activity-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.pending { background: #fff3cd; color: #856404; }
+.status-badge.approved { background: #d1edff; color: #0c5460; }
+.status-badge.completed { background: #d4edda; color: #155724; }
+.status-badge.cancelled { background: #f8d7da; color: #721c24; }
+.status-badge.active { background: #d1ecf1; color: #0c5460; }
+.status-badge.inactive { background: #e2e3e5; color: #383d41; }
+.status-badge.scheduled { background: #cce5ff; color: #004085; }
+.status-badge.available { background: #d4edda; color: #155724; }
+.status-badge.ontrip { background: #fff3cd; color: #856404; }
+.status-badge.notavailable { background: #f8d7da; color: #721c24; }
+
+.priority-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-badge.high { background: #f8d7da; color: #721c24; }
+.priority-badge.medium { background: #fff3cd; color: #856404; }
+.priority-badge.low { background: #d4edda; color: #155724; }
+
+/* Performance Tables */
+.performance-card {
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.performance-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.performance-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.performance-card .card-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.performance-table {
+    margin: 0;
+}
+
+.performance-table th {
+    background-color: #f8f9fa;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.performance-table td {
+    padding: 1rem;
+    border: none;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.vehicle-info, .driver-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.vehicle-info .fw-bold,
+.driver-info .fw-bold {
+    font-size: 0.95rem;
+    color: #2c3e50;
+}
+
+/* Modal Styling */
+.modal-content {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.modal-header h5 {
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid #f8f9fa;
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .reports-page {
+        padding: 1rem 0;
+    }
+    
+    .header-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .header-content p {
+        font-size: 0.9rem;
+    }
+    
+    .action-buttons {
+        margin-top: 1rem;
+    }
+    
+    .action-buttons .btn-enhanced {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+    
+    .kpi-card .number {
+        font-size: 2rem;
+    }
+    
+    .stats-card .number {
+        font-size: 1.5rem;
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .activity-icon {
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+    }
+    
+    .activity-meta {
+        justify-content: flex-start;
+    }
+}
+
+/* Loading Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Print Styles */
+@media print {
+    .action-buttons,
+    .modal,
+    .btn {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    
+    .activity-list {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* Responsive Grid Improvements */
+@media (max-width: 1200px) {
+    .col-xl-3 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .col-lg-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .col-sm-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
+
+/* Chart Responsive Improvements */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .chart-container {
+        height: 200px !important;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Smooth Animations */
+* {
+    transition: all 0.3s ease;
+} 

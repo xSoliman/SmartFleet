@@ -28,6 +28,7 @@ namespace SmartFleet.Models
         public RepairState RepairStatus { get; set; }
         public PriorityDegree Priority { get; set; }
         public DateTime? RepairedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
