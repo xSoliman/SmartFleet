@@ -19,26 +19,35 @@ namespace SmartFleet.Controllers
         private readonly SmartFleetContext _context;
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
         public UsersController(
             UserManager<ApplicationUser> userManager, 
             RoleManager<IdentityRole> roleManager,
             SmartFleetContext context,
             IUserRoleService userRoleService,
-            IPaginationService paginationService)
+            IPaginationService paginationService,
+            ISearchService searchService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
+            _searchService = searchService;
         }
 
         // GET: Users/Index - عرض كل المستخدمين
-        public async Task<IActionResult> Index(int pageNumber = 1)
+        public async Task<IActionResult> Index(string searchUserName, string searchEmail, int pageNumber = 1)
         {
             int pageSize = 10;
-            var usersQuery = _userManager.Users.OrderBy(u => u.UserName);
+            var usersQuery = _userManager.Users.AsQueryable();
+            var filters = new List<System.Linq.Expressions.Expression<Func<ApplicationUser, bool>>>();
+            if (!string.IsNullOrEmpty(searchUserName))
+                filters.Add(u => u.UserName.Contains(searchUserName));
+            if (!string.IsNullOrEmpty(searchEmail))
+                filters.Add(u => u.Email.Contains(searchEmail));
+            usersQuery = _searchService.ApplyFilters(usersQuery, filters).OrderBy(u => u.UserName);
             int totalCount = await usersQuery.CountAsync();
             var pagedUsers = await _paginationService.GetPaginatedAsync(usersQuery, pageNumber, pageSize);
 
@@ -96,6 +105,8 @@ namespace SmartFleet.Controllers
 
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             ViewBag.CurrentPage = pageNumber;
+            ViewBag.SearchUserName = searchUserName;
+            ViewBag.SearchEmail = searchEmail;
             return View(viewModel);
         }
 

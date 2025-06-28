@@ -18,13 +18,15 @@ namespace SmartFleet.Controllers
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
+        private readonly ISearchService _searchService;
 
-        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService)
+        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
         {
             _context = context;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
+            _searchService = searchService;
         }
 
         // GET: SimCards
@@ -32,22 +34,14 @@ namespace SmartFleet.Controllers
         public async Task<IActionResult> Index(string searchSimNumber, string searchCarrier, string statusFilter, int pageNumber = 1)
         {
             var simCards = _context.SimCards.AsQueryable();
-
+            var filters = new List<System.Linq.Expressions.Expression<Func<SimCard, bool>>>();
             if (!string.IsNullOrEmpty(searchSimNumber))
-            {
-                simCards = simCards.Where(s => s.SimNumber.Contains(searchSimNumber));
-            }
-
+                filters.Add(s => s.SimNumber.Contains(searchSimNumber));
             if (!string.IsNullOrEmpty(searchCarrier))
-            {
-                simCards = simCards.Where(s => s.Carrier.Contains(searchCarrier));
-            }
-
+                filters.Add(s => s.Carrier.Contains(searchCarrier));
             if (Enum.TryParse<SimCardStatus>(statusFilter, out var parsedStatus))
-            {
-                simCards = simCards.Where(s => s.Status == parsedStatus);
-            }
-
+                filters.Add(s => s.Status == parsedStatus);
+            simCards = _searchService.ApplyFilters(simCards, filters);
             int pageSize = 10;
             int totalCount = await simCards.CountAsync();
             var pagedSimCards = await _paginationService.GetPaginatedAsync(simCards.OrderBy(s => s.SimNumber), pageNumber, pageSize);
