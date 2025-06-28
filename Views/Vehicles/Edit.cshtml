@@ -1,6 +1,16 @@
 ﻿@model SmartFleet.Models.Vehicle
+@using SmartFleet.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@inject IUserRoleService UserRoleService
+@inject UserManager<SmartFleet.Models.ApplicationUser> UserManager
+
 @{
     ViewData["Title"] = "Edit Vehicle";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var isFleetManager = userRoles.Contains("FleetManager");
+    var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+    var isSysSupport = userRoles.Contains("SysSupport");
 }
 
 <head>
@@ -59,24 +69,82 @@
                     <span asp-validation-for="LicensePlate" class="edit-validation-message"></span>
                 </div>
                 <div class="edit-input-group">
-                    <label asp-for="Status" class="edit-input-label">Vehicle Status</label>
-                    <select asp-for="Status" class="edit-dropdown">
-                        @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                    <label asp-for="Status" class="edit-input-label">Maintenance Status</label>
+                    @if (isFleetManager)
+                    {
+                        <!-- Fleet Manager can toggle between available and need_maintenance -->
+                        @if (Model.Status == VehicleState.available)
                         {
-                            var statusText = status.ToString();
-                            // Replace underscores with spaces and capitalize first letter of each word
-                            statusText = statusText.Replace("_", " ");
-                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
-                            
-                            // Use shorter text for the long status
-                            if (statusText == "On Scheduled Trip")
-                            {
-                                statusText = "Scheduled Trip";
-                            }
-                            
-                            <option value="@status" selected="@(status.Equals(Model.Status) ? "selected" : null)">@statusText</option>
+                            <input type="hidden" asp-for="Status" value="@VehicleState.need_maintenance" />
+                            <button type="submit" class="edit-status-button edit-status-need-maintenance">
+                                <i class="fas fa-wrench"></i> Mark as Need Maintenance
+                            </button>
                         }
-                    </select>
+                        else if (Model.Status == VehicleState.maintained)
+                        {
+                            <input type="hidden" asp-for="Status" value="@VehicleState.available" />
+                            <button type="submit" class="edit-status-button edit-status-available">
+                                <i class="fas fa-check-circle"></i> Mark as Available
+                            </button>
+                        }
+                        else if (Model.Status == VehicleState.need_maintenance)
+                        {
+                            <!-- For need_maintenance state, show read-only status -->
+                            <input value="@Model.Status.ToString().Replace("_", " ")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                            <small class="edit-help-text">Vehicle needs maintenance. Cannot be changed by Fleet Manager.</small>
+                        }
+                        else
+                        {
+                            <!-- For other states, show current status as read-only -->
+                            <input value="@Model.Status.ToString().Replace("_", " ")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                            <small class="edit-help-text">Current state cannot be changed by Fleet Manager.</small>
+                        }
+                        <small class="edit-help-text">Fleet Manager can toggle between Available and Need Maintenance states.</small>
+                    }
+                    else if (isMaintenanceManager)
+                    {
+                        <!-- Maintenance Manager can only change to maintained -->
+                        @if (Model.Status == VehicleState.need_maintenance)
+                        {
+                            <input type="hidden" asp-for="Status" value="@VehicleState.maintained" />
+                            <button type="submit" class="edit-status-button edit-status-maintained">
+                                <i class="fas fa-tools"></i> Mark as Maintained
+                            </button>
+                        }
+                        else
+                        {
+                            <!-- For other states, show current status as read-only -->
+                            <input value="@Model.Status.ToString().Replace("_", " ")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                            <small class="edit-help-text">Maintenance Manager can only change vehicles from Need Maintenance to Maintained.</small>
+                        }
+                        <small class="edit-help-text">Maintenance Manager can only change vehicle state to Maintained.</small>
+                    }
+                    else if (isSysSupport)
+                    {
+                        <!-- SysSupport can change to any state -->
+                        <select asp-for="Status" class="edit-dropdown">
+                            @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                            {
+                                var statusText = status.ToString();
+                                statusText = statusText.Replace("_", " ");
+                                statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                                
+                                if (statusText == "On Scheduled Trip")
+                                {
+                                    statusText = "Scheduled Trip";
+                                }
+                                
+                                <option value="@status" selected="@(status.Equals(Model.Status) ? "selected" : null)">@statusText</option>
+                            }
+                        </select>
+                        <small class="edit-help-text">System Support has full access to change vehicle states.</small>
+                    }
+                    else
+                    {
+                        <!-- Read-only for other roles -->
+                        <input value="@Model.Status.ToString().Replace("_", " ")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                        <small class="edit-help-text">You don't have permission to change vehicle status.</small>
+                    }
                     <span asp-validation-for="Status" class="edit-validation-message"></span>
                 </div>
             </div>
@@ -301,6 +369,13 @@
             const modal = document.getElementById('simCardModal');
             if (event.target == modal) {
                 closeSimCardModal();
+            }
+        }
+
+        function changeVehicleStatus(newStatus) {
+            const statusInput = document.querySelector('input[name="Status"]');
+            if (statusInput) {
+                statusInput.value = newStatus;
             }
         }
     </script>

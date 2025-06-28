@@ -90,7 +90,13 @@ namespace SmartFleet.Controllers
 
             int pageSize = 10;
             int totalCount = await query.CountAsync();
-            var pagedMaintenances = await _paginationService.GetPaginatedAsync(query.OrderByDescending(m => m.CreatedAt), pageNumber, pageSize);
+            
+            // Sort by pending status first, then by high priority
+            var sortedQuery = query.OrderBy(m => m.RepairStatus != RepairState.pending) // pending first
+                                   .ThenBy(m => m.Priority != PriorityDegree.high) // high priority first
+                                   .ThenByDescending(m => m.CreatedAt); // then by creation date
+            
+            var pagedMaintenances = await _paginationService.GetPaginatedAsync(sortedQuery, pageNumber, pageSize);
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             ViewBag.CurrentPage = pageNumber;
             ViewBag.SearchPlate = searchPlate;
@@ -146,8 +152,19 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Allow Fleet Managers and Maintenance Managers to view the page
+            var userRoles = await _userRoleService.GetUserRoles(currentUser);
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+            var isFleetManager = userRoles.Contains("FleetManager");
+            
+            if (!isMaintenanceManager && !isFleetManager)
+            {
+                TempData["ErrorMessage"] = "Only Fleet Managers and Maintenance Managers can access this page.";
+                return RedirectToAction("Index", "Home");
+            }
+
             var vehicles = await _context.Vehicles
-                .Where(v => v.Status == VehicleState.need_maintenance || v.Status == VehicleState.under_maintenance)
+                .Where(v => v.Status == VehicleState.need_maintenance)
                 .ToListAsync();
 
             return View(vehicles);
@@ -201,31 +218,6 @@ namespace SmartFleet.Controllers
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName");
 
             return View("Create", maintenance);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> UpdateVehicleStatus(int vehicleId, VehicleState newStatus)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Check access permissions
-            if (!await _userRoleService.HasAccessToMaintenance(currentUser))
-            {
-                TempData["ErrorMessage"] = "You don't have access to maintenance.";
-                return RedirectToAction("Index", "Home");
-            }
-
-            var vehicle = await _context.Vehicles.FindAsync(vehicleId);
-            if (vehicle == null) return NotFound();
-
-            vehicle.Status = newStatus;
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(MaintenanceVehicles));
         }
 
         public async Task<IActionResult> Create()
@@ -287,6 +279,20 @@ namespace SmartFleet.Controllers
                 maintenance.ReportedUser = await _context.Users.FindAsync(maintenance.ReportedBy);
                 _context.Add(maintenance);
                 await _context.SaveChangesAsync();
+
+                // If maintenance status is completed, automatically change vehicle state to maintained
+                if (maintenance.RepairStatus == RepairState.completed && maintenance.VehicleId.HasValue)
+                {
+                    var vehicle = await _context.Vehicles.FindAsync(maintenance.VehicleId.Value);
+                    if (vehicle != null && vehicle.Status == VehicleState.need_maintenance)
+                    {
+                        vehicle.Status = VehicleState.maintained;
+                        vehicle.UpdatedAt = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                        
+                        TempData["SuccessMessage"] = $"Maintenance record created and vehicle {vehicle.LicensePlate} status automatically changed to Maintained.";
+                    }
+                }
 
                 // احصل على LicensePlate
                 var licensePlate = await _context.Vehicles
@@ -398,8 +404,32 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
+                    // Get the original maintenance record to check if status is changing to completed
+                    var originalMaintenance = await _context.Maintenances.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+                    bool isStatusChangingToCompleted = originalMaintenance != null && 
+                                                     originalMaintenance.RepairStatus != RepairState.completed && 
+                                                     maintenance.RepairStatus == RepairState.completed;
+
                     _context.Update(maintenance);
                     await _context.SaveChangesAsync();
+
+                    // If maintenance status changed to completed, automatically change vehicle state to maintained
+                    if (isStatusChangingToCompleted && maintenance.VehicleId.HasValue)
+                    {
+                        var vehicle = await _context.Vehicles.FindAsync(maintenance.VehicleId.Value);
+                        if (vehicle != null && vehicle.Status == VehicleState.need_maintenance)
+                        {
+                            vehicle.Status = VehicleState.maintained;
+                            vehicle.UpdatedAt = DateTime.Now;
+                            await _context.SaveChangesAsync();
+                            
+                            TempData["SuccessMessage"] = $"Maintenance completed and vehicle {vehicle.LicensePlate} status automatically changed to Maintained.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["SuccessMessage"] = "Maintenance record updated successfully.";
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {

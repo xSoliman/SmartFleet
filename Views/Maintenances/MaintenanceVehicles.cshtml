@@ -6,8 +6,12 @@
 @inject UserManager<SmartFleet.Models.ApplicationUser> UserManager
 
 @{
-    ViewData["Title"] = "Vehicles Under Maintenance";
+    ViewData["Title"] = "Vehicles Needing Maintenance";
     var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+    var isFleetManager = userRoles.Contains("FleetManager");
+    var isSysSupport = userRoles.Contains("SysSupport");
     var canCreateMaintenance = currentUser != null && await UserRoleService.CanCreateMaintenance(currentUser);
 }
 
@@ -21,14 +25,12 @@
     <div class="maintenance-form-wrapper">
         <div class="maintenance-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 24px;">
             <div>
-
                 <h2 class="maintenance-heading" style="text-align:left;"><i class="fas fa-tools me-2"></i>Vehicles Needing Maintenance</h2>
             </div>
             <div class="maintenance-actions">
                 <a asp-action="Index" class="maintenance-primary-button" style="background:#757575;">
                     <i class="fas fa-list"></i> All Maintenance Records
                 </a>
-        
             </div>
         </div>
         <div class="table-responsive" style="margin-top: 10px;">
@@ -37,7 +39,6 @@
                     <tr>
                         <th><i class="fas fa-car me-1"></i>License Plate</th>
                         <th><i class="fas fa-cogs me-1"></i>Model</th>
-                        <th><i class="fas fa-wrench me-1"></i>Status</th>
                         <th><i class="fas fa-clipboard-list me-1"></i>Actions</th>
                     </tr>
                 </thead>
@@ -48,31 +49,11 @@
                             <td>@vehicle.LicensePlate</td>
                             <td>@vehicle.Model</td>
                             <td>
-                                <form asp-action="UpdateVehicleStatus" method="post" class="d-flex flex-column">
-                                    <input type="hidden" name="vehicleId" value="@vehicle.Id" />
-                                    <select name="newStatus" class="maintenance-dropdown mb-1" style="max-width:180px;">
-                                        @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
-                                        {
-                                            var statusText = status.ToString();
-                                            statusText = System.Text.RegularExpressions.Regex.Replace(statusText, "([a-z])([A-Z])", "$1 $2");
-                                            if (statusText == "On Scheduled Trip")
-                                            {
-                                                statusText = "Scheduled Trip";
-                                            }
-                                            <option value="@status" selected="@(vehicle.Status == (VehicleState)status)">@statusText</option>
-                                        }
-                                    </select>
-                                    <button type="submit" class="maintenance-primary-button" style="background:#3498db; padding:6px 12px; font-size:15px;">
-                                        <i class="fas fa-sync-alt me-1"></i>Update
-                                    </button>
-                                </form>
-                            </td>
-                            <td>
-                                @if (canCreateMaintenance)
+                                @if (isMaintenanceManager && canCreateMaintenance)
                                 {
-                                <a class="maintenance-primary-button" style="background:#20B2AA; padding:6px 12px; font-size:15px;" asp-controller="Maintenances" asp-action="CreateMaintenance" asp-route-VehicleId="@vehicle.Id">
-                                    <i class="fas fa-plus-circle me-1"></i>Add Maintenance
-                                </a>
+                                    <a class="maintenance-primary-button" style="background:#20B2AA; padding:8px 16px; font-size:15px;" asp-controller="Maintenances" asp-action="CreateMaintenance" asp-route-VehicleId="@vehicle.Id">
+                                        <i class="fas fa-plus-circle me-1"></i>Add Maintenance Report
+                                    </a>
                                 }
                             </td>
                         </tr>

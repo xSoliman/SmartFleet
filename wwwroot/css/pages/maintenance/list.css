@@ -41,6 +41,15 @@
     color: red;
 }
 
+/* Button styles from drivers list */
+.btn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+}
+
 .btn.edit, .btn.details, .btn.delete {
     background-color: rgb(235, 235, 235);
     color: black;
@@ -56,6 +65,7 @@
     margin-right: 5px;
     color: #111 !important;
 }
+
 .maintenance-icon {
     margin-right: 5px;
     color: #fff !important;
@@ -81,10 +91,55 @@
     border-radius: 12px;
     font-size: 0.95em;
     font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
 }
-.badge-pending { background: #ffeaea; color: #e63946; }
-.badge-in_progress { background: #fffbe6; color: #e6b800; }
-.badge-completed { background: #e6f9e6; color: #16b416; }
+
+/* Maintenance status badges */
+.badge-pending { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border: 1px solid #ffb3b3;
+}
+
+.badge-in_progress { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border: 1px solid #ffe066;
+}
+
+.badge-completed { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border: 1px solid #b3e6b3;
+}
+
+/* Priority badges */
+.badge-low { 
+    background: #e6f9e6; 
+    color: #16b416; 
+    border: 1px solid #b3e6b3;
+}
+
+.badge-normal { 
+    background: #fffbe6; 
+    color: #e6b800; 
+    border: 1px solid #ffe066;
+}
+
+.badge-high { 
+    background: #ffeaea; 
+    color: #e63946; 
+    border: 1px solid #ffb3b3;
+}
+
+/* Vehicle state badges */
+.badge-available { background: #e6f9e6; color: #16b416; }
+.badge-need_maintenance { background: #fffbe6; color: #e6b800; }
+.badge-under_maintenance { background: #ffeaea; color: #e63946; }
+.badge-maintained { background: #e6f3ff; color: #0066cc; }
+.badge-on_trip { background: #f0f8ff; color: #4169e1; }
+.badge-on_scheduled_trip { background: #f5f5dc; color: #8b4513; }
 
 @media (max-width: 900px) {
     .table-maintenance th, .table-maintenance td {

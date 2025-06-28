@@ -162,6 +162,28 @@ namespace SmartFleet
                         }
                     }
 
+
+                    var fleetManagerUser = new ApplicationUser
+                    {
+                        Id = "43",
+                        UserName = "fleetmanager@smartfleet.com",
+                        Email = "fleetmanager@smartfleet.com",
+                        AccountStatus = true,
+                        CreatedAt = DateTime.Now,
+                        EmailConfirmed = true
+                    };
+                    var fleetManagerResult = await _ApplicationUserManager.CreateAsync(fleetManagerUser, "Password123!");
+                    if (fleetManagerResult.Succeeded)
+                    {
+                        await _ApplicationUserManager.AddToRoleAsync(fleetManagerUser, Roles.FleetManager.ToString());
+                        _logger.LogInformation("Fleet Manager user seeded successfully.");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to seed fleet manager user: {Errors}",
+                            string.Join(", ", fleetManagerResult.Errors.Select(e => e.Description)));
+                    }
+
                     // Seed Commissioner
                     var commissionerUser = new ApplicationUser
                     {

@@ -207,6 +207,45 @@ namespace SmartFleet.Controllers
                 return NotFound();
             }
 
+            // Get current user and roles for validation
+            var currentUser = await GetCurrentUserAsync();
+            var userRoles = await GetCurrentUserRolesAsync();
+            var isFleetManager = userRoles.Contains("FleetManager");
+            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+            var isSysSupport = userRoles.Contains("SysSupport");
+
+            // Get the original vehicle state for comparison
+            var originalVehicle = await _context.Vehicles.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+            if (originalVehicle == null)
+            {
+                return NotFound();
+            }
+
+            // Role-based validation for state changes
+            if (isFleetManager)
+            {
+                // Fleet Manager can only change between available, need_maintenance, and maintained
+                if (vehicle.Status != VehicleState.available && 
+                    vehicle.Status != VehicleState.need_maintenance && 
+                    vehicle.Status != VehicleState.maintained)
+                {
+                    ModelState.AddModelError("Status", "Fleet Manager can only change vehicle state to Available, Need Maintenance, or Maintained.");
+                }
+            }
+            else if (isMaintenanceManager)
+            {
+                // Maintenance Manager can only change to maintained
+                if (vehicle.Status != VehicleState.maintained)
+                {
+                    ModelState.AddModelError("Status", "Maintenance Manager can only change vehicle state to Maintained.");
+                }
+            }
+            else if (!isSysSupport)
+            {
+                // Other roles cannot change vehicle status
+                ModelState.AddModelError("Status", "You don't have permission to change vehicle status.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -254,6 +293,8 @@ namespace SmartFleet.Controllers
 
                     _context.Update(vehicle);
                     await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = $"Vehicle {vehicle.LicensePlate} updated successfully.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -266,7 +307,7 @@ namespace SmartFleet.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Edit), new { id = vehicle.Id });
             }
             return View(vehicle);
         }

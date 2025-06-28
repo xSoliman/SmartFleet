@@ -8,6 +8,9 @@
     ViewData["Title"] = "Maintenance List";
     var currentUser = await UserManager.GetUserAsync(User);
     var canEditMaintenance = currentUser != null && await UserRoleService.CanEditMaintenance(currentUser);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+    var isFleetManager = userRoles.Contains("FleetManager");
 }
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,9 +26,12 @@
                 <h1 class="maintenance-heading" style="text-align:left;">Maintenance Records</h1>
             </div>
             <div class="maintenance-actions">
-                <a asp-action="MaintenanceVehicles" class="maintenance-primary-button" style="background:#3498db;">
-                    <i class="fas fa-tools"></i> Vehicles Under Maintenance
-                </a>
+                @if (isMaintenanceManager || isFleetManager)
+                {
+                    <a asp-action="MaintenanceVehicles" class="maintenance-primary-button" style="background:#3498db;">
+                        <i class="fas fa-tools"></i> Vehicles Needing Maintenance
+                    </a>
+                }
         
             </div>
         </div>
@@ -53,15 +59,13 @@
             </form>
         </div>
         <div class="table-responsive" style="margin-top: 10px;">
-            <table class="table table-bordered" style="background:#fff; border-radius:10px; overflow:hidden;">
-                <thead style="background:#f5f7fa;">
+            <table class="table table-maintenance table-bordered">
+                <thead>
                     <tr>
                         <th>License Plate</th>
                         <th>Issue Description</th>
                         <th>Repair Status</th>
                         <th>Priority</th>
-                        <th>Repaired At</th>
-                        <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -90,40 +94,36 @@
                                 }
                             </td>
                             <td>
-                                <span class="maintenance-badge-status maintenance-badge-@item.RepairStatus.ToString().ToLower()">
+                                <span class="badge-status badge-@item.RepairStatus.ToString().ToLower()">
                                     @item.RepairStatus.ToString().Replace("_", " ")
                                 </span>
                             </td>
                             <td>
-                                <span class="maintenance-badge-status maintenance-badge-@item.Priority.ToString().ToLower()">
+                                <span class="badge-status badge-@item.Priority.ToString().ToLower()">
                                     @item.Priority.ToString().Replace("_", " ")
                                 </span>
                             </td>
                             <td>
-                                @if (item.RepairedAt.HasValue)
-                                {
-                                    <span>@item.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Not yet repaired</span>
-                                }
-                            </td>
-                            <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                <div class="maintenance-button-group" style="gap:4px;">
+                                <div class="maintenance-button-group">
                                     @if (canEditMaintenance)
                                     {
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#3498db; padding:6px 12px; font-size:15px;">
-                                        <i class="fas fa-edit"></i>
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                
+                                    }
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn details">
+                                        <i class="fas fa-info-circle"></i> Details
                                     </a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#b71c1c; padding:6px 12px; font-size:15px;">
-                                            <i class="fas fa-trash-alt"></i>
+                                       @if (canEditMaintenance)
+                                    {
+                               
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn delete">
+                                            <i class="fas fa-trash-alt deleted_icon"></i>
                                         </a>
                                     }
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="maintenance-primary-button" style="background:#20B2AA; padding:6px 12px; font-size:15px;">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
+
+                                    
                                 </div>
                             </td>
                         </tr>

@@ -59,7 +59,7 @@ namespace SmartFleet.Controllers
 
                     await userManager.AddToRoleAsync(newUser, Roles.NormalUser.ToString());
 
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Login");
                 }
 
                 foreach (var error in result.Errors)
