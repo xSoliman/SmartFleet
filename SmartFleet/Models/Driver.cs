@@ -15,6 +15,7 @@
         
         public DateTime LicenseExpiryDate { get; set; }
         public DriverState DriverStatus { get; set; }
+        public int DrowsinessCount { get; set; } = 0;
         public new List<Trip>? Trips { get; set; }
 
     }
