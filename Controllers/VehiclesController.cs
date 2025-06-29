@@ -450,14 +450,16 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignSimCard(int vehicleId, int simCardId)
         {
-            // Check if user has access to vehicles
-            if (!await HasAccessToVehiclesAsync())
-            {
-                return RedirectToAction("AccessDenied", "Account");
-            }
-
+            // Debug logging
+            
             try
             {
+                // Check if user has access to vehicles
+                if (!await HasAccessToVehiclesAsync())
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+
                 var vehicle = await _context.Vehicles.FindAsync(vehicleId);
                 if (vehicle == null)
                 {
@@ -490,6 +492,11 @@ namespace SmartFleet.Controllers
 
                 TempData["SuccessMessage"] = $"SimCard {simCard.SimNumber} successfully assigned to vehicle {vehicle.LicensePlate}.";
                 return RedirectToAction("SimCard", new { id = vehicleId });
+            }
+            catch (ArgumentNullException ex) when (ex.ParamName == "user")
+            {
+                TempData["ErrorMessage"] = "You must be logged in to perform this action.";
+                return RedirectToAction("Login", "Account");
             }
             catch (Exception ex)
             {
@@ -653,6 +660,14 @@ namespace SmartFleet.Controllers
             _context.Update(vehicle);
             await _context.SaveChangesAsync();
             return RedirectToAction("Geofence", new { id = vehicleId });
+        }
+
+        // Test action for debugging
+        [HttpPost]
+        public IActionResult TestAssignSimCard()
+        {
+            System.Diagnostics.Debug.WriteLine("TestAssignSimCard called");
+            return Json(new { success = true, message = "Test action called successfully" });
         }
     }
 }

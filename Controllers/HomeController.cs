@@ -24,6 +24,7 @@ namespace SmartFleet.Controllers
 
         public async Task<IActionResult> Index()
         {
+          
             if (User.Identity.IsAuthenticated)
             {
                 var currentUser = await _userManager.GetUserAsync(User);

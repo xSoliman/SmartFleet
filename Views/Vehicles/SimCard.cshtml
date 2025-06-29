@@ -115,7 +115,8 @@
             <div id="assignment-form" style="display: none;">
                 <h3>@(Model.SimCard != null ? "Change" : "Assign") SimCard</h3>
                 
-                <form asp-action="AssignSimCard" method="post">
+                <form asp-action="AssignSimCard" method="post" id="assignSimCardForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="vehicleId" value="@Model.Id" />
                     
                     <div class="simcard-form-group">
@@ -128,7 +129,7 @@
                     </div>
                     
                     <div class="simcard-form-actions">
-                        <button type="submit" class="simcard-btn simcard-btn-success">
+                        <button type="submit" class="simcard-btn simcard-btn-success" id="submitBtn">
                             <i class="fas fa-check"></i> @(Model.SimCard != null ? "Change" : "Assign") SimCard
                         </button>
                         <button type="button" class="simcard-btn simcard-btn-secondary" onclick="hideAssignmentForm()">
@@ -163,18 +164,28 @@
 
 <script>
 function showAssignmentForm() {
+    console.log('showAssignmentForm called');
     document.getElementById('assignment-form').style.display = 'block';
     loadAvailableSimCards();
 }
 
 function hideAssignmentForm() {
+    console.log('hideAssignmentForm called');
     document.getElementById('assignment-form').style.display = 'none';
 }
 
 function loadAvailableSimCards() {
-    fetch('/api/simcards/available')
-        .then(response => response.json())
+    console.log('loadAvailableSimCards called');
+    fetch('/Vehicles/api/simcards/available')
+        .then(response => {
+            console.log('SimCards API response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('SimCards data received:', data);
             const select = document.getElementById('simCardId');
             select.innerHTML = '<option value="">-- Select a SimCard --</option>';
             
@@ -187,6 +198,7 @@ function loadAvailableSimCards() {
         })
         .catch(error => {
             console.error('Error loading SimCards:', error);
+            alert('Error loading available SimCards. Please try again.');
         });
 }
 
@@ -211,4 +223,34 @@ function removeSimCard() {
         });
     }
 }
+
+// Add form submission debugging
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('assignSimCardForm');
+    if (form) {
+        console.log('Form found, adding submit listener');
+        form.addEventListener('submit', function(e) {
+            console.log('Form submit event triggered');
+            console.log('Form action:', form.action);
+            console.log('Form method:', form.method);
+            
+            const vehicleId = form.querySelector('input[name="vehicleId"]').value;
+            const simCardId = form.querySelector('select[name="simCardId"]').value;
+            
+            console.log('Vehicle ID:', vehicleId);
+            console.log('SimCard ID:', simCardId);
+            
+            if (!simCardId) {
+                console.log('No SimCard selected, preventing submission');
+                e.preventDefault();
+                alert('Please select a SimCard');
+                return false;
+            }
+            
+            console.log('Form submission proceeding...');
+        });
+    } else {
+        console.log('Form not found');
+    }
+});
 </script> 
