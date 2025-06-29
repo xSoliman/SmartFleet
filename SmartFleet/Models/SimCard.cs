@@ -24,9 +24,6 @@ namespace SmartFleet.Models
         [Display(Name = "Carrier")]
         public string Carrier { get; set; }
 
-        [Display(Name = "Activated At")]
-        public DateTime ActivatedAt { get; set; }
-
         [Display(Name = "Status")]
         public SimCardStatus Status { get; set; } = SimCardStatus.Inactive;
 

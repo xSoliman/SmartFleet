@@ -289,7 +289,6 @@ namespace SmartFleet
                             {
                                 SimNumber = $"SIM{i:0000000000}",
                                 Carrier = $"Carrier{i % 3 + 1}",
-                                ActivatedAt = DateTime.Now.AddDays(-i),
                                 Status = SimCardStatus.Active,
                                 CreatedAt = DateTime.Now.AddDays(-i)
                             });

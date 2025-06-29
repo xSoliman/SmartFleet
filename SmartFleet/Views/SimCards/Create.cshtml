@@ -75,17 +75,6 @@
             <div class="input-row">
                 <div class="input-col">
                     <div class="input-group">
-                        <label asp-for="ActivatedAt" class="input-label">
-                            <i class="fas fa-calendar-check"></i> Activated At
-                        </label>
-                        <input asp-for="ActivatedAt" type="datetime-local" class="text-input" 
-                               value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
-                        <span asp-validation-for="ActivatedAt" class="validation-message"></span>
-                        <small class="help-text">When the SimCard was activated (defaults to now)</small>
-                    </div>
-                </div>
-                <div class="input-col">
-                    <div class="input-group">
                         <label asp-for="Status" class="input-label">
                             <i class="fas fa-toggle-on"></i> Status *
                         </label>
@@ -112,8 +101,12 @@
             </div>
 
             <div class="button-group">
-                <input type="submit" value="Create SimCard" class="primary-button" />
-                <a asp-action="Index" class="secondary-button">Cancel</a>
+                <button type="submit" class="primary-button">
+                    <i class="fas fa-plus"></i> Create SimCard
+                </button>
+                <a asp-action="Index" class="secondary-button">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
             </div>
         </form>
     </div>
@@ -123,20 +116,4 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    
-    <script>
-        // Auto-fill current date/time for ActivatedAt if empty
-        document.addEventListener('DOMContentLoaded', function() {
-            const activatedAtInput = document.querySelector('input[name="ActivatedAt"]');
-            if (activatedAtInput && !activatedAtInput.value) {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const day = String(now.getDate()).padStart(2, '0');
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                activatedAtInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-            }
-        });
-    </script>
 }

@@ -4,10 +4,8 @@
 }
 
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/simcard/edit.css">
-    
 </head>
 
 <div class="edit-layout-container">
@@ -15,12 +13,25 @@
         <!-- Navigation Back Button -->
         <div class="edit-navigation">
             <a asp-action="Index" class="edit-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to List
             </a>
         </div>
 
         <!-- Heading -->
         <h1 class="edit-heading">Edit Sim Card</h1>
+
+        <!-- Update Guide -->
+        <div class="edit-setup-guide">
+            <h3><i class="fas fa-edit"></i> SimCard Update Guide</h3>
+            <div class="edit-guide-content">
+                <p><strong>Important notes:</strong></p>
+                <ul>
+                    <li>Ensure the SimCard number is correct for GPS tracking</li>
+                    <li>Set Status to "Active" for GPS functionality</li>
+                    <li>Update carrier information if changed</li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Form -->
         <form asp-action="Edit" class="edit-custom-form">
@@ -31,44 +42,70 @@
             <div class="edit-input-row">
                 <div class="edit-input-col">
                     <div class="edit-input-group">
-                        <label asp-for="SimNumber" class="edit-input-label"></label>
-                        <input asp-for="SimNumber" class="edit-input-field" />
+                        <label asp-for="SimNumber" class="edit-input-label">
+                            <i class="fas fa-sim-card"></i> Sim Number *
+                        </label>
+                        <input asp-for="SimNumber" class="edit-text-input" placeholder="e.g., 01505932589" />
                         <span asp-validation-for="SimNumber" class="edit-validation-message"></span>
+                        <small class="edit-help-text">Enter the SimCard number from your GPS device</small>
                     </div>
                 </div>
                 <div class="edit-input-col">
                     <div class="edit-input-group">
-                        <label asp-for="Carrier" class="edit-input-label"></label>
-                        <input asp-for="Carrier" class="edit-input-field" />
+                        <label asp-for="Carrier" class="edit-input-label">
+                            <i class="fas fa-network-wired"></i> Carrier *
+                        </label>
+                        <select asp-for="Carrier" class="edit-custom-select">
+                            <option value="">Select Carrier</option>
+                            <option value="WE Egypt">WE Egypt</option>
+                            <option value="Orange Egypt">Orange Egypt</option>
+                            <option value="Vodafone Egypt">Vodafone Egypt</option>
+                            <option value="Etisalat Egypt">Etisalat Egypt</option>
+                            <option value="Other">Other</option>
+                        </select>
                         <span asp-validation-for="Carrier" class="edit-validation-message"></span>
+                        <small class="edit-help-text">Select your mobile network carrier</small>
                     </div>
                 </div>
             </div>
 
-            <!-- Row 2: ActivatedAt & Status -->
+            <!-- Row 2: Status -->
             <div class="edit-input-row">
                 <div class="edit-input-col">
                     <div class="edit-input-group">
-                        <label asp-for="ActivatedAt" class="edit-input-label"></label>
-                        <input asp-for="ActivatedAt" type="datetime-local" class="edit-input-field" />
-                        <span asp-validation-for="ActivatedAt" class="edit-validation-message"></span>
-                    </div>
-                </div>
-                <div class="edit-input-col">
-                    <div class="edit-input-group">
-                        <label asp-for="Status" class="edit-input-label"></label>
-                        <select asp-for="Status" class="edit-dropdown">
+                        <label asp-for="Status" class="edit-input-label">
+                            <i class="fas fa-toggle-on"></i> Status *
+                        </label>
+                        <select asp-for="Status" class="edit-custom-select">
                             <option value="Inactive">Inactive</option>
                             <option value="Active">Active</option>
                         </select>
                         <span asp-validation-for="Status" class="edit-validation-message"></span>
+                        <small class="edit-help-text">Must be "Active" for GPS tracking to work</small>
+                    </div>
+                </div>
             </div>
-            </div>
+
+            <!-- Important Notice -->
+            <div class="edit-important-notice">
+                <div class="edit-notice-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="edit-notice-content">
+                    <h4>Note:</h4>
+                    <p>After updating this SimCard, ensure it's properly assigned to a vehicle for GPS tracking to work.</p>
+                    <p>Go to <strong>Vehicles → Select Vehicle → SimCard tab</strong> to check assignment.</p>
+                </div>
             </div>
 
             <!-- Submit Button -->
             <div class="edit-button-group">
-                <input type="submit" value="Save" class="edit-primary-button" />
+                <button type="submit" class="edit-primary-button">
+                    <i class="fas fa-save"></i> Update SimCard
+                </button>
+                <a asp-action="Index" class="edit-secondary-button">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
             </div>
         </form>
     </div>

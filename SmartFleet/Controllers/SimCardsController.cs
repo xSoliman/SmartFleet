@@ -92,7 +92,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Create([Bind("Id,SimNumber,Carrier,Status,CreatedAt")] SimCard simCard)
         {
             if (ModelState.IsValid)
             {
@@ -124,7 +124,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,SimNumber,Carrier,ActivatedAt,Status,CreatedAt")] SimCard simCard)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,SimNumber,Carrier,Status,CreatedAt")] SimCard simCard)
         {
             if (id != simCard.Id)
             {

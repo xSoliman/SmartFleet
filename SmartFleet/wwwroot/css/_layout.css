@@ -228,6 +228,7 @@ body {
     background-color: var(--bs-primary) !important;
     border-color: var(--bs-primary) !important;
     opacity: 0.9;
+ 
 }
 
 .sf-navbar .btn-warning.btn-lg {
@@ -247,6 +248,8 @@ body {
     background-color: transparent !important;
     color: var(--bs-primary) !important;
     border-color: var(--bs-primary) !important;
+    color: #fff !important;
+    background-color: #20B2AA !important;
 }
 
 .sf-navbar .btn-secondary {

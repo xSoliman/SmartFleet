@@ -7,6 +7,18 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/simcard/list.css">
+
+       <style>
+        button {
+            color: white !important;
+        }
+        button * {
+            color: white !important;
+        }
+        #modalTitle {
+            color: white !important;
+        }
+    </style>
 </head>
 
 <!-- Display success/error messages -->
@@ -70,10 +82,8 @@
             <tr>
                 <th>@Html.DisplayNameFor(model => model.SimNumber)</th>
                 <th>@Html.DisplayNameFor(model => model.Carrier)</th>
-                <th>@Html.DisplayNameFor(model => model.ActivatedAt)</th>
                 <th>@Html.DisplayNameFor(model => model.Status)</th>
                 <th>Assignment</th>
-                <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -86,7 +96,6 @@
                 <tr>
                     <td>@Html.DisplayFor(modelItem => item.SimNumber)</td>
                     <td>@Html.DisplayFor(modelItem => item.Carrier)</td>
-                    <td>@Html.DisplayFor(modelItem => item.ActivatedAt)</td>
                     <td>
                         <span class="badge-status badge-@item.Status.ToString().ToLower()">
                             @Html.DisplayFor(modelItem => item.Status)
@@ -106,17 +115,7 @@
                             </span>
                         }
                     </td>
-                    <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
                     <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
-                            <i class="fas fa-trash-alt deleted_icon"></i>
-                        </a>
                         @if (item.Status == SmartFleet.Models.SimCardStatus.Active)
                         {
                             if (assignedVehicle != null)
@@ -132,6 +131,15 @@
                                 </a>
                             }
                         }
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details">
+                            <i class="fas fa-info-circle"></i> Details
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                            <i class="fas fa-trash-alt deleted_icon"></i>
+                        </a>
                     </td>
                 </tr>
             }
@@ -190,82 +198,175 @@
 </div>
 
 <script>
+// Global variables to track state
+let currentSimCardId = null;
+let currentSimNumber = null;
+let isReassignMode = false;
+
 function assignToVehicle(simCardId, simNumber, isReassign) {
-    document.getElementById('selectedSimNumber').textContent = simNumber;
-    document.getElementById('simCardId').value = simCardId;
+    console.log('=== assignToVehicle START ===');
+    console.log('Parameters:', { simCardId, simNumber, isReassign });
     
-    if (isReassign) {
-        document.getElementById('modalTitle').textContent = 'Manage SimCard Assignment';
-        document.getElementById('modalDescription').innerHTML = 'Select a vehicle to reassign SimCard <strong>' + simNumber + '</strong> to, or choose "Remove Assignment" to unassign it:';
-        document.getElementById('submitButtonText').textContent = 'Update Assignment';
+    // Store current state
+    currentSimCardId = simCardId;
+    currentSimNumber = simNumber;
+    isReassignMode = isReassign;
+    
+    // Update modal content
+    const selectedSimNumberElement = document.getElementById('selectedSimNumber');
+    const simCardIdElement = document.getElementById('simCardId');
+    const modalTitleElement = document.getElementById('modalTitle');
+    const modalDescriptionElement = document.getElementById('modalDescription');
+    const submitButtonTextElement = document.getElementById('submitButtonText');
+    
+    console.log('Updating modal elements...');
+    
+    if (selectedSimNumberElement) {
+        selectedSimNumberElement.textContent = simNumber;
+        console.log('Updated selectedSimNumber:', simNumber);
     } else {
-        document.getElementById('modalTitle').textContent = 'Assign SimCard to Vehicle';
-        document.getElementById('modalDescription').innerHTML = 'Select a vehicle to assign SimCard <strong>' + simNumber + '</strong> to:';
-        document.getElementById('submitButtonText').textContent = 'Assign SimCard';
+        console.error('selectedSimNumber element not found!');
     }
     
-    document.getElementById('assignmentModal').style.display = 'block';
+    if (simCardIdElement) {
+        simCardIdElement.value = simCardId;
+        console.log('Updated simCardId:', simCardId);
+    } else {
+        console.error('simCardId element not found!');
+    }
     
-    // Load available vehicles
+    if (isReassign) {
+        if (modalTitleElement) modalTitleElement.textContent = 'Manage SimCard Assignment';
+        if (modalDescriptionElement) modalDescriptionElement.innerHTML = 'Select a vehicle to reassign SimCard <strong>' + simNumber + '</strong> to, or choose "Remove Assignment" to unassign it:';
+        if (submitButtonTextElement) submitButtonTextElement.textContent = 'Update Assignment';
+        console.log('Set modal to reassign mode');
+    } else {
+        if (modalTitleElement) modalTitleElement.textContent = 'Assign SimCard to Vehicle';
+        if (modalDescriptionElement) modalDescriptionElement.innerHTML = 'Select a vehicle to assign SimCard <strong>' + simNumber + '</strong> to:';
+        if (submitButtonTextElement) submitButtonTextElement.textContent = 'Assign SimCard';
+        console.log('Set modal to assign mode');
+    }
+    
+    // Show modal
+    const modal = document.getElementById('assignmentModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('Modal displayed');
+    } else {
+        console.error('Modal element not found!');
+    }
+    
+    // Load vehicles
     loadAvailableVehicles();
+    
+    console.log('=== assignToVehicle END ===');
 }
 
 function closeAssignmentModal() {
-    document.getElementById('assignmentModal').style.display = 'none';
+    console.log('=== closeAssignmentModal START ===');
+    
+    const modal = document.getElementById('assignmentModal');
+    if (modal) {
+        modal.style.display = 'none';
+        console.log('Modal hidden');
+    }
+    
+    // Reset form
+    const form = document.getElementById('assignmentForm');
+    if (form) {
+        form.reset();
+        console.log('Form reset');
+    }
+    
+    const vehicleSelect = document.getElementById('vehicleSelect');
+    if (vehicleSelect) {
+        vehicleSelect.innerHTML = '<option value="">-- Select a Vehicle --</option>';
+        console.log('Vehicle select cleared');
+    }
+    
+    // Clear state
+    currentSimCardId = null;
+    currentSimNumber = null;
+    isReassignMode = false;
+    
+    console.log('=== closeAssignmentModal END ===');
 }
 
 function loadAvailableVehicles() {
+    console.log('=== loadAvailableVehicles START ===');
+    console.log('isReassignMode:', isReassignMode);
+    
+    const select = document.getElementById('vehicleSelect');
+    if (!select) {
+        console.error('Vehicle select element not found!');
+        return;
+    }
+    
+    // Clear current options
+    select.innerHTML = '<option value="">-- Select a Vehicle --</option>';
+    console.log('Cleared vehicle select');
+    
     fetch('/SimCards/GetAvailableVehicles')
-        .then(response => response.json())
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            const select = document.getElementById('vehicleSelect');
-            select.innerHTML = '<option value="">-- Select a Vehicle --</option>';
+            console.log('Vehicles data received:', data);
+            console.log('Number of vehicles:', data.length);
             
-            // Add "Remove Assignment" option if this is a reassignment
-            const simCardId = document.getElementById('simCardId').value;
-            const isReassign = document.getElementById('modalTitle').textContent.includes('Manage');
-            if (isReassign) {
+            // Add remove option for reassignment
+            if (isReassignMode) {
                 const removeOption = document.createElement('option');
                 removeOption.value = 'remove';
                 removeOption.textContent = '-- Remove Assignment --';
                 removeOption.style.color = '#dc3545';
                 removeOption.style.fontWeight = 'bold';
                 select.appendChild(removeOption);
+                console.log('Added remove assignment option');
             }
             
-            data.forEach(vehicle => {
+            // Add vehicle options
+            data.forEach((vehicle, index) => {
                 const option = document.createElement('option');
                 option.value = vehicle.id;
                 const assignmentStatus = vehicle.isAssigned ? ' (Currently Assigned)' : ' (Available)';
                 option.textContent = `${vehicle.licensePlate} - ${vehicle.model} (${vehicle.type})${assignmentStatus}`;
                 select.appendChild(option);
+                console.log(`Added vehicle option ${index + 1}:`, vehicle.licensePlate);
             });
+            
+            console.log('Total options in select:', select.options.length);
         })
         .catch(error => {
             console.error('Error loading vehicles:', error);
             alert('Error loading available vehicles. Please try again.');
         });
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('assignmentModal');
-    if (event.target == modal) {
-        closeAssignmentModal();
-    }
+    
+    console.log('=== loadAvailableVehicles END ===');
 }
 
 // Handle form submission
-document.getElementById('assignmentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+function handleAssignmentSubmit(event) {
+    event.preventDefault();
+    console.log('=== handleAssignmentSubmit START ===');
     
     const vehicleSelect = document.getElementById('vehicleSelect');
     const selectedValue = vehicleSelect.value;
     const simCardId = document.getElementById('simCardId').value;
     
+    console.log('Form submission details:', {
+        selectedValue,
+        simCardId,
+        currentSimCardId
+    });
+    
     if (selectedValue === 'remove') {
-        // Handle remove assignment
         if (confirm('Are you sure you want to remove this SimCard assignment?')) {
+            console.log('Removing assignment...');
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/SimCards/RemoveAssignment';
@@ -288,8 +389,34 @@ document.getElementById('assignmentForm').addEventListener('submit', function(e)
     } else if (selectedValue === '') {
         alert('Please select a vehicle or remove assignment option.');
     } else {
-        // Handle normal assignment/reassignment
-        this.submit();
+        console.log('Submitting assignment form...');
+        event.target.submit();
     }
+    
+    console.log('=== handleAssignmentSubmit END ===');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('assignmentModal');
+    if (event.target === modal) {
+        closeAssignmentModal();
+    }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DOMContentLoaded START ===');
+    
+    // Add form submission handler
+    const form = document.getElementById('assignmentForm');
+    if (form) {
+        form.addEventListener('submit', handleAssignmentSubmit);
+        console.log('Form submission handler added');
+    } else {
+        console.error('Assignment form not found!');
+    }
+    
+    console.log('=== DOMContentLoaded END ===');
 });
 </script>
