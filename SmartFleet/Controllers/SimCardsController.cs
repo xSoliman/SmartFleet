@@ -45,6 +45,16 @@ namespace SmartFleet.Controllers
             int pageSize = 10;
             int totalCount = await simCards.CountAsync();
             var pagedSimCards = await _paginationService.GetPaginatedAsync(simCards.OrderBy(s => s.SimNumber), pageNumber, pageSize);
+
+            // Get vehicle assignment information for each SimCard
+            var simCardIds = pagedSimCards.Select(s => s.Id).ToList();
+            var vehicleAssignments = await _context.Vehicles
+                .Where(v => v.SimCardId.HasValue && simCardIds.Contains(v.SimCardId.Value))
+                .Select(v => new { v.SimCardId, v.Id, v.LicensePlate, v.Model, v.Type })
+                .ToListAsync();
+
+            ViewBag.VehicleAssignments = vehicleAssignments.ToDictionary(v => v.SimCardId.Value, v => v);
+            
             ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             ViewBag.CurrentPage = pageNumber;
             ViewBag.SearchSimNumber = searchSimNumber;
@@ -197,6 +207,120 @@ namespace SmartFleet.Controllers
         private bool SimCardExists(int id)
         {
             return _context.SimCards.Any(e => e.Id == id);
+        }
+
+        // GET: SimCards/GetAvailableVehicles
+        public async Task<IActionResult> GetAvailableVehicles()
+        {
+            try
+            {
+                var allVehicles = await _context.Vehicles
+                    .Select(v => new
+                    {
+                        v.Id,
+                        v.Model,
+                        v.LicensePlate,
+                        v.Type,
+                        v.Status,
+                        v.SimCardId,
+                        IsAssigned = v.SimCardId.HasValue
+                    })
+                    .ToListAsync();
+
+                return Json(allVehicles);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        // POST: SimCards/AssignToVehicle
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignToVehicle(int simCardId, int vehicleId)
+        {
+            try
+            {
+                var simCard = await _context.SimCards.FindAsync(simCardId);
+                if (simCard == null)
+                {
+                    TempData["ErrorMessage"] = "SimCard not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+                if (vehicle == null)
+                {
+                    TempData["ErrorMessage"] = "Vehicle not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Check if SimCard is already assigned to another vehicle
+                var existingVehicle = await _context.Vehicles
+                    .FirstOrDefaultAsync(v => v.SimCardId == simCardId && v.Id != vehicleId);
+                if (existingVehicle != null)
+                {
+                    // If it's assigned to a different vehicle, we'll reassign it
+                    existingVehicle.SimCardId = null;
+                    existingVehicle.UpdatedAt = DateTime.Now;
+                    _context.Update(existingVehicle);
+                }
+
+                // Check if vehicle already has a SimCard
+                if (vehicle.SimCardId.HasValue)
+                {
+                    TempData["WarningMessage"] = $"Vehicle {vehicle.LicensePlate} already has a SimCard assigned. The previous assignment will be removed.";
+                }
+
+                // Assign SimCard to vehicle
+                vehicle.SimCardId = simCardId;
+                vehicle.UpdatedAt = DateTime.Now;
+                
+                _context.Update(vehicle);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"SimCard {simCard.SimNumber} successfully assigned to vehicle {vehicle.LicensePlate}.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error assigning SimCard: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: SimCards/RemoveAssignment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveAssignment(int simCardId)
+        {
+            try
+            {
+                var vehicle = await _context.Vehicles
+                    .FirstOrDefaultAsync(v => v.SimCardId == simCardId);
+                
+                if (vehicle != null)
+                {
+                    vehicle.SimCardId = null;
+                    vehicle.UpdatedAt = DateTime.Now;
+                    _context.Update(vehicle);
+                    await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "SimCard assignment removed successfully.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "SimCard is not currently assigned to any vehicle.";
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error removing assignment: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

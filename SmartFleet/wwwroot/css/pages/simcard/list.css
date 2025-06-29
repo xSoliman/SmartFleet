@@ -77,6 +77,54 @@
 .badge-inactive { background: #ffeaea; color: #e63946; }
 .badge-pending { background: #fffbe6; color: #e6b800; }
 
+/* Assignment status badges */
+.badge.bg-success {
+    background-color: #16b416 !important;
+    color: white !important;
+    font-size: 0.85em;
+    padding: 0.4em 0.8em;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.badge.bg-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+    font-size: 0.85em;
+    padding: 0.4em 0.8em;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+/* Assignment action buttons */
+.btn-warning.btn-sm {
+    font-size: 0.8em;
+    padding: 0.25em 0.6em;
+    margin-left: 0.3em;
+}
+
+.simcard-index-btn-assign {
+    background: linear-gradient(135deg, #16b416 0%, #13a013 100%);
+    color: white;
+    border: none;
+    padding: 0.4em 0.8em;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85em;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-block;
+    margin-left: 0.3em;
+}
+
+.simcard-index-btn-assign:hover {
+    background: linear-gradient(135deg, #13a013 0%, #16b416 100%);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(22,180,22,0.3);
+}
+
 @media (max-width: 900px) {
     #simcard-table th, #simcard-table td {
         font-size: 0.95rem;
@@ -245,25 +293,6 @@
 
 .search-icon {
     color: black;
-}
-
-/* Assignment Button - SimCard Index Specific */
-.simcard-index-btn-assign {
-    background: #3498db;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 12px;
-    margin-left: 5px;
-    transition: background-color 0.2s ease;
-}
-
-.simcard-index-btn-assign:hover {
-    background: #2980b9;
-    color: white;
-    text-decoration: none;
 }
 
 /* Modal Styles - SimCard Index Specific */

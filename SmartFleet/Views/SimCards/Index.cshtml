@@ -9,6 +9,31 @@
     <link rel="stylesheet" href="~/css/pages/simcard/list.css">
 </head>
 
+<!-- Display success/error messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["WarningMessage"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        @TempData["WarningMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <p class="add-simcard">
     <a asp-action="Create" class="btn btn-add-car"><i class="fas fa-sim-card sim-icon"></i> Add SimCard</a>
 </p>
@@ -47,6 +72,7 @@
                 <th>@Html.DisplayNameFor(model => model.Carrier)</th>
                 <th>@Html.DisplayNameFor(model => model.ActivatedAt)</th>
                 <th>@Html.DisplayNameFor(model => model.Status)</th>
+                <th>Assignment</th>
                 <th>@Html.DisplayNameFor(model => model.CreatedAt)</th>
                 <th>Actions</th>
             </tr>
@@ -54,6 +80,9 @@
         <tbody>
             @foreach (var item in Model)
             {
+                var assignedVehicle = ViewBag.VehicleAssignments != null && ViewBag.VehicleAssignments.ContainsKey(item.Id) 
+                    ? ViewBag.VehicleAssignments[item.Id] : null;
+                
                 <tr>
                     <td>@Html.DisplayFor(modelItem => item.SimNumber)</td>
                     <td>@Html.DisplayFor(modelItem => item.Carrier)</td>
@@ -62,6 +91,20 @@
                         <span class="badge-status badge-@item.Status.ToString().ToLower()">
                             @Html.DisplayFor(modelItem => item.Status)
                         </span>
+                    </td>
+                    <td>
+                        @if (assignedVehicle != null)
+                        {
+                            <span class="badge bg-success">
+                                <i class="fas fa-link"></i> Assigned to @assignedVehicle.LicensePlate
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-unlink"></i> Not Assigned
+                            </span>
+                        }
                     </td>
                     <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
                     <td>
@@ -76,9 +119,18 @@
                         </a>
                         @if (item.Status == SmartFleet.Models.SimCardStatus.Active)
                         {
-                            <a href="#" onclick="assignToVehicle(@item.Id, '@item.SimNumber')" class="simcard-index-btn-assign">
-                                <i class="fas fa-link"></i> Assign
-                            </a>
+                            if (assignedVehicle != null)
+                            {
+                                <a href="#" onclick="assignToVehicle(@item.Id, '@item.SimNumber', true)" class="simcard-index-btn-assign">
+                                    <i class="fas fa-cog"></i> Manage
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="#" onclick="assignToVehicle(@item.Id, '@item.SimNumber', false)" class="simcard-index-btn-assign">
+                                    <i class="fas fa-link"></i> Assign
+                                </a>
+                            }
                         }
                     </td>
                 </tr>
@@ -111,12 +163,12 @@
 <div id="assignmentModal" class="simcard-index-modal" style="display: none;">
     <div class="simcard-index-modal-content">
         <div class="simcard-index-modal-header">
-            <h3>Assign SimCard to Vehicle</h3>
+            <h3 id="modalTitle">Assign SimCard to Vehicle</h3>
             <span class="simcard-index-modal-close" onclick="closeAssignmentModal()">&times;</span>
         </div>
         <div class="simcard-index-modal-body">
-            <p>Select a vehicle to assign SimCard <strong id="selectedSimNumber"></strong> to:</p>
-            <form id="assignmentForm">
+            <p id="modalDescription">Select a vehicle to assign SimCard <strong id="selectedSimNumber"></strong> to:</p>
+            <form id="assignmentForm" asp-action="AssignToVehicle" method="post">
                 <input type="hidden" id="simCardId" name="simCardId" />
                 <div class="simcard-index-form-group">
                     <label for="vehicleSelect">Vehicle:</label>
@@ -126,7 +178,7 @@
                 </div>
                 <div class="simcard-index-form-actions">
                     <button type="submit" class="simcard-index-btn simcard-index-btn-success">
-                        <i class="fas fa-check"></i> Assign SimCard
+                        <i class="fas fa-check"></i> <span id="submitButtonText">Assign SimCard</span>
                     </button>
                     <button type="button" class="simcard-index-btn simcard-index-btn-secondary" onclick="closeAssignmentModal()">
                         <i class="fas fa-times"></i> Cancel
@@ -138,9 +190,20 @@
 </div>
 
 <script>
-function assignToVehicle(simCardId, simNumber) {
+function assignToVehicle(simCardId, simNumber, isReassign) {
     document.getElementById('selectedSimNumber').textContent = simNumber;
     document.getElementById('simCardId').value = simCardId;
+    
+    if (isReassign) {
+        document.getElementById('modalTitle').textContent = 'Manage SimCard Assignment';
+        document.getElementById('modalDescription').innerHTML = 'Select a vehicle to reassign SimCard <strong>' + simNumber + '</strong> to, or choose "Remove Assignment" to unassign it:';
+        document.getElementById('submitButtonText').textContent = 'Update Assignment';
+    } else {
+        document.getElementById('modalTitle').textContent = 'Assign SimCard to Vehicle';
+        document.getElementById('modalDescription').innerHTML = 'Select a vehicle to assign SimCard <strong>' + simNumber + '</strong> to:';
+        document.getElementById('submitButtonText').textContent = 'Assign SimCard';
+    }
+    
     document.getElementById('assignmentModal').style.display = 'block';
     
     // Load available vehicles
@@ -152,51 +215,37 @@ function closeAssignmentModal() {
 }
 
 function loadAvailableVehicles() {
-    fetch('/api/vehicles/available')
+    fetch('/SimCards/GetAvailableVehicles')
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('vehicleSelect');
             select.innerHTML = '<option value="">-- Select a Vehicle --</option>';
             
+            // Add "Remove Assignment" option if this is a reassignment
+            const simCardId = document.getElementById('simCardId').value;
+            const isReassign = document.getElementById('modalTitle').textContent.includes('Manage');
+            if (isReassign) {
+                const removeOption = document.createElement('option');
+                removeOption.value = 'remove';
+                removeOption.textContent = '-- Remove Assignment --';
+                removeOption.style.color = '#dc3545';
+                removeOption.style.fontWeight = 'bold';
+                select.appendChild(removeOption);
+            }
+            
             data.forEach(vehicle => {
                 const option = document.createElement('option');
                 option.value = vehicle.id;
-                option.textContent = `${vehicle.licensePlate} - ${vehicle.model} (${vehicle.type})`;
+                const assignmentStatus = vehicle.isAssigned ? ' (Currently Assigned)' : ' (Available)';
+                option.textContent = `${vehicle.licensePlate} - ${vehicle.model} (${vehicle.type})${assignmentStatus}`;
                 select.appendChild(option);
             });
         })
         .catch(error => {
             console.error('Error loading vehicles:', error);
+            alert('Error loading available vehicles. Please try again.');
         });
 }
-
-document.getElementById('assignmentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const vehicleId = formData.get('vehicleId');
-    const simCardId = formData.get('simCardId');
-    
-    fetch('/Vehicles/AssignSimCard', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `vehicleId=${vehicleId}&simCardId=${simCardId}`
-    })
-    .then(response => {
-        if (response.ok) {
-            closeAssignmentModal();
-            location.reload(); // Refresh to show updated status
-        } else {
-            alert('Error assigning SimCard to vehicle');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error assigning SimCard to vehicle');
-    });
-});
 
 // Close modal when clicking outside
 window.onclick = function(event) {
@@ -205,4 +254,42 @@ window.onclick = function(event) {
         closeAssignmentModal();
     }
 }
+
+// Handle form submission
+document.getElementById('assignmentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const vehicleSelect = document.getElementById('vehicleSelect');
+    const selectedValue = vehicleSelect.value;
+    const simCardId = document.getElementById('simCardId').value;
+    
+    if (selectedValue === 'remove') {
+        // Handle remove assignment
+        if (confirm('Are you sure you want to remove this SimCard assignment?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/SimCards/RemoveAssignment';
+            
+            const simCardInput = document.createElement('input');
+            simCardInput.type = 'hidden';
+            simCardInput.name = 'simCardId';
+            simCardInput.value = simCardId;
+            
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            form.appendChild(simCardInput);
+            form.appendChild(tokenInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    } else if (selectedValue === '') {
+        alert('Please select a vehicle or remove assignment option.');
+    } else {
+        // Handle normal assignment/reassignment
+        this.submit();
+    }
+});
 </script>
