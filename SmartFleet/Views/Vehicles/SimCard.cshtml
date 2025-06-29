@@ -148,17 +148,10 @@
             <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
             <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
             <li><a asp-action="SimCard" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Geofence" asp-route-id="@Model.Id"><i class="fa-solid fa-draw-polygon"></i> Geofence</a></li>
             <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+            <li><a asp-action="Edit" asp-route-id="@Model.Id"><i class="fa-solid fa-edit"></i> Edit</a></li>
         </ul>
-        
-        <!-- Quick Actions -->
-        <div class="vehicle-simcard-quick-actions">
-            <h3>Quick Actions</h3>
-            <ul>
-                <li><a href="/SimCards/Create"><i class="fas fa-plus"></i> Create New SimCard</a></li>
-                <li><a href="/SimCards"><i class="fas fa-list"></i> View All SimCards</a></li>
-            </ul>
-        </div>
     </div>
 </div>
 
