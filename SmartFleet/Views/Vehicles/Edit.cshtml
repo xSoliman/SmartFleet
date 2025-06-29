@@ -16,6 +16,30 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/edit.css">
+    <style>
+        button {
+            color: white !important;
+        }
+        button * {
+            color: white !important;
+        }
+        
+        /* Need Maintenance Status Styling */
+        .edit-status-need-maintenance {
+            background-color: #fff3cd !important;
+            border: 2px solid #ffc107 !important;
+            color: #856404 !important;
+            font-weight: 600 !important;
+            text-transform: capitalize !important;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2) !important;
+        }
+        
+        .edit-status-need-maintenance:focus {
+            outline: none !important;
+            border-color: #e0a800 !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        }
+    </style>
 </head>
 
 <div class="edit-layout-container">
@@ -69,7 +93,7 @@
                     <span asp-validation-for="LicensePlate" class="edit-validation-message"></span>
                 </div>
                 <div class="edit-input-group">
-                    <label asp-for="Status" class="edit-input-label">Maintenance Status</label>
+                    <label asp-for="Status" class="edit-input-label">Maintenance Actions</label>
                     @if (isFleetManager)
                     {
                         <!-- Fleet Manager can toggle between available and need_maintenance -->
@@ -89,8 +113,8 @@
                         }
                         else if (Model.Status == VehicleState.need_maintenance)
                         {
-                            <!-- For need_maintenance state, show read-only status -->
-                            <input value="@Model.Status.ToString().Replace("_", " ")" class="edit-input-field" readonly style="background-color: #f8f9fa;" />
+                            <!-- For need_maintenance state, show read-only status with special styling -->
+                            <input value="Need Maintenance" class="edit-input-field edit-status-need-maintenance" readonly />
                             <small class="edit-help-text">Vehicle needs maintenance. Cannot be changed by Fleet Manager.</small>
                         }
                         else
@@ -191,6 +215,7 @@
                 </div>
             </div>
 
+
             <div class="edit-input-group">
                 <label asp-for="VehicleImageUrl" class="edit-input-label">Vehicle Image</label>
                 <input type="file" asp-for="VehicleImageUrl" name="imageFile" class="edit-input-field" accept="image/*" onchange="previewImage(event)" />
@@ -252,6 +277,7 @@
             <div class="assign-new-simcard">
                 <h4>Assign New SimCard</h4>
                 <form id="assignSimCardForm">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" id="vehicleId" value="@Model.Id" />
                     <div class="edit-input-group">
                         <label for="simCardSelect">Select SimCard:</label>
@@ -315,7 +341,7 @@
                 fetch('/Vehicles/RemoveSimCard/@Model.Id', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     }
                 })
                 .then(response => {
@@ -343,24 +369,32 @@
                 return;
             }
             
+            // Create form data
+            const formData = new FormData();
+            formData.append('vehicleId', vehicleId);
+            formData.append('simCardId', simCardId);
+            
+            // Get anti-forgery token and add it to form data
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
+            
             fetch('/Vehicles/AssignSimCard', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `vehicleId=${vehicleId}&simCardId=${simCardId}`
+                body: formData
             })
             .then(response => {
                 if (response.ok) {
                     closeSimCardModal();
                     location.reload();
                 } else {
-                    alert('Error assigning SimCard to vehicle');
+                    return response.text().then(text => {
+                        throw new Error(text || 'Error assigning SimCard to vehicle');
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error assigning SimCard to vehicle');
+                alert(error.message || 'Error assigning SimCard to vehicle');
             });
         });
 

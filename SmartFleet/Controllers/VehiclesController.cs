@@ -195,7 +195,7 @@ namespace SmartFleet.Controllers
         // POST: Vehicles/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt,VehicleImageUrl,SimCardId")] Vehicle vehicle, IFormFile? imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Model,Type,Capacity,LicensePlate,Status,TotalDistanceTraveled,RegistrationExpiryDate,CreatedAt,VehicleImageUrl,SimCardId")] Vehicle vehicle, IFormFile? imageFile, bool redirectToMaintenance = false)
         {
             ViewData["PageTitle"] = "Vehicles";
 
@@ -304,6 +304,16 @@ namespace SmartFleet.Controllers
                     }
 
                     TempData["SuccessMessage"] = $"Vehicle {vehicle.LicensePlate} updated successfully.";
+
+                    // Redirect based on the redirectToMaintenance parameter
+                    if (redirectToMaintenance)
+                    {
+                        return RedirectToAction(nameof(Maintenance), new { id = vehicle.Id });
+                    }
+                    else
+                    {
+                        return RedirectToAction(nameof(Edit), new { id = vehicle.Id });
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -316,7 +326,6 @@ namespace SmartFleet.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Edit), new { id = vehicle.Id });
             }
             return View(vehicle);
         }

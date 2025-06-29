@@ -1,12 +1,148 @@
 @model SmartFleet.Models.Vehicle
+@using SmartFleet.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@inject IUserRoleService UserRoleService
+@inject UserManager<SmartFleet.Models.ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Vehicle Maintenance";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var isFleetManager = userRoles.Contains("FleetManager");
+    var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
+    var isSysSupport = userRoles.Contains("SysSupport");
 }
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+    <style>
+        button {
+            color: white !important;
+        }
+        button * {
+            color: white !important;
+        }
+        
+        /* Maintenance Status Control Styling - matching Edit.cshtml */
+        .maintenance-status-section {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .maintenance-input-group {
+            margin-bottom: 15px;
+        }
+        
+        .maintenance-input-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .maintenance-input-field {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            color: #666;
+        }
+        
+        .maintenance-dropdown {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .maintenance-status-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .maintenance-status-need-maintenance {
+            background-color: #fff3cd !important;
+            border: 2px solid #ffc107 !important;
+            color: #856404 !important;
+            font-weight: 600 !important;
+            text-transform: capitalize !important;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2) !important;
+        }
+        
+        .maintenance-status-need-maintenance:hover {
+            background-color: #ffeaa7 !important;
+        }
+        
+        .maintenance-status-available {
+            background-color: #28a745;
+        }
+        
+        .maintenance-status-available:hover {
+            background-color: #218838;
+        }
+        
+        .maintenance-status-maintained {
+            background-color: #17a2b8;
+        }
+        
+        .maintenance-status-maintained:hover {
+            background-color: #138496;
+        }
+        
+        .maintenance-status-update {
+            background-color: #007bff;
+        }
+        
+        .maintenance-status-update:hover {
+            background-color: #0056b3;
+        }
+        
+        .maintenance-help-text {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .maintenance-validation-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .maintenance-status-form {
+            margin: 0;
+        }
+        
+        /* Need Maintenance Status Styling */
+        .maintenance-status-need-maintenance:focus {
+            outline: none !important;
+            border-color: #e0a800 !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
+        }
+    </style>
 </head>
 
 <div class="main-container">
@@ -31,17 +167,17 @@
                     <span class="vehicle-label">Status:</span>
                     <span>
                         @{
-                            var statusText = Model.Status.ToString();
-                            statusText = statusText.Replace("_", " ");
-                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            var vehicleStatusText = Model.Status.ToString();
+                            vehicleStatusText = vehicleStatusText.Replace("_", " ");
+                            vehicleStatusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(vehicleStatusText.ToLower());
                             
-                            if (statusText == "On Scheduled Trip")
+                            if (vehicleStatusText == "On Scheduled Trip")
                             {
-                                statusText = "Scheduled Trip";
+                                vehicleStatusText = "Scheduled Trip";
                             }
                         }
                         <span class="badge-status badge-@Model.Status.ToString().ToLower()">
-                            @statusText
+                            @vehicleStatusText
                         </span>
                     </span>
                 </div>
@@ -52,10 +188,109 @@
         <div class="maintenance-container">
             <div class="maintenance-header">
                 <h2>Maintenance History</h2>
-                <a asp-controller="Maintenances" asp-action="CreateMaintenance" asp-route-vehicleId="@Model.Id" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Create Maintenance
-                </a>
             </div>
+            
+            <!-- Maintenance Status Control -->
+            <div class="maintenance-status-section">
+                <form asp-action="Edit" method="post" class="maintenance-status-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Model" />
+                    <input type="hidden" asp-for="Type" />
+                    <input type="hidden" asp-for="Capacity" />
+                    <input type="hidden" asp-for="LicensePlate" />
+                    <input type="hidden" asp-for="TotalDistanceTraveled" />
+                    <input type="hidden" asp-for="RegistrationExpiryDate" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    <input type="hidden" asp-for="VehicleImageUrl" />
+                    <input type="hidden" asp-for="SimCardId" />
+                    <input type="hidden" name="redirectToMaintenance" value="true" />
+                    
+                    <div class="maintenance-input-group">
+                        <label asp-for="Status" class="maintenance-input-label">Maintenance Actions</label>
+                        @if (isFleetManager)
+                        {
+                            <!-- Fleet Manager can toggle between available and need_maintenance -->
+                            @if (Model.Status == VehicleState.available)
+                            {
+                                <input type="hidden" asp-for="Status" value="@VehicleState.need_maintenance" />
+                                <button type="submit" class="maintenance-status-button maintenance-status-need-maintenance">
+                                    <i class="fas fa-wrench"></i> Mark as Need Maintenance
+                                </button>
+                            }
+                            else if (Model.Status == VehicleState.maintained)
+                            {
+                                <input type="hidden" asp-for="Status" value="@VehicleState.available" />
+                                <button type="submit" class="maintenance-status-button maintenance-status-available">
+                                    <i class="fas fa-check-circle"></i> Mark as Available
+                                </button>
+                            }
+                            else if (Model.Status == VehicleState.need_maintenance)
+                            {
+                                <!-- For need_maintenance state, show read-only status with special styling -->
+                                <input value="Need Maintenance" class="maintenance-input-field maintenance-status-need-maintenance" readonly />
+                                <small class="maintenance-help-text">Vehicle needs maintenance. Cannot be changed by Fleet Manager.</small>
+                            }
+                            else
+                            {
+                                <!-- For other states, show current status as read-only -->
+                                <input value="@Model.Status.ToString().Replace("_", " ")" class="maintenance-input-field" readonly style="background-color: #f8f9fa;" />
+                                <small class="maintenance-help-text">Current state cannot be changed by Fleet Manager.</small>
+                            }
+                            <small class="maintenance-help-text">Fleet Manager can toggle between Available and Need Maintenance states.</small>
+                        }
+                        else if (isMaintenanceManager)
+                        {
+                            <!-- Maintenance Manager can only change to maintained -->
+                            @if (Model.Status == VehicleState.need_maintenance)
+                            {
+                                <input type="hidden" asp-for="Status" value="@VehicleState.maintained" />
+                                <button type="submit" class="maintenance-status-button maintenance-status-maintained">
+                                    <i class="fas fa-tools"></i> Mark as Maintained
+                                </button>
+                            }
+                            else
+                            {
+                                <!-- For other states, show current status as read-only -->
+                                <input value="@Model.Status.ToString().Replace("_", " ")" class="maintenance-input-field" readonly style="background-color: #f8f9fa;" />
+                                <small class="maintenance-help-text">Maintenance Manager can only change vehicles from Need Maintenance to Maintained.</small>
+                            }
+                            <small class="maintenance-help-text">Maintenance Manager can only change vehicle state to Maintained.</small>
+                        }
+                        else if (isSysSupport)
+                        {
+                            <!-- SysSupport can change to any state -->
+                            <select asp-for="Status" class="maintenance-dropdown">
+                                @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                                {
+                                    var dropdownStatusText = status.ToString();
+                                    dropdownStatusText = dropdownStatusText.Replace("_", " ");
+                                    dropdownStatusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(dropdownStatusText.ToLower());
+                                    
+                                    if (dropdownStatusText == "On Scheduled Trip")
+                                    {
+                                        dropdownStatusText = "Scheduled Trip";
+                                    }
+                                    
+                                    <option value="@status" selected="@(status.Equals(Model.Status) ? "selected" : null)">@dropdownStatusText</option>
+                                }
+                            </select>
+                            <button type="submit" class="maintenance-status-button maintenance-status-update">
+                                <i class="fas fa-save"></i> Update Status
+                            </button>
+                            <small class="maintenance-help-text">System Support has full access to change vehicle states.</small>
+                        }
+                        else
+                        {
+                            <!-- Read-only for other roles -->
+                            <input value="@Model.Status.ToString().Replace("_", " ")" class="maintenance-input-field" readonly style="background-color: #f8f9fa;" />
+                            <small class="maintenance-help-text">You don't have permission to change vehicle status.</small>
+                        }
+                        <span asp-validation-for="Status" class="maintenance-validation-message"></span>
+                    </div>
+                </form>
+            </div>
+            
             @if (Model.Maintenances != null && Model.Maintenances.Any())
             {
                 <div class="maintenance-list">

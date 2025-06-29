@@ -24,7 +24,7 @@
 }
 
 .edit-back-link {
-    background-color: #20B2AA;
+    background-color: #20B2AA !important;
     color: #ffffff !important;
     text-decoration: none;
     font-size: 15px;
