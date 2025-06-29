@@ -1,0 +1,201 @@
+/* Create Vehicle Form Styles */
+.create-layout-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.create-form-wrapper {
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.create-navigation {
+    margin-bottom: 20px;
+}
+
+.create-back-link {
+    background-color: #20B2AA;
+    color: #ffffff !important;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    padding: 8px 12px;
+    border-radius: 4px;
+    
+}
+
+.create-back-link:hover {
+    
+    text-decoration: none;
+    background-color: #1a9a94;
+}
+
+.create-heading {
+    font-size: 28px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.create-custom-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.create-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.create-input-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.create-input-field,
+.create-dropdown {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #212529;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.create-input-field:focus,
+.create-dropdown:focus {
+    outline: none;
+    border-color: #20B2AA;
+    box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.1);
+}
+
+.create-input-field::placeholder {
+    color: #6c757d;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.create-validation-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.create-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 768px) {
+    .create-input-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.image-preview-container {
+    margin-top: 12px;
+    text-align: center;
+    padding: 16px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    display: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-preview.show {
+    display: block;
+}
+
+.no-image-text {
+    color: #6c757d;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.create-button-group {
+    margin-top: 8px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.create-primary-button {
+    background-color: #20B2AA;
+    color: #ffffff !important;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.create-primary-button:hover {
+    background-color: #1a9a94;
+}
+
+.create-primary-button:active {
+    background-color: #158f89;
+}
+
+/* File input styling */
+.create-input-field[type="file"] {
+    padding: 6px 10px;
+    border: 2px dashed #dee2e6;
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.create-input-field[type="file"]:hover {
+    border-color: #20B2AA;
+    background-color: rgba(32, 178, 170, 0.05);
+}
+
+.create-input-field[type="file"]:focus {
+    border-color: #20B2AA;
+    background-color: #ffffff;
+}

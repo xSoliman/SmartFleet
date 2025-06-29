@@ -1,0 +1,111 @@
+﻿@model SmartFleet.Models.Order
+
+@{
+    ViewData["Title"] = "Edit Order";
+}
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/pages/order/edit.css">
+</head>
+
+<div class="edit-layout-container">
+    <div class="edit-form-wrapper">
+        <!-- Navigation Back Button -->
+        <div class="edit-navigation">
+            <a asp-action="Index" class="edit-back-link">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="edit-heading">Edit Order</h1>
+
+        <!-- Form -->
+        <form asp-action="Edit" class="edit-custom-form">
+            <div asp-validation-summary="All" class="edit-validation-message"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <!-- Row 1 -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <label asp-for="UserId" class="edit-input-label"></label>
+                    <select asp-for="UserId" class="edit-dropdown" asp-items="ViewBag.UserId"></select>
+                    <span asp-validation-for="UserId" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-col">
+                    <label asp-for="VehicleType" class="edit-input-label"></label>
+                    <select asp-for="VehicleType" class="edit-dropdown"></select>
+                    <span asp-validation-for="VehicleType" class="edit-validation-message"></span>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <label asp-for="PassengerCount" class="edit-input-label"></label>
+                    <input asp-for="PassengerCount" class="edit-input-field" />
+                    <span asp-validation-for="PassengerCount" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-col">
+                    <label asp-for="StartLocation" class="edit-input-label"></label>
+                    <input asp-for="StartLocation" class="edit-input-field" />
+                    <span asp-validation-for="StartLocation" class="edit-validation-message"></span>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <label asp-for="Destination" class="edit-input-label"></label>
+                    <input asp-for="Destination" class="edit-input-field" />
+                    <span asp-validation-for="Destination" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-col">
+                    <label asp-for="Reason" class="edit-input-label"></label>
+                    <input asp-for="Reason" class="edit-input-field" />
+                    <span asp-validation-for="Reason" class="edit-validation-message"></span>
+                </div>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <label asp-for="TripStartDate" class="edit-input-label"></label>
+                    <input asp-for="TripStartDate" class="edit-input-field" type="datetime-local" />
+                    <span asp-validation-for="TripStartDate" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-col">
+                    <label asp-for="TripEndDate" class="edit-input-label"></label>
+                    <input asp-for="TripEndDate" class="edit-input-field" type="datetime-local" />
+                    <span asp-validation-for="TripEndDate" class="edit-validation-message"></span>
+                </div>
+            </div>
+
+            <!-- Row 5 -->
+            <div class="edit-input-row">
+                <div class="edit-input-col">
+                    <label asp-for="Status" class="edit-input-label"></label>
+                    <select asp-for="Status" class="edit-dropdown"></select>
+                    <span asp-validation-for="Status" class="edit-validation-message"></span>
+                </div>
+                <div class="edit-input-col">
+                    <label asp-for="CreatedAt" class="edit-input-label"></label>
+                    <input asp-for="CreatedAt" class="edit-input-field" type="datetime-local" />
+                    <span asp-validation-for="CreatedAt" class="edit-validation-message"></span>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="edit-button-group">
+                <input type="submit" value="Save" class="edit-primary-button" />
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

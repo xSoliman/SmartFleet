@@ -1,0 +1,96 @@
+﻿@model SmartFleet.Models.Trip
+
+@{
+    ViewData["Title"] = "Trip Details";
+}
+
+<head>
+    <link rel="stylesheet" href="~/css/pages/trip/details.css">
+</head>
+
+<div class="details-container">
+    <div class="container">
+        <div class="details-card">
+            <!-- Back to List button moved inside card but before header -->
+            <div class="details-back-section">
+                <a asp-action="Index" class="btn btn-success">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+            <div class="details-card-header">
+                <h1 class="details-heading text-center w-100">Trip Details</h1>
+            </div>
+            <div class="details-card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="details-info-group">
+                            <label class="details-label">Vehicle</label>
+                            <p class="details-value">@Model.Vehicle?.Model (@Model.Vehicle?.Type)</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Order ID</label>
+                            <p class="details-value">@Model.Order?.Id</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Driver</label>
+                            <p class="details-value">@Model.Driver?.UserName</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Trip Start Date</label>
+                            <p class="details-value">@Model.Order?.TripStartDate</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Trip End Date</label>
+                            <p class="details-value">@Model.Order?.TripEndDate</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="details-info-group">
+                            <label class="details-label">Distance</label>
+                            <p class="details-value">@Model.Distance km</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Status</label>
+                            <p class="details-value">
+                                <span class="details-badge @Model.Status.ToString().ToLower()">
+                                    @Model.Status
+                                </span>
+                            </p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Created At</label>
+                            <p class="details-value">@Model.CreatedAt</p>
+                        </div>
+                        <div class="details-info-group">
+                            <label class="details-label">Created By</label>
+                            <p class="details-value">@Model.CreatedByUser?.UserName</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="details-card-footer">
+                <div class="details-btn-group">
+                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="details-btn primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    @if (Model.Status == TripState.InProgress || Model.Status == TripState.Completed)
+                    {
+                        <form asp-action="RecalculateDistance" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <!-- Add button here if needed -->
+                        </form>
+                    }
+                    @if (Model.Status == TripState.Scheduled || Model.Status == TripState.InProgress)
+                    {
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="details-btn warning">
+                                <i class="fas fa-times"></i> Cancel Trip
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

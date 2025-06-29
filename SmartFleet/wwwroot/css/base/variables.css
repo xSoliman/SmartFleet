@@ -1,0 +1,28 @@
+/* variables.css */
+
+/* Color Palette */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --error-color: #e74c3c;
+    --text-color: #333;
+    --background-color: #f4f4f4;
+    --white: #fff;
+}
+
+/* Font Sizes */
+:root {
+    --font-size-small: 12px;
+    --font-size-medium: 16px;
+    --font-size-large: 24px;
+    --font-size-xlarge: 32px;
+}
+
+/* Spacing */
+:root {
+    --space-xs: 8px;
+    --space-sm: 16px;
+    --space-md: 24px;
+    --space-lg: 32px;
+    --space-xl: 48px;
+}

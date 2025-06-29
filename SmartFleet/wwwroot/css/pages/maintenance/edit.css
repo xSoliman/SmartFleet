@@ -1,0 +1,130 @@
+.edit-heading {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.edit-layout-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.edit-form-wrapper {
+    width: 100%;
+    max-width: 700px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.edit-custom-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.edit-input-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.edit-input-field,
+.edit-dropdown {
+    width: 100%;
+    padding: 8px 16px;
+    height: 45px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #ffffff;
+    color: #212529;
+    font-weight: 500;
+    line-height: 1.5;
+    min-width: 220px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.edit-dropdown {
+    appearance: auto;
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
+}
+
+.edit-validation-message {
+    color: red;
+    font-size: 12px;
+}
+
+.edit-button-group {
+    text-align: center;
+}
+
+.edit-primary-button {
+    background-color: #20B2AA !important;
+    color: #ffffff !important;
+    border: none;
+    padding: 8px 12px; /* Match .edit-back-link */
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex; /* Match .edit-back-link */
+    justify-content: space-around;
+    align-items: center;
+}
+.edit-primary-button:hover {
+    background: #004d40 !important;
+}
+
+.edit-navigation {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.edit-back-link {
+    background-color: #20B2AA;
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+    .edit-back-link:hover {
+        text-decoration: none;
+        background-color: #1a9a94;
+    }
+
+    .edit-back-link i {
+        margin-right: 5px;
+    }
+
+
+.edit-input-row {
+    display: flex;
+    gap: 15px;
+}
+
+.edit-input-col {
+    flex: 1;
+}
+
+input.edit-primary-button[type="submit"] {
+    color: white !important;
+}
