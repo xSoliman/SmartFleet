@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using SmartFleet.Controllers;
 using SmartFleet.Data;
 using SmartFleet.Models;
+using SmartFleet.Services;
 using SmartFleet.Services.Interfaces;
 using Xunit;
 using FluentAssertions;
@@ -25,6 +26,7 @@ namespace SmartFleet.Tests
         private readonly Mock<IUserRoleService> _mockUserRoleService;
         private readonly Mock<IPaginationService> _mockPaginationService;
         private readonly Mock<ISearchService> _mockSearchService;
+        private readonly Mock<INotificationService> _mockNotificationService;
         private readonly VehiclesController _controller;
         private readonly ApplicationUser _testUser;
 
@@ -39,6 +41,7 @@ namespace SmartFleet.Tests
             _mockUserRoleService = new Mock<IUserRoleService>();
             _mockPaginationService = new Mock<IPaginationService>();
             _mockSearchService = new Mock<ISearchService>();
+            _mockNotificationService = new Mock<INotificationService>();
 
             _testUser = new ApplicationUser
             {
@@ -52,7 +55,8 @@ namespace SmartFleet.Tests
                 _mockUserManager.Object,
                 _mockUserRoleService.Object,
                 _mockPaginationService.Object,
-                _mockSearchService.Object
+                _mockSearchService.Object,
+                _mockNotificationService.Object
             );
 
             SetupDefaultAuthorization();
