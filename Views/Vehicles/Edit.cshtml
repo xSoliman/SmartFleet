@@ -122,21 +122,21 @@
                     else if (isSysSupport)
                     {
                         <!-- SysSupport can change to any state -->
-                        <select asp-for="Status" class="edit-dropdown">
-                            @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                    <select asp-for="Status" class="edit-dropdown">
+                        @foreach (var status in Enum.GetValues(typeof(SmartFleet.Models.VehicleState)))
+                        {
+                            var statusText = status.ToString();
+                            statusText = statusText.Replace("_", " ");
+                            statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
+                            
+                            if (statusText == "On Scheduled Trip")
                             {
-                                var statusText = status.ToString();
-                                statusText = statusText.Replace("_", " ");
-                                statusText = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(statusText.ToLower());
-                                
-                                if (statusText == "On Scheduled Trip")
-                                {
-                                    statusText = "Scheduled Trip";
-                                }
-                                
-                                <option value="@status" selected="@(status.Equals(Model.Status) ? "selected" : null)">@statusText</option>
+                                statusText = "Scheduled Trip";
                             }
-                        </select>
+                            
+                            <option value="@status" selected="@(status.Equals(Model.Status) ? "selected" : null)">@statusText</option>
+                        }
+                    </select>
                         <small class="edit-help-text">System Support has full access to change vehicle states.</small>
                     }
                     else

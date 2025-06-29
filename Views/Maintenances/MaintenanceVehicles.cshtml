@@ -13,6 +13,7 @@
     var isFleetManager = userRoles.Contains("FleetManager");
     var isSysSupport = userRoles.Contains("SysSupport");
     var canCreateMaintenance = currentUser != null && await UserRoleService.CanCreateMaintenance(currentUser);
+    var canEditMaintenance = currentUser != null && await UserRoleService.CanEditMaintenance(currentUser);
 }
 
 <head>
@@ -78,13 +79,39 @@
                                     @if (isMaintenanceManager && canCreateMaintenance)
                                     {
                                         <td>
-                                            <a class="btn-add-maintenance-report" 
-                                               asp-controller="Maintenances" 
-                                               asp-action="CreateMaintenance" 
-                                               asp-route-VehicleId="@vehicle.Id">
-                                                <i class="fas fa-plus-circle"></i>
-                                                Add Maintenance Report
-                                            </a>
+                                            @{
+                                                var hasActiveMaintenance = vehicle.Maintenances != null && vehicle.Maintenances.Any();
+                                                var activeMaintenance = hasActiveMaintenance ? vehicle.Maintenances.First() : null;
+                                            }
+                                            @if (hasActiveMaintenance)
+                                            {
+                                                <div class="maintenance-actions-group">
+                                                    <button class="btn-maintenance-created" disabled>
+                                                        <i class="fas fa-check-circle"></i>
+                                                        <span style="color: #ffffff;">Maintenance Record Created</span>
+                                                    </button>
+                                                    @if ((isMaintenanceManager || isSysSupport) && canEditMaintenance)
+                                                    {
+                                                        <a class="btn-edit-maintenance" 
+                                                           asp-controller="Maintenances" 
+                                                           asp-action="Edit" 
+                                                           asp-route-id="@activeMaintenance.Id">
+                                                            <i class="fas fa-edit" style="color: white !important;"></i>
+                                                            Edit
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <a class="btn-add-maintenance-report" 
+                                                   asp-controller="Maintenances" 
+                                                   asp-action="CreateMaintenance" 
+                                                   asp-route-VehicleId="@vehicle.Id">
+                                                    <i class="fas fa-plus-circle"></i>
+                                                    Add Maintenance Report
+                                                </a>
+                                            }
                                         </td>
                                     }
                                 </tr>

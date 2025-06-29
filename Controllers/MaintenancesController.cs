@@ -22,14 +22,16 @@ namespace SmartFleet.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUserRoleService _userRoleService;
         private readonly ISearchService _searchService;
+        private readonly INotificationService _notificationService;
 
-        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, ISearchService searchService)
+        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, ISearchService searchService, INotificationService notificationService)
         {
             _context = context;
             _paginationService = paginationService;
             _userManager = userManager;
             _userRoleService = userRoleService;
             _searchService = searchService;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter, int pageNumber = 1)
@@ -87,8 +89,9 @@ namespace SmartFleet.Controllers
             int pageSize = 10;
             int totalCount = await query.CountAsync();
             
-            // Sort by pending status first, then by priority (high, normal, low), then by creation date
-            var sortedQuery = query.OrderBy(m => m.RepairStatus != RepairState.pending) // pending first
+            // Sort by in_progress first, then pending, then by priority (high, normal, low), then by creation date
+            var sortedQuery = query.OrderBy(m => m.RepairStatus != RepairState.in_progress) // in_progress first
+                                   .ThenBy(m => m.RepairStatus != RepairState.pending) // pending second
                                    .ThenBy(m => m.Priority == PriorityDegree.low) // low priority last
                                    .ThenBy(m => m.Priority == PriorityDegree.normal) // normal priority second to last
                                    .ThenByDescending(m => m.CreatedAt); // then by creation date (newest first)
@@ -162,6 +165,7 @@ namespace SmartFleet.Controllers
 
             var vehicles = await _context.Vehicles
                 .Where(v => v.Status == VehicleState.need_maintenance)
+                .Include(v => v.Maintenances.Where(m => m.RepairStatus != RepairState.completed))
                 .ToListAsync();
 
             return View(vehicles);
@@ -249,7 +253,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,VehicleId,ReportedBy,IssueDescription,RepairStatus,Priority,RepairedAt,CreatedAt")] Maintenance maintenance)
+        public async Task<IActionResult> Create([Bind("Id,VehicleId,ReportedBy,IssueDescription,RepairStatus,Priority")] Maintenance maintenance)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -273,6 +277,16 @@ namespace SmartFleet.Controllers
 
             if (ModelState.IsValid)
             {
+                // Set automatic fields
+                maintenance.CreatedAt = DateTime.Now;
+                maintenance.UpdatedAt = DateTime.Now;
+                
+                // Set RepairedAt automatically if status is completed
+                if (maintenance.RepairStatus == RepairState.completed)
+                {
+                    maintenance.RepairedAt = DateTime.Now;
+                }
+
                 maintenance.ReportedUser = await _context.Users.FindAsync(maintenance.ReportedBy);
                 _context.Add(maintenance);
                 await _context.SaveChangesAsync();
@@ -286,6 +300,9 @@ namespace SmartFleet.Controllers
                         vehicle.Status = VehicleState.maintained;
                         vehicle.UpdatedAt = DateTime.Now;
                         await _context.SaveChangesAsync();
+                        
+                        // Notify fleet managers that vehicle maintenance is completed
+                        await NotifyFleetManagersForMaintenanceCompleted(vehicle, maintenance, currentUser);
                         
                         TempData["SuccessMessage"] = $"Maintenance record created and vehicle {vehicle.LicensePlate} status automatically changed to Maintained.";
                     }
@@ -354,15 +371,30 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index");
             }
 
-            var maintenance = await _context.Maintenances.FindAsync(id);
+            var maintenance = await _context.Maintenances
+                .Include(m => m.Vehicle)
+                .Include(m => m.ReportedUser)
+                .FirstOrDefaultAsync(m => m.Id == id);
+                
             if (maintenance == null)
             {
                 return NotFound();
             }
 
+            // Get user roles to check if user is SysSupport
+            var userRoles = await _userRoleService.GetUserRoles(currentUser);
+            var isSysSupport = userRoles.Contains("SysSupport");
+
+            // Prevent editing of completed maintenance records (except for SysSupport)
+            if (maintenance.RepairStatus == RepairState.completed && !isSysSupport)
+            {
+                TempData["ErrorMessage"] = "Completed maintenance records cannot be edited.";
+                return RedirectToAction("Index");
+            }
+
             // Initialize ViewBag data to prevent null reference exceptions
-            ViewBag.VehicleInfo = null;
-            ViewBag.UserInfo = null;
+            ViewBag.VehicleInfo = maintenance.Vehicle;
+            ViewBag.UserInfo = maintenance.ReportedUser;
             ViewData["VehicleId"] = new SelectList(_context.Vehicles, "Id", "LicensePlate", maintenance.VehicleId);
             ViewData["ReportedBy"] = new SelectList(_context.Users, "Id", "UserName", maintenance.ReportedBy);
             return View(maintenance);
@@ -370,7 +402,7 @@ namespace SmartFleet.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,ReportedBy,IssueDescription,RepairStatus,Priority,RepairedAt,CreatedAt")] Maintenance maintenance)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,ReportedBy,IssueDescription,RepairStatus,Priority")] Maintenance maintenance)
         {
             if (id != maintenance.Id)
             {
@@ -403,9 +435,35 @@ namespace SmartFleet.Controllers
                 {
                     // Get the original maintenance record to check if status is changing to completed
                     var originalMaintenance = await _context.Maintenances.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+                    
+                    // Get user roles to check if user is SysSupport
+                    var userRoles = await _userRoleService.GetUserRoles(currentUser);
+                    var isSysSupport = userRoles.Contains("SysSupport");
+                    
+                    // Prevent editing if the original record was completed (except for SysSupport)
+                    if (originalMaintenance?.RepairStatus == RepairState.completed && !isSysSupport)
+                    {
+                        TempData["ErrorMessage"] = "Completed maintenance records cannot be edited.";
+                        return RedirectToAction("Index");
+                    }
+                    
                     bool isStatusChangingToCompleted = originalMaintenance != null && 
                                                      originalMaintenance.RepairStatus != RepairState.completed && 
                                                      maintenance.RepairStatus == RepairState.completed;
+
+                    // Set automatic fields
+                    maintenance.UpdatedAt = DateTime.Now;
+                    
+                    // Set RepairedAt automatically if status is changing to completed
+                    if (isStatusChangingToCompleted)
+                    {
+                        maintenance.RepairedAt = DateTime.Now;
+                    }
+                    else if (maintenance.RepairStatus == RepairState.completed && originalMaintenance?.RepairedAt == null)
+                    {
+                        // If status is already completed but RepairedAt is not set, set it now
+                        maintenance.RepairedAt = DateTime.Now;
+                    }
 
                     _context.Update(maintenance);
                     await _context.SaveChangesAsync();
@@ -419,6 +477,9 @@ namespace SmartFleet.Controllers
                             vehicle.Status = VehicleState.maintained;
                             vehicle.UpdatedAt = DateTime.Now;
                             await _context.SaveChangesAsync();
+                            
+                            // Notify fleet managers that vehicle maintenance is completed
+                            await NotifyFleetManagersForMaintenanceCompleted(vehicle, maintenance, currentUser);
                             
                             TempData["SuccessMessage"] = $"Maintenance completed and vehicle {vehicle.LicensePlate} status automatically changed to Maintained.";
                         }
@@ -485,10 +546,14 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Check edit permissions
-            if (!await _userRoleService.CanEditMaintenance(currentUser))
+            // Get user roles to check if user is SysSupport
+            var userRoles = await _userRoleService.GetUserRoles(currentUser);
+            var isSysSupport = userRoles.Contains("SysSupport");
+
+            // Only SysSupport can delete maintenance records
+            if (!isSysSupport)
             {
-                TempData["ErrorMessage"] = "You don't have permission to delete maintenance records.";
+                TempData["ErrorMessage"] = "Only System Support can delete maintenance records.";
                 return RedirectToAction("Index");
             }
 
@@ -514,6 +579,38 @@ namespace SmartFleet.Controllers
         private bool MaintenanceExists(int id)
         {
             return _context.Maintenances.Any(e => e.Id == id);
+        }
+
+        private async Task NotifyFleetManagersForMaintenanceCompleted(Vehicle vehicle, Maintenance maintenance, ApplicationUser currentUser)
+        {
+            try
+            {
+                // Get all fleet managers
+                var fleetManagers = await _userRoleService.GetUsersByRole("FleetManager");
+                
+                if (fleetManagers.Any())
+                {
+                    var notificationTitle = "Vehicle Maintenance Completed";
+                    var notificationMessage = $"Maintenance for vehicle {vehicle.LicensePlate} ({vehicle.Model}) has been completed by {currentUser.UserName}. The vehicle is now ready for use.";
+
+                    // Send notification to each fleet manager
+                    foreach (var manager in fleetManagers)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            manager.Id,
+                            notificationTitle,
+                            notificationMessage,
+                            RelatedTable.Maintenance,
+                            maintenance.Id
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the maintenance update
+                Console.WriteLine($"Error sending maintenance completion notification: {ex.Message}");
+            }
         }
     }
 }

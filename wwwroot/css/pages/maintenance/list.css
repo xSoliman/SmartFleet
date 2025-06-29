@@ -12,7 +12,6 @@
     vertical-align: middle;
     font-size: 1.08rem;
     color: #222;
-    font-family: 'Montserrat', 'Lato', Arial, sans-serif;
     letter-spacing: 0.01em;
     line-height: 1.6;
     padding: 10px 5px;
@@ -118,19 +117,19 @@
 .badge-low { 
     background: #e6f9e6; 
     color: #16b416; 
-    border: 1px solid #b3e6b3;
+    border: 1px solid;
 }
 
 .badge-normal { 
     background: #fffbe6; 
     color: #e6b800; 
-    border: 1px solid #ffe066;
+    border: 1px solid ;
 }
 
 .badge-high { 
     background: #ffeaea; 
     color: #e63946; 
-    border: 1px solid #ffb3b3;
+    border: 1px solid;
 }
 
 /* Vehicle state badges */
@@ -555,24 +554,55 @@
 }
 
 .btn-add-maintenance-report {
-    background: #20B2AA;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9rem;
+    background: linear-gradient(135deg, #20B2AA 0%, #1a9a94 100%);
+    color: #ffffff;
     border: none;
-    transition: background-color 0.2s ease;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(32, 178, 170, 0.2);
+    cursor: pointer;
 }
 
 .btn-add-maintenance-report:hover {
-    background: #1a9ba3;
-    color: white;
+    background: linear-gradient(135deg, #1a9a94 0%, #158f89 100%);
+    color: #ffffff;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(32, 178, 170, 0.3);
+}
+
+.btn-maintenance-created {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    cursor: default;
+    opacity: 0.9;
+}
+
+.btn-maintenance-created:disabled {
+    opacity: 0.9;
+    cursor: default;
+}
+
+.btn-maintenance-created i {
+    color: #ffffff;
+    font-size: 14px;
 }
 
 .no-vehicles-message {
@@ -653,4 +683,42 @@
 .maintenance-button-group form {
     margin: 0;
     display: inline;
+}  
+
+.maintenance-actions-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-edit-maintenance {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    cursor: pointer;
+}
+
+.btn-edit-maintenance:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.btn-edit-maintenance i {
+    color: #ffffff;
+    font-size: 14px;
 }  
