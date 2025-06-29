@@ -194,7 +194,7 @@ function addNotificationToList(notification) {
     const notificationList = document.getElementById('notificationList');
     if (notificationList) {
         const notificationItem = document.createElement('div');
-        notificationItem.className = 'dropdown-item notification-item unread';
+        notificationItem.className = `dropdown-item notification-item unread type-${notification.type || 'info'}`;
         notificationItem.setAttribute('data-notification-id', notification.id);
         notificationItem.onclick = () => markAsRead(notification.id);
         
@@ -204,7 +204,7 @@ function addNotificationToList(notification) {
             <div class="notification-content">
                 <div class="notification-header">
                     <h6 class="notification-title fw-bold">${notification.title}</h6>
-                    <span class="badge notification-new-badge">New</span>
+                    <span class="badge notification-new-badge type-${notification.type || 'info'}">New</span>
                 </div>
                 <p class="notification-message">${notification.message}</p>
                 <small class="notification-time">${createdAt}</small>
@@ -333,7 +333,7 @@ async function markAllAsRead() {
 // Helper function to show notification toast
 function showNotificationToast(notification) {
     const toast = document.createElement('div');
-    toast.className = 'notification-toast';
+    toast.className = `notification-toast type-${notification.type || 'info'}`;
     toast.innerHTML = `
         <div class="toast-header">
             <strong class="me-auto">${notification.title}</strong>

@@ -119,8 +119,31 @@ function getStatusColor(status) {
 
 // Show general notification
 function showNotification(notification) {
+    // Determine notification type based on title
+    function getNotificationType(title) {
+        if (!title) return 'info';
+        
+        title = title.toLowerCase();
+        
+        // Geofence breach - red
+        if (title.includes('geofence breach') || title.includes('unauthorized vehicle use'))
+            return 'danger';
+        
+        // Completed or accepted - green
+        if (title.includes('completed') || title.includes('approved') || title.includes('started'))
+            return 'success';
+        
+        // Rejected - red/orange
+        if (title.includes('rejected') || title.includes('cancelled') || title.includes('failed'))
+            return 'warning';
+        
+        // Default - informative
+        return 'info';
+    }
+    
+    const notificationType = getNotificationType(notification.title || notification);
     const notificationDiv = document.createElement('div');
-    notificationDiv.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    notificationDiv.className = `alert alert-${notificationType} alert-dismissible fade show position-fixed`;
     notificationDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
     
     notificationDiv.innerHTML = `

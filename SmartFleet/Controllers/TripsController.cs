@@ -132,6 +132,7 @@ namespace SmartFleet.Controllers
                 .Include(t => t.Order)
                 .Include(t => t.CreatedByUser);
             List<Trip> assignedTrips = new List<Trip>();
+            
             if (isFleetManager || isSystemSupport)
             {
                 // Fleet Managers and System Support see all trips
@@ -139,6 +140,35 @@ namespace SmartFleet.Controllers
             else if (isDriver)
             {
                 tripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
+                
+                // Populate assigned trips for drivers
+                var assignedTripsQuery = _context.Trips
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Include(t => t.Order)
+                    .Include(t => t.CreatedByUser)
+                    .Where(t => t.DriverId == currentUser.Id);
+                
+                // Apply assigned trips filters
+                var assignedFilters = new List<System.Linq.Expressions.Expression<Func<Trip, bool>>>();
+                if (!string.IsNullOrEmpty(assignedDestination))
+                    assignedFilters.Add(t => t.Order.Destination.Contains(assignedDestination));
+                if (!string.IsNullOrEmpty(assignedSearchDriverName))
+                    assignedFilters.Add(t => t.Driver.UserName.Contains(assignedSearchDriverName));
+                if (assignedVehicleType.HasValue)
+                    assignedFilters.Add(t => t.Vehicle.Type == assignedVehicleType.Value);
+                if (assignedStateFilter.HasValue)
+                    assignedFilters.Add(t => t.Status == assignedStateFilter.Value);
+                if (assignedStartDate.HasValue)
+                    assignedFilters.Add(t => t.Order.TripStartDate >= assignedStartDate.Value);
+                if (assignedEndDate.HasValue)
+                    assignedFilters.Add(t => t.Order.TripEndDate <= assignedEndDate.Value);
+                
+                assignedTripsQuery = _searchService.ApplyFilters(assignedTripsQuery, assignedFilters);
+                assignedTrips = await assignedTripsQuery
+                    .OrderBy(t => t.Status)
+                    .ThenBy(t => t.Order.TripStartDate)
+                    .ToListAsync();
             }
             else if (isNormalUser)
             {

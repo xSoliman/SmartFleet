@@ -36,19 +36,22 @@ namespace SmartFleet.Services
                 _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
 
+                // Determine notification type based on title
+                string notificationType = DetermineNotificationType(title);
+
                 // Send real-time notification via SignalR to specific user
                 await _hubContext.Clients.Group($"User_{userId}").SendAsync("ReceiveNotification", new
                 {
                     id = notification.Id.ToString(),
                     title = notification.Title,
                     message = notification.Message,
-                    type = "info",
+                    type = notificationType,
                     createdAt = notification.CreatedAt,
                     isRead = notification.IsRead,
                     userId = notification.UserId
                 });
 
-                Console.WriteLine($"📨 Notification sent via SignalR to User_{userId}: {title}");
+                Console.WriteLine($"📨 Notification sent via SignalR to User_{userId}: {title} (Type: {notificationType})");
             }
             catch (Exception ex)
             {
@@ -57,23 +60,49 @@ namespace SmartFleet.Services
             }
         }
 
+        private string DetermineNotificationType(string title)
+        {
+            if (string.IsNullOrEmpty(title))
+                return "info";
+
+            title = title.ToLower();
+
+            // Geofence breach - red
+            if (title.Contains("geofence breach") || title.Contains("unauthorized vehicle use"))
+                return "danger";
+
+            // Completed or accepted - green
+            if (title.Contains("completed") || title.Contains("approved") || title.Contains("started"))
+                return "success";
+
+            // Rejected - red/orange
+            if (title.Contains("rejected") || title.Contains("cancelled") || title.Contains("failed"))
+                return "warning";
+
+            // Default - informative
+            return "info";
+        }
+
         public async Task CreateBroadcastNotificationAsync(string title, string message, RelatedTable relatedTable, int? relatedId = null)
         {
             try
             {
+                // Determine notification type based on title
+                string notificationType = DetermineNotificationType(title);
+
                 // Send real-time notification via SignalR to all connected users
                 await _hubContext.Clients.Group("AllUsers").SendAsync("ReceiveNotification", new
                 {
                     id = Guid.NewGuid().ToString(),
                     title = title,
                     message = message,
-                    type = "info",
+                    type = notificationType,
                     createdAt = DateTime.UtcNow,
                     isRead = false,
                     userId = "broadcast"
                 });
 
-                Console.WriteLine($"📢 Broadcast notification sent via SignalR: {title}");
+                Console.WriteLine($"📢 Broadcast notification sent via SignalR: {title} (Type: {notificationType})");
             }
             catch (Exception ex)
             {

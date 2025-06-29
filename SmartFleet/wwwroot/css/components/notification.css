@@ -19,6 +19,42 @@
     background-color: #e3f2fd;
 }
 
+.notification-item.type-success {
+    border-left: 4px solid #198754;
+    background-color: #f8fff9;
+}
+
+.notification-item.type-success:hover {
+    background-color: #e8f5e8;
+}
+
+.notification-item.type-danger {
+    border-left: 4px solid #dc3545;
+    background-color: #fff8f8;
+}
+
+.notification-item.type-danger:hover {
+    background-color: #ffe8e8;
+}
+
+.notification-item.type-warning {
+    border-left: 4px solid #ffc107;
+    background-color: #fffef8;
+}
+
+.notification-item.type-warning:hover {
+    background-color: #fff8e8;
+}
+
+.notification-item.type-info {
+    border-left: 4px solid #0dcaf0;
+    background-color: #f8feff;
+}
+
+.notification-item.type-info:hover {
+    background-color: #e8f8ff;
+}
+
 .notification-badge {
     font-size: 0.95rem;
     font-weight: 600;
@@ -36,6 +72,23 @@
 .notification-badge.no-unread {
     background-color: #000000 !important;
     color: white !important;
+}
+
+.notification-badge.type-success {
+    background-color: #198754 !important;
+}
+
+.notification-badge.type-danger {
+    background-color: #dc3545 !important;
+}
+
+.notification-badge.type-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.notification-badge.type-info {
+    background-color: #0dcaf0 !important;
 }
 
 .notification-dropdown {
@@ -126,6 +179,23 @@
     color: white !important;
 }
 
+.notification-new-badge.type-success {
+    background-color: #198754 !important;
+}
+
+.notification-new-badge.type-danger {
+    background-color: #dc3545 !important;
+}
+
+.notification-new-badge.type-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.notification-new-badge.type-info {
+    background-color: #0dcaf0 !important;
+}
+
 .notification-message {
     font-size: 0.85rem;
     color: #666;
@@ -186,6 +256,31 @@
     font-size: 1.15rem;
     font-weight: 500;
     color: #222;
+}
+
+/* Notification type styles */
+.notification-toast.type-success {
+    background: #d1e7dd;
+    border-left-color: #198754;
+    color: #0f5132;
+}
+
+.notification-toast.type-danger {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.notification-toast.type-warning {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+}
+
+.notification-toast.type-info {
+    background: #d1ecf1;
+    border-left-color: #0dcaf0;
+    color: #055160;
 }
 
 .nav-item {

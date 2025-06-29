@@ -6,6 +6,32 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/notifications.css" />
+    <link rel="stylesheet" href="~/css/components/notification.css" />
+}
+
+@functions {
+    private string GetNotificationType(string title)
+    {
+        if (string.IsNullOrEmpty(title))
+            return "info";
+
+        title = title.ToLower();
+
+        // Geofence breach - red
+        if (title.Contains("geofence breach") || title.Contains("unauthorized vehicle use"))
+            return "danger";
+
+        // Completed or accepted - green
+        if (title.Contains("completed") || title.Contains("approved") || title.Contains("started"))
+            return "success";
+
+        // Rejected - red/orange
+        if (title.Contains("rejected") || title.Contains("cancelled") || title.Contains("failed"))
+            return "warning";
+
+        // Default - informative
+        return "info";
+    }
 }
 
 <div class="notifications-container">
@@ -33,7 +59,8 @@
             {
                 @foreach (var notification in Model)
                 {
-                    <div class="notification-item @(!notification.IsRead ? "unread" : "")" data-notification-id="@notification.Id">
+                    var notificationType = GetNotificationType(notification.Title);
+                    <div class="notification-item @(!notification.IsRead ? "unread" : "") type-@notificationType" data-notification-id="@notification.Id">
                         <div class="notification-icon">
                             <i class="fas fa-bell"></i>
                         </div>
@@ -42,7 +69,7 @@
                             <div class="notification-header">
                                 @if (!notification.IsRead)
                                 {
-                                    <span class="unread-badge">New</span>
+                                    <span class="unread-badge type-@notificationType">New</span>
                                 }
                                 <h3 class="notification-title @(!notification.IsRead ? "fw-bold" : "")">@notification.Title</h3>
                             </div>
@@ -97,6 +124,28 @@
 @section Scripts {
     <script src="~/js/notification.js"></script>
     <script>
+        // Helper function to determine notification type (same as server-side)
+        function getNotificationType(title) {
+            if (!title) return 'info';
+            
+            title = title.toLowerCase();
+            
+            // Geofence breach - red
+            if (title.includes('geofence breach') || title.includes('unauthorized vehicle use'))
+                return 'danger';
+            
+            // Completed or accepted - green
+            if (title.includes('completed') || title.includes('approved') || title.includes('started'))
+                return 'success';
+            
+            // Rejected - red/orange
+            if (title.includes('rejected') || title.includes('cancelled') || title.includes('failed'))
+                return 'warning';
+            
+            // Default - informative
+            return 'info';
+        }
+
         // Page-specific notification functions that work with the existing real-time system
         
         // Track notifications being updated to prevent duplicates
@@ -407,8 +456,9 @@
         function addNotificationToPage(notification) {
             const notificationsList = document.getElementById('pageNotificationsList');
             if (notificationsList) {
+                const notificationType = getNotificationType(notification.title);
                 const notificationItem = document.createElement('div');
-                notificationItem.className = 'notification-item unread';
+                notificationItem.className = `notification-item unread type-${notificationType}`;
                 notificationItem.setAttribute('data-notification-id', notification.id);
                 
                 const createdAt = new Date(notification.createdAt).toLocaleString();
@@ -420,7 +470,7 @@
                     
                     <div class="notification-body">
                         <div class="notification-header">
-                            <span class="unread-badge">New</span>
+                            <span class="unread-badge type-${notificationType}">New</span>
                             <h3 class="notification-title fw-bold">${notification.title}</h3>
                         </div>
                         
