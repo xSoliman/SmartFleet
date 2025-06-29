@@ -20,13 +20,17 @@ namespace SmartFleet.Controllers
         private readonly SmartFleetContext _context;
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
+        private readonly INotificationService _notificationService;
+        private readonly IUserRoleService _userRoleService;
 
-        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService) 
+        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, INotificationService notificationService) 
             : base(userManager, userRoleService)
         {
             _context = context;
             _paginationService = paginationService;
             _searchService = searchService;
+            _notificationService = notificationService;
+            _userRoleService = userRoleService;
         }
 
         // GET: Vehicles + search & filter
@@ -292,6 +296,12 @@ namespace SmartFleet.Controllers
 
                     _context.Update(vehicle);
                     await _context.SaveChangesAsync();
+
+                    // Check if vehicle status changed to need_maintenance and notify maintenance managers
+                    if (originalVehicle.Status != VehicleState.need_maintenance && vehicle.Status == VehicleState.need_maintenance)
+                    {
+                        await NotifyMaintenanceManagersForVehicleNeedingMaintenance(vehicle, currentUser);
+                    }
 
                     TempData["SuccessMessage"] = $"Vehicle {vehicle.LicensePlate} updated successfully.";
                 }
@@ -662,12 +672,37 @@ namespace SmartFleet.Controllers
             return RedirectToAction("Geofence", new { id = vehicleId });
         }
 
-        // Test action for debugging
-        [HttpPost]
-        public IActionResult TestAssignSimCard()
+        // Private method to notify maintenance managers when a vehicle needs maintenance
+        private async Task NotifyMaintenanceManagersForVehicleNeedingMaintenance(Vehicle vehicle, ApplicationUser currentUser)
         {
-            System.Diagnostics.Debug.WriteLine("TestAssignSimCard called");
-            return Json(new { success = true, message = "Test action called successfully" });
+            try
+            {
+                // Get all maintenance managers
+                var maintenanceManagers = await _userRoleService.GetUsersByRole("MaintenanceManager");
+                
+                if (maintenanceManagers.Any())
+                {
+                    var notificationTitle = "Vehicle Needs Maintenance";
+                    var notificationMessage = $"Vehicle {vehicle.LicensePlate} ({vehicle.Model}) has been marked as needing maintenance by {currentUser.UserName}.";
+
+                    // Send notification to each maintenance manager
+                    foreach (var manager in maintenanceManagers)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            manager.Id,
+                            notificationTitle,
+                            notificationMessage,
+                            RelatedTable.Vehicle,
+                            vehicle.Id
+                        );
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't fail the vehicle update
+                Console.WriteLine($"Error sending maintenance notification: {ex.Message}");
+            }
         }
     }
 }

@@ -18,12 +18,9 @@
     }
 }
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
-    
 </head>
-
 
 <div class="maintenance-layout-container">
     <div class="maintenance-form-wrapper">
@@ -35,56 +32,96 @@
 
         <h1 class="maintenance-heading">Edit Maintenance</h1>
 
+        <!-- Information Section -->
+        <div class="maintenance-info-section">
+            <h3 class="maintenance-info-title">
+                <i class="fas fa-info-circle"></i>
+                Maintenance Information
+            </h3>
+            <div class="maintenance-info-grid">
+                <div class="maintenance-info-item">
+                    <label class="maintenance-info-label">Vehicle</label>
+                    @{
+                        var vehicle = ViewBag.VehicleInfo as SmartFleet.Models.Vehicle;
+                        if (vehicle != null)
+                        {
+                            <div class="maintenance-info-value">
+                                <i class="fas fa-car"></i>
+                                @vehicle.LicensePlate - @vehicle.Model
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="maintenance-info-value">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Vehicle ID: @Model.VehicleId (Vehicle not found)
+                            </div>
+                        }
+                    }
+                </div>
+                
+                <div class="maintenance-info-item">
+                    <label class="maintenance-info-label">Reported By</label>
+                    @{
+                        var user = ViewBag.UserInfo as SmartFleet.Models.ApplicationUser;
+                        if (user != null)
+                        {
+                            <div class="maintenance-info-value">
+                                <i class="fas fa-user"></i>
+                                @user.UserName (@user.Email)
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="maintenance-info-value">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                User ID: @Model.ReportedBy (User not found)
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
         <form asp-action="Edit" class="maintenance-custom-form">
             <div asp-validation-summary="All" class="maintenance-validation-message"></div>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="VehicleId" />
+            <input type="hidden" asp-for="ReportedBy" />
 
-            
-            <div class="maintenance-input-group">
-                <label class="maintenance-input-label">Vehicle</label>
-                <select asp-for="VehicleId" class="maintenance-dropdown" asp-items="ViewBag.VehicleId">
-                    <option value="">-- Select Vehicle --</option>
-                </select>
-                <span asp-validation-for="VehicleId" class="maintenance-validation-message"></span>
-            </div>
-
-            <div class="maintenance-input-group">
-                <label class="maintenance-input-label">Reported By</label>
-                <select asp-for="ReportedBy" class="maintenance-dropdown" asp-items="ViewBag.ReportedBy">
-                    <option value="">-- Select User --</option>
-                </select>
-                <span asp-validation-for="ReportedBy" class="maintenance-validation-message"></span>
-            </div>
-
-            <div class="maintenance-input-group">
-                <label asp-for="IssueDescription" class="maintenance-input-label">Issue Description</label>
-                <textarea asp-for="IssueDescription" class="maintenance-input-field" rows="3" placeholder="Describe the maintenance issue..."></textarea>
+            <!-- Enhanced Issue Description Field -->
+            <div class="maintenance-input-group enhanced">
+                <label asp-for="IssueDescription" class="maintenance-input-label enhanced">
+                    <i class="fas fa-clipboard-list"></i>
+                    Issue Description
+                </label>
+                <textarea asp-for="IssueDescription" class="maintenance-input-field enhanced" rows="4" 
+                          placeholder="Describe the maintenance issue in detail..."></textarea>
                 <span asp-validation-for="IssueDescription" class="maintenance-validation-message"></span>
             </div>
 
-            <div class="maintenance-input-row">
-                <div class="maintenance-input-group">
-                    <label asp-for="RepairStatus" class="maintenance-input-label">Repair Status</label>
-                    <select asp-for="RepairStatus" class="maintenance-dropdown" asp-items="repairStatusList"></select>
+            <!-- Enhanced Status and Priority Fields -->
+            <div class="maintenance-input-row enhanced">
+                <div class="maintenance-input-group enhanced">
+                    <label asp-for="RepairStatus" class="maintenance-input-label enhanced">
+                        <i class="fas fa-tools"></i>
+                        Repair Status
+                    </label>
+                    <select asp-for="RepairStatus" class="maintenance-dropdown enhanced" asp-items="repairStatusList">
+                        <option value="">-- Select Status --</option>
+                    </select>
                     <span asp-validation-for="RepairStatus" class="maintenance-validation-message"></span>
                 </div>
-                <div class="maintenance-input-group">
-                    <label asp-for="Priority" class="maintenance-input-label">Priority</label>
-                    <select asp-for="Priority" class="maintenance-dropdown" asp-items="priorityList"></select>
+                
+                <div class="maintenance-input-group enhanced">
+                    <label asp-for="Priority" class="maintenance-input-label enhanced">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Priority Level
+                    </label>
+                    <select asp-for="Priority" class="maintenance-dropdown enhanced" asp-items="priorityList">
+                        <option value="">-- Select Priority --</option>
+                    </select>
                     <span asp-validation-for="Priority" class="maintenance-validation-message"></span>
-                </div>
-            </div>
-
-            <div class="maintenance-input-row">
-                <div class="maintenance-input-group">
-                    <label asp-for="RepairedAt" class="maintenance-input-label">Repaired At (Optional)</label>
-                    <input asp-for="RepairedAt" class="maintenance-input-field" type="datetime-local" />
-                    <span asp-validation-for="RepairedAt" class="maintenance-validation-message"></span>
-                </div>
-                <div class="maintenance-input-group">
-                    <label asp-for="CreatedAt" class="maintenance-input-label">Created At</label>
-                    <input asp-for="CreatedAt" class="maintenance-input-field" type="datetime-local" />
-                    <span asp-validation-for="CreatedAt" class="maintenance-validation-message"></span>
                 </div>
             </div>
 

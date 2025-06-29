@@ -1,11 +1,22 @@
 ﻿@model SmartFleet.Models.Maintenance
+@using SmartFleet.Services
+@using SmartFleet.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@inject IUserRoleService UserRoleService
+@inject UserManager<SmartFleet.Models.ApplicationUser> UserManager
 @{
     ViewData["Title"] = "Maintenance Details";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var canEditMaintenance = currentUser != null && await UserRoleService.CanEditMaintenance(currentUser);
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var isSysSupport = userRoles.Contains("SysSupport");
+    var canEdit = canEditMaintenance && (isSysSupport || Model.RepairStatus != SmartFleet.Models.RepairState.completed);
 }
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/maintenance/form.css">
 </head>
+
 <div class="maintenance-layout-container">
     <div class="maintenance-details-form-wrapper">
         <!-- Navigation Back Button -->
@@ -14,75 +25,180 @@
                 <i class="fas fa-arrow-left"></i> Back to Maintenance
             </a>
         </div>
-        <!-- Heading -->
-        <h1 class="maintenance-details-heading">Maintenance Details</h1>
-        <!-- Display Data -->
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Vehicle</label>
-            <div class="maintenance-details-display-value">
-                @if (Model.Vehicle != null)
-                {
-                    <span>@Model.Vehicle.LicensePlate - @Model.Vehicle.Model</span>
-                }
-                else
-                {
-                    <span class="text-muted">Vehicle not found</span>
-                }
+        
+        <!-- Enhanced Heading -->
+        <div class="maintenance-details-header">
+            <h1 class="maintenance-details-heading">
+                <i class="fas fa-clipboard-list"></i>
+                Maintenance Details
+            </h1>
+            <div class="maintenance-details-id">
+                <span class="maintenance-id-badge">#@Model.Id</span>
             </div>
         </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Reported By</label>
-            <div class="maintenance-details-display-value">
-                @if (Model.ReportedUser != null)
-                {
-                    <span>@Model.ReportedUser.UserName (@Model.ReportedUser.Email)</span>
-                }
-                else
-                {
-                    <span class="text-muted">User not found</span>
-                }
+
+        <!-- Enhanced Display Data -->
+        <div class="maintenance-details-content">
+            <!-- Vehicle Information -->
+            <div class="maintenance-details-section">
+                <h3 class="maintenance-section-title">
+                    <i class="fas fa-car"></i>
+                    Vehicle Information
+                </h3>
+                <div class="maintenance-details-display-group enhanced">
+                    <label class="maintenance-details-display-label enhanced">
+                        <i class="fas fa-car"></i>
+                        Vehicle
+                    </label>
+                    <div class="maintenance-details-display-value enhanced">
+                        @if (Model.Vehicle != null)
+                        {
+                            <div class="vehicle-info-display">
+                                <span class="vehicle-license">@Model.Vehicle.LicensePlate</span>
+                                <span class="vehicle-model">@Model.Vehicle.Model</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Vehicle not found
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Information -->
+            <div class="maintenance-details-section">
+                <h3 class="maintenance-section-title">
+                    <i class="fas fa-tools"></i>
+                    Maintenance Information
+                </h3>
+                <div class="maintenance-details-display-group enhanced">
+                    <label class="maintenance-details-display-label enhanced">
+                        <i class="fas fa-user"></i>
+                        Reported By
+                    </label>
+                    <div class="maintenance-details-display-value enhanced">
+                        @if (Model.ReportedUser != null)
+                        {
+                            <div class="user-info-display">
+                                <span class="user-name">@Model.ReportedUser.UserName</span>
+                                <span class="user-email">@Model.ReportedUser.Email</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                User not found
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="maintenance-details-display-group enhanced">
+                    <label class="maintenance-details-display-label enhanced">
+                        <i class="fas fa-clipboard-list"></i>
+                        Issue Description
+                    </label>
+                    <div class="maintenance-details-display-value enhanced description-box">
+                        @Model.IssueDescription
+                    </div>
+                </div>
+
+                <div class="maintenance-details-row">
+                    <div class="maintenance-details-display-group enhanced">
+                        <label class="maintenance-details-display-label enhanced">
+                            <i class="fas fa-tools"></i>
+                            Repair Status
+                        </label>
+                        <div class="maintenance-details-display-value enhanced">
+                            <span class="maintenance-badge-status maintenance-badge-@Model.RepairStatus.ToString().ToLower()">
+                                <i class="fas fa-circle"></i>
+                                @Model.RepairStatus.ToString().Replace("_", " ")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="maintenance-details-display-group enhanced">
+                        <label class="maintenance-details-display-label enhanced">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Priority
+                        </label>
+                        <div class="maintenance-details-display-value enhanced">
+                            <span class="maintenance-badge-status maintenance-badge-@Model.Priority.ToString().ToLower()">
+                                <i class="fas fa-flag"></i>
+                                @Model.Priority.ToString().Replace("_", " ")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Information -->
+            <div class="maintenance-details-section">
+                <h3 class="maintenance-section-title">
+                    <i class="fas fa-clock"></i>
+                    Timeline
+                </h3>
+                <div class="maintenance-details-row">
+                    <div class="maintenance-details-display-group enhanced">
+                        <label class="maintenance-details-display-label enhanced">
+                            <i class="fas fa-calendar-plus"></i>
+                            Created At
+                        </label>
+                        <div class="maintenance-details-display-value enhanced">
+                            <i class="fas fa-clock"></i>
+                            @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <div class="maintenance-details-display-group enhanced">
+                        <label class="maintenance-details-display-label enhanced">
+                            <i class="fas fa-calendar-check"></i>
+                            Repaired At
+                        </label>
+                        <div class="maintenance-details-display-value enhanced">
+                            @if (Model.RepairedAt.HasValue)
+                            {
+                                <i class="fas fa-check-circle"></i>
+                                @Model.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    <i class="fas fa-clock"></i>
+                                    Not yet repaired
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Issue Description</label>
-            <div class="maintenance-details-display-value">@Model.IssueDescription</div>
-        </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Repair Status</label>
-            <div class="maintenance-details-display-value">
-                <span class="maintenance-badge-status maintenance-badge-@Model.RepairStatus.ToString().ToLower()">
-                    @Model.RepairStatus.ToString().Replace("_", " ")
-                </span>
-            </div>
-        </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Priority</label>
-            <div class="maintenance-details-display-value">
-                <span class="maintenance-badge-status maintenance-badge-@Model.Priority.ToString().ToLower()">
-                    @Model.Priority.ToString().Replace("_", " ")
-                </span>
-            </div>
-        </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Created At</label>
-            <div class="maintenance-details-display-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-        </div>
-        <div class="maintenance-details-display-group">
-            <label class="maintenance-details-display-label">Repaired At</label>
-            <div class="maintenance-details-display-value">
-                @if (Model.RepairedAt.HasValue)
-                {
-                    <span>@Model.RepairedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
-                }
-                else
-                {
-                    <span class="text-muted">Not yet repaired</span>
-                }
-            </div>
-        </div>
-        <!-- Button Group -->
+
+        <!-- Enhanced Button Group -->
         <div class="maintenance-details-button-group">
-            <a asp-action="Edit" asp-route-id="@Model?.Id" class="maintenance-details-primary-button">Edit</a>
+            @if (canEdit)
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="maintenance-details-primary-button">
+                    <i class="fas fa-edit"></i>
+                    Edit Maintenance
+                </a>
+            }
+            else if (Model.RepairStatus == SmartFleet.Models.RepairState.completed)
+            {
+                <div class="maintenance-completed-notice">
+                    <i class="fas fa-lock"></i>
+                    This maintenance record is completed and cannot be edited
+                </div>
+            }
+            <a asp-action="Index" class="maintenance-details-secondary-button">
+                <i class="fas fa-list"></i>
+                Back to List
+            </a>
         </div>
     </div>
 </div>
