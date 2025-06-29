@@ -83,6 +83,33 @@
     font-weight: 500;
 }
 
+/* Driver License Section */
+.driver-license-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.driver-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+    border-bottom: 2px solid #20B2AA;
+    padding-bottom: 8px;
+}
+
+.driver-license-section .edit-input-group {
+    margin-bottom: 12px;
+}
+
+.driver-license-section .edit-input-group:last-child {
+    margin-bottom: 0;
+}
+
 .edit-button-group {
     margin-top: 12px;
 }
@@ -201,56 +228,63 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(32, 178, 170, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .camera-icon:hover {
     background: #1e9b94;
-    transform: translateX(50%) scale(1.05);
+    transform: translateX(50%) scale(1.1);
 }
 
 .image-preview-container {
-    margin-top: 20px;
-    text-align: center;
+    margin-top: 10px;
 }
 
 .image-preview {
-    max-width: 600px;
+    max-width: 100px;
+    max-height: 100px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e9ecef;
 }
 
 @media (max-width: 768px) {
     .edit-form-wrapper {
         padding: 20px;
+        margin: 10px;
     }
-    
+
     .edit-heading {
         font-size: 24px;
-        margin-top: 30px;
+        margin-top: 25px;
     }
-    
+
     .edit-input-field {
-        padding: 8px 12px;
         font-size: 14px;
     }
-    
+
     .edit-primary-button {
-        padding: 10px 20px;
         font-size: 14px;
     }
-    
+
     .edit-input-label {
-        font-size: 15px;
+        font-size: 14px;
     }
-    
+
     .profile-container img {
         width: 150px;
         height: 150px;
     }
-    
+
     .camera-icon {
-        width: 36px;
-        height: 36px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .driver-license-section {
+        padding: 15px;
+    }
+    
+    .driver-section-title {
+        font-size: 16px;
     }
 }

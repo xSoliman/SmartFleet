@@ -189,6 +189,18 @@ namespace SmartFleet.Controllers
                 OrderStatus = lastOrder?.Status 
             };
 
+            // If user is a driver, get driver-specific information
+            if (roles.Contains("Driver"))
+            {
+                var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == user.Id);
+                if (driver != null)
+                {
+                    viewModel.LicenseNumber = driver.LicenseNumber;
+                    viewModel.LicenseExpiryDate = driver.LicenseExpiryDate;
+                    viewModel.DriverStatus = driver.DriverStatus;
+                }
+            }
+
             return View(viewModel);
         }
 
@@ -205,30 +217,62 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login");
             }
 
+            var roles = await userManager.GetRolesAsync(user);
+            var isDriver = roles.Contains("Driver");
+
             var viewModel = new EditProfileViewModel
             {
                 UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                ImageUrl = user.ProfileImageUrl
+                ImageUrl = user.ProfileImageUrl,
+                IsDriver = isDriver
             };
+
+            // If user is a driver, get driver-specific information
+            if (isDriver)
+            {
+                var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == user.Id);
+                if (driver != null)
+                {
+                    viewModel.LicenseNumber = driver.LicenseNumber;
+                    viewModel.LicenseExpiryDate = driver.LicenseExpiryDate;
+                    viewModel.DriverStatus = driver.DriverStatus;
+                }
+            }
 
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model, IFormFile? ImageFile, bool RemoveImage)
+        public async Task<IActionResult> EditProfile(EditProfileViewModel model, IFormFile? ImageFile)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound();
+            }
+
+            // Get user roles to determine if they are a driver
+            var roles = await userManager.GetRolesAsync(user);
+            var isDriver = roles.Contains("Driver");
+            model.IsDriver = isDriver;
+
+            if (!ModelState.IsValid)
+            {
+                // If user is a driver, populate driver information for the view
+                if (isDriver)
+                {
+                    var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == user.Id);
+                    if (driver != null)
+                    {
+                        model.LicenseNumber = driver.LicenseNumber;
+                        model.LicenseExpiryDate = driver.LicenseExpiryDate;
+                        model.DriverStatus = driver.DriverStatus;
+                    }
+                }
+                return View(model);
             }
 
             // Update user fields
@@ -258,7 +302,7 @@ namespace SmartFleet.Controllers
                     return View(model);
                 }
             }
-            else if (RemoveImage) // If user wants to remove image
+            else if (model.RemoveImage) // If user wants to remove image
             {
                 user.ProfileImageUrl = null;
             }
@@ -266,6 +310,18 @@ namespace SmartFleet.Controllers
             var result = await userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
+                // If user is a driver, update driver information
+                if (model.IsDriver)
+                {
+                    var driver = await _context.Drivers.FirstOrDefaultAsync(d => d.Id == user.Id);
+                    if (driver != null)
+                    {
+                        driver.LicenseNumber = model.LicenseNumber;
+                        driver.LicenseExpiryDate = model.LicenseExpiryDate ?? DateTime.MinValue;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
                 return RedirectToAction("MyAccount");
             }
 

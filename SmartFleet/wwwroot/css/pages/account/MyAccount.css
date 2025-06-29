@@ -95,6 +95,48 @@
     padding-left: 0.5rem;
 }
 
+/* Driver Information Section - Simplified */
+.my-account-page .driver-info-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.my-account-page .driver-info-section h3 {
+    color: #2c3e50;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    border-bottom: 2px solid #20B2AA;
+    padding-bottom: 0.5rem;
+}
+
+.my-account-page .driver-info-section .info {
+    margin-top: 1rem;
+}
+
+.my-account-page .driver-info-section .info-card {
+    background: white;
+    border: 1px solid #dee2e6;
+}
+
+.my-account-page .driver-info-section .info-card::before {
+    background: #20B2AA;
+}
+
+.my-account-page .driver-info-section .info-card dt {
+    color: #495057;
+    font-weight: 600;
+}
+
+.my-account-page .driver-info-section .info-card dd {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
 .my-account-page .readonly-input {
     width: 100%;
     padding: 0.5rem;
@@ -154,6 +196,14 @@
         margin: 0.5rem auto;
         width: 80%;
     }
+    
+    .my-account-page .driver-info-section {
+        padding: 1rem;
+    }
+    
+    .my-account-page .driver-info-section h3 {
+        font-size: 1.1rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -169,5 +219,13 @@
     
     .my-account-page h2 {
         font-size: 1.5rem;
+    }
+    
+    .my-account-page .driver-info-section {
+        padding: 0.75rem;
+    }
+    
+    .my-account-page .driver-info-section h3 {
+        font-size: 1rem;
     }
 }

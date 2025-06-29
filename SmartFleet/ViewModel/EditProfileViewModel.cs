@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
+using SmartFleet.Models;
 
 namespace SmartFleet.ViewModel
 {
@@ -23,5 +24,20 @@ namespace SmartFleet.ViewModel
         public IFormFile? ImageFile { get; set; } // Nullable (optional)
 
         public string? ImageUrl { get; set; } // Optional URL for displaying existing images
+        
+        [Display(Name = "Remove Profile Picture")]
+        public bool RemoveImage { get; set; } // Checkbox for removing image
+        
+        // Driver-specific properties
+        [Display(Name = "License Number")]
+        [StringLength(20, ErrorMessage = "License number must not exceed 20 characters.")]
+        public string? LicenseNumber { get; set; }
+        
+        [Display(Name = "License Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime? LicenseExpiryDate { get; set; }
+        
+        public DriverState? DriverStatus { get; set; }
+        public bool IsDriver { get; set; }
     }
 }

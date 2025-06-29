@@ -37,6 +37,27 @@
             </div>
         </dl>
 
+        @if (Model.IsDriver)
+        {
+            <div class="driver-info-section">
+                <h3>Driver License Information</h3>
+                <dl class="info">
+                    <div class="info-card">
+                        <dt>License Number</dt>
+                        <dd>@Model.LicenseNumber</dd>
+                    </div>
+                    <div class="info-card">
+                        <dt>License Expiry Date</dt>
+                        <dd>@(Model.LicenseExpiryDate?.ToString("dd/MM/yyyy"))</dd>
+                    </div>
+                    <div class="info-card">
+                        <dt>Driver Status</dt>
+                        <dd>@Model.DriverStatus</dd>
+                    </div>
+                </dl>
+            </div>
+        }
+
         <a asp-action="EditProfile" class="btn">Edit Profile</a>
         <a asp-action="ChangePassword" class="btn">Change Password</a>
     </div>

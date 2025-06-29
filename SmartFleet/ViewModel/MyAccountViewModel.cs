@@ -14,5 +14,11 @@ namespace SmartFleet.ViewModel
             get; set;
             // URL of the user's profile picture
         }
+        
+        // Driver-specific properties
+        public string? LicenseNumber { get; set; }
+        public DateTime? LicenseExpiryDate { get; set; }
+        public DriverState? DriverStatus { get; set; }
+        public bool IsDriver => Role?.ToLower() == "driver";
     }
 }

@@ -52,17 +52,36 @@
                 <span asp-validation-for="PhoneNumber" class="edit-validation-message"></span>
             </div>
 
+            @if (Model.IsDriver)
+            {
+                <div class="driver-license-section">
+                    <h3 class="driver-section-title">Driver License Information</h3>
+                    
+                    <div class="edit-input-group">
+                        <label asp-for="LicenseNumber" class="edit-input-label">License Number</label>
+                        <input asp-for="LicenseNumber" class="edit-input-field" placeholder="Enter your license number" />
+                        <span asp-validation-for="LicenseNumber" class="edit-validation-message"></span>
+                    </div>
+
+                    <div class="edit-input-group">
+                        <label asp-for="LicenseExpiryDate" class="edit-input-label">License Expiry Date</label>
+                        <input asp-for="LicenseExpiryDate" type="date" class="edit-input-field" />
+                        <span asp-validation-for="LicenseExpiryDate" class="edit-validation-message"></span>
+                    </div>
+                </div>
+            }
+
             @if (!string.IsNullOrEmpty(Model.ImageUrl))
             {
                 <div class="edit-input-group">
                     <label class="edit-input-label">
-                        <input type="checkbox" name="RemoveImage" value="true" /> Remove current profile picture
+                        <input asp-for="RemoveImage" type="checkbox" /> Remove current profile picture
                     </label>
                 </div>
             }
 
             <div class="edit-button-group">
-                <button type="submit" class="edit-primary-button">
+                <button type="submit" class="edit-primary-button" style="text-align: center !important; color: white !important;">
                     <i class="fas fa-save"></i> Save Changes
                 </button>
             </div>
