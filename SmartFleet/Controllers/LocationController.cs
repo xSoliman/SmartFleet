@@ -67,7 +67,7 @@ namespace SmartFleet.Controllers
                 var location = new VehicleLocation
                 {
                     VehicleId = vehicle.Id,
-                    Latitude = gpsData.Latitude,
+                    Latitude = gpsData.Latitude,    
                     Longitude = gpsData.Longitude,
                     Speed = gpsData.Speed,
                     Timestamp = DateTime.Now

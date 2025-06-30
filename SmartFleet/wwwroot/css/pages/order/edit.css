@@ -1,83 +1,142 @@
 ﻿.edit-heading {
     font-size: 30px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
     text-align: center;
+    color: #333;
 }
 
 .edit-layout-container {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f8f9fa;
 }
 
 .edit-form-wrapper {
-    width: 60%;
-    background: #f9f9f9;
-    padding: 25px;
+    width: 100%;
+    max-width: 800px;
+    background: #ffffff;
+    padding: 30px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     position: relative;
-    margin-top: 30px;
+    margin-bottom: 40px;
 }
 
 .edit-custom-form {
     display: flex;
     flex-direction: column;
+    gap: 25px;
+}
+
+.edit-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.edit-section-title {
+    color: #20B2AA;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-section-title i {
+    color: #20B2AA;
 }
 
 .edit-input-row {
     display: flex;
-    gap: 15px;
+    gap: 20px;
     margin-bottom: 15px;
+}
+
+.edit-input-row:last-child {
+    margin-bottom: 0;
 }
 
 .edit-input-col {
     flex: 1;
 }
 
-.edit-input-group {
-    margin-bottom: 15px;
-}
-
 .edit-input-label {
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-weight: 600;
+    margin-bottom: 8px;
     display: block;
+    color: #495057;
+    font-size: 0.95rem;
 }
 
 .edit-input-field,
 .edit-dropdown {
     width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-size: 1rem;
+    color: #495057;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-input-field:focus,
+.edit-dropdown:focus {
+    border-color: #20B2AA;
+    box-shadow: 0 0 0 0.2rem rgba(32, 178, 170, 0.25);
+    outline: none;
+}
+
+.edit-input-field:disabled,
+.edit-dropdown:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.edit-input-field::placeholder {
+    color: #adb5bd;
+    font-size: 0.95rem;
 }
 
 .edit-validation-message {
-    color: red;
-    font-size: 12px;
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
 }
 
 .edit-button-group {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 .edit-primary-button {
     background-color: #20B2AA;
     color: #ffffff !important;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 12px 25px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
 }
 
-    .edit-primary-button:hover {
-        background-color: #1a9a94;
-    }
+.edit-primary-button:hover {
+    background-color: #1a9a94;
+}
 
-input.edit-primary-button[type="submit"] {
-    color: white !important;
+.edit-primary-button i {
+    font-size: 0.9rem;
 }
 
 .edit-navigation {
@@ -87,20 +146,48 @@ input.edit-primary-button[type="submit"] {
 }
 
 .edit-back-link {
-    background: #00796b;
-    color: white;
+    background-color: #6c757d;
+    color: #ffffff !important;
     text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
+    padding: 8px 15px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
 }
 
-    .edit-back-link:hover {
-        background: #004d40;
-        text-decoration: none;
+.edit-back-link:hover {
+    background-color: #5a6268;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .edit-form-wrapper {
+        width: 95%;
+        padding: 20px;
     }
 
-    .edit-back-link i {
-        margin-right: 5px;
+    .edit-input-row {
+        flex-direction: column;
+        gap: 15px;
     }
+
+    .edit-navigation {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: 20px;
+    }
+
+    .edit-heading {
+        font-size: 24px;
+        margin: 20px 0;
+    }
+}

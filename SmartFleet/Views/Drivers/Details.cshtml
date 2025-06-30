@@ -51,7 +51,15 @@
 
         <div class="details-display-group">
             <label class="details-display-label">License Expiry Date</label>
-            <div class="details-display-value">@Model.LicenseExpiryDate.ToShortDateString()</div>
+            <div class="details-display-value">
+                @Model.LicenseExpiryDate.ToShortDateString()
+                @{
+                    var isExpired = Model.LicenseExpiryDate.Date < DateTime.Now.Date;
+                    var badgeClass = isExpired ? "badge-expired" : "badge-valid";
+                    var badgeText = isExpired ? "Expired" : "Valid";
+                }
+                <span class="badge-status @badgeClass">@badgeText</span>
+            </div>
         </div>
 
         <div class="details-display-group">

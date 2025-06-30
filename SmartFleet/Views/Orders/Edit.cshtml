@@ -14,7 +14,7 @@
         <!-- Navigation Back Button -->
         <div class="edit-navigation">
             <a asp-action="Index" class="edit-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Orders
             </a>
         </div>
 
@@ -25,80 +25,91 @@
         <form asp-action="Edit" class="edit-custom-form">
             <div asp-validation-summary="All" class="edit-validation-message"></div>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Status" />
 
-            <!-- Row 1 -->
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <label asp-for="UserId" class="edit-input-label"></label>
-                    <select asp-for="UserId" class="edit-dropdown" asp-items="ViewBag.UserId"></select>
-                    <span asp-validation-for="UserId" class="edit-validation-message"></span>
-                </div>
-                <div class="edit-input-col">
-                    <label asp-for="VehicleType" class="edit-input-label"></label>
-                    <select asp-for="VehicleType" class="edit-dropdown"></select>
-                    <span asp-validation-for="VehicleType" class="edit-validation-message"></span>
+            <!-- Order Information Section -->
+            <div class="edit-section">
+                <h5 class="edit-section-title">
+                    <i class="fas fa-info-circle"></i> Order Information
+                </h5>
+                <div class="edit-input-row">
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Ordered By</label>
+                        <input type="text" class="edit-input-field" value="@ViewBag.UserName" disabled />
+                        <input type="hidden" asp-for="UserId" />
+                    </div>
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Created At</label>
+                        <input type="text" class="edit-input-field" value="@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")" disabled />
+                        <input type="hidden" asp-for="CreatedAt" />
+                    </div>
                 </div>
             </div>
 
-            <!-- Row 2 -->
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <label asp-for="PassengerCount" class="edit-input-label"></label>
-                    <input asp-for="PassengerCount" class="edit-input-field" />
-                    <span asp-validation-for="PassengerCount" class="edit-validation-message"></span>
-                </div>
-                <div class="edit-input-col">
-                    <label asp-for="StartLocation" class="edit-input-label"></label>
-                    <input asp-for="StartLocation" class="edit-input-field" />
-                    <span asp-validation-for="StartLocation" class="edit-validation-message"></span>
-                </div>
-            </div>
-
-            <!-- Row 3 -->
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <label asp-for="Destination" class="edit-input-label"></label>
-                    <input asp-for="Destination" class="edit-input-field" />
-                    <span asp-validation-for="Destination" class="edit-validation-message"></span>
-                </div>
-                <div class="edit-input-col">
-                    <label asp-for="Reason" class="edit-input-label"></label>
-                    <input asp-for="Reason" class="edit-input-field" />
-                    <span asp-validation-for="Reason" class="edit-validation-message"></span>
+            <!-- Vehicle Requirements Section -->
+            <div class="edit-section">
+                <h5 class="edit-section-title">
+                    <i class="fas fa-truck"></i> Vehicle Requirements
+                </h5>
+                <div class="edit-input-row">
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Vehicle Type</label>
+                        <select asp-for="VehicleType" class="edit-dropdown" asp-items="ViewBag.VehicleTypes"></select>
+                        <span asp-validation-for="VehicleType" class="edit-validation-message"></span>
+                    </div>
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Number of Passengers</label>
+                        <input asp-for="PassengerCount" class="edit-input-field" type="number" min="1" />
+                        <span asp-validation-for="PassengerCount" class="edit-validation-message"></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Row 4 -->
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <label asp-for="TripStartDate" class="edit-input-label"></label>
-                    <input asp-for="TripStartDate" class="edit-input-field" type="datetime-local" />
-                    <span asp-validation-for="TripStartDate" class="edit-validation-message"></span>
+            <!-- Trip Details Section -->
+            <div class="edit-section">
+                <h5 class="edit-section-title">
+                    <i class="fas fa-route"></i> Trip Details
+                </h5>
+                <div class="edit-input-row">
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Start Location</label>
+                        <input asp-for="StartLocation" class="edit-input-field" placeholder="Enter start location" />
+                        <span asp-validation-for="StartLocation" class="edit-validation-message"></span>
+                    </div>
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Destination</label>
+                        <input asp-for="Destination" class="edit-input-field" placeholder="Enter destination" />
+                        <span asp-validation-for="Destination" class="edit-validation-message"></span>
+                    </div>
                 </div>
-                <div class="edit-input-col">
-                    <label asp-for="TripEndDate" class="edit-input-label"></label>
-                    <input asp-for="TripEndDate" class="edit-input-field" type="datetime-local" />
-                    <span asp-validation-for="TripEndDate" class="edit-validation-message"></span>
-                </div>
-            </div>
 
-            <!-- Row 5 -->
-            <div class="edit-input-row">
-                <div class="edit-input-col">
-                    <label asp-for="Status" class="edit-input-label"></label>
-                    <select asp-for="Status" class="edit-dropdown"></select>
-                    <span asp-validation-for="Status" class="edit-validation-message"></span>
+                <div class="edit-input-row mt-3">
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Trip Start Date & Time</label>
+                        <input asp-for="TripStartDate" class="edit-input-field" type="datetime-local" />
+                        <span asp-validation-for="TripStartDate" class="edit-validation-message"></span>
+                    </div>
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Trip End Date & Time</label>
+                        <input asp-for="TripEndDate" class="edit-input-field" type="datetime-local" />
+                        <span asp-validation-for="TripEndDate" class="edit-validation-message"></span>
+                    </div>
                 </div>
-                <div class="edit-input-col">
-                    <label asp-for="CreatedAt" class="edit-input-label"></label>
-                    <input asp-for="CreatedAt" class="edit-input-field" type="datetime-local" />
-                    <span asp-validation-for="CreatedAt" class="edit-validation-message"></span>
+
+                <div class="edit-input-row mt-3">
+                    <div class="edit-input-col">
+                        <label class="edit-input-label">Purpose of Trip</label>
+                        <input asp-for="Reason" class="edit-input-field" placeholder="Enter trip purpose" />
+                        <span asp-validation-for="Reason" class="edit-validation-message"></span>
+                    </div>
                 </div>
             </div>
 
             <!-- Submit -->
             <div class="edit-button-group">
-                <input type="submit" value="Save" class="edit-primary-button" />
+                <button type="submit" class="edit-primary-button">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
             </div>
         </form>
     </div>

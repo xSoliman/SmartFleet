@@ -71,7 +71,15 @@
                 <td>@driver.UserName</td>
                 <td>@driver.Email</td>
                 <td>@driver.LicenseNumber</td>
-                <td>@driver.LicenseExpiryDate.ToShortDateString()</td>
+                <td>
+                    @driver.LicenseExpiryDate.ToShortDateString()
+                    @{
+                        var isExpired = driver.LicenseExpiryDate.Date < DateTime.Now.Date;
+                        var badgeClass = isExpired ? "badge-expired" : "badge-valid";
+                        var badgeText = isExpired ? "Expired" : "Valid";
+                    }
+                    <span class="badge-status @badgeClass">@badgeText</span>
+                </td>
                 <td>
                     <span class="badge-status badge-@driver.DriverStatus.ToString().ToLower()">
                         @{

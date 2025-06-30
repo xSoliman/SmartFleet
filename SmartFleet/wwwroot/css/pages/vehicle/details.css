@@ -898,7 +898,7 @@
 .status-indicator {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .status-dot {
@@ -1106,4 +1106,17 @@
         align-items: flex-start;
         gap: 5px;
     }
+}
+
+/* License expiry status badges */
+.badge-expired {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.badge-valid {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid #28a745;
 }

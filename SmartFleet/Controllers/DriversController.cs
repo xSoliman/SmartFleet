@@ -25,6 +25,7 @@ namespace SmartFleet.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
         public DriversController(SmartFleetContext context,
                                  UserManager<ApplicationUser> userManager,
@@ -32,7 +33,8 @@ namespace SmartFleet.Controllers
                                  INotificationService notificationService,
                                  IUserRoleService userRoleService,
                                  IPaginationService paginationService,
-                                 ISearchService searchService)
+                                 ISearchService searchService,
+                                 IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _userManager = userManager;
@@ -41,6 +43,7 @@ namespace SmartFleet.Controllers
             _userRoleService = userRoleService;
             _paginationService = paginationService;
             _searchService = searchService;
+            _referenceCheckService = referenceCheckService;
         }
 
         [Authorize(Roles = "Driver")]
@@ -348,15 +351,25 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
+            var (canDelete, message) = await _referenceCheckService.CanDeleteDriverAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
+            }
+
             var driver = await _userManager.FindByIdAsync(id) as Driver;
             if (driver != null)
             {
                 var result = await _userManager.DeleteAsync(driver);
                 if (result.Succeeded)
                 {
-                    // Notifications removed - no longer sending notifications for driver deletion
+                    TempData["SuccessMessage"] = "Driver deleted successfully.";
                 }
-                // Optionally, delete the profile image from disk if needed.
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to delete driver.";
+                }
             }
             return RedirectToAction(nameof(Index));
         }

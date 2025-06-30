@@ -37,23 +37,18 @@
 
 <div class="order-filter-bar">
     <form asp-action="Index" method="get" class="d-flex align-items-center flex-wrap gap-2 w-100">
-        <!-- Admin-only filters -->
-        @if (Model.IsAdminUser)
-        {
-            <div class="form-group mx-2">
-                <input type="text" name="searchUserId" value="@Model.SearchUserId" class="form-control form-control-sm" placeholder="Search User name" />
+        <!-- Unified Search Bar -->
+        <div class="form-group mx-2 flex-grow-1">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" name="searchKeyword" value="@Model.SearchKeyword" class="form-control" 
+                       placeholder="Search orders (username, location, destination, etc...)" />
             </div>
-        }
-        
-        <!-- Regular filters (for all users) -->
-        <div class="form-group mx-2">
-            <input type="text" name="searchStartLocation" value="@Model.SearchStartLocation" class="form-control form-control-sm" placeholder="Start Location" />
-        </div>
-        <div class="form-group mx-2">
-            <input type="text" name="searchDestination" value="@Model.SearchDestination" class="form-control form-control-sm" placeholder="Destination" />
         </div>
         
-        <!-- Select filters (grouped together) -->
+        <!-- Status Filter -->
         <div class="form-group mx-2">
             <select name="stateFilter" class="form-control form-control-sm">
                 <option value="">All Statuses</option>
@@ -63,28 +58,20 @@
                 }
             </select>
         </div>
-        @if (Model.IsAdminUser)
-        {
-            <div class="form-group mx-2">
-                <select name="typeFilter" class="form-control form-control-sm">
-                    <option value="">All Types</option>
-                    @foreach (SmartFleet.Models.VehicleType type in Enum.GetValues(typeof(SmartFleet.Models.VehicleType)))
-                    {
-                        <option value="@type" selected="@(Model.TypeFilter == type ? "selected" : null)">@type</option>
-                    }
-                </select>
-            </div>
-        }
-        
-        <!-- Date range filters (for all users) -->
-        <div class="form-group mx-2">
+
+        <!-- Date Range -->
+        <div class="form-group mx-2 d-flex align-items-end gap-2">
+            <div>
             <label for="startDate" class="form-label">From:</label>
             <input type="date" name="startDate" value="@(Model.StartDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
         </div>
-        <div class="form-group mx-2">
+            <div>
             <label for="endDate" class="form-label">To:</label>
             <input type="date" name="endDate" value="@(Model.EndDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+            </div>
         </div>
+
+        <!-- Filter Actions -->
         <div class="order-filter-actions">
             <button type="submit" class="btn btn-sm custom-btn">
                 <i class="fas fa-filter"></i> Filter
@@ -151,25 +138,6 @@
                                     <span class="badge bg-secondary">Unknown</span>
                                 }
                             }
-                            else if (item.Status == SmartFleet.Models.OrderState.Approved && item.Trip == null)
-                            {
-                                if (Model.ResourceAvailability != null && Model.ResourceAvailability.ContainsKey(item.Id))
-                                {
-                                    var avail = Model.ResourceAvailability[item.Id];
-                                    if (avail == "Available")
-                                    {
-                                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
-                                    }
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Unknown</span>
-                                }
-                            }
                             else
                             {
                                 <span class="badge bg-secondary">N/A</span>
@@ -198,6 +166,9 @@
                                     </button>
                                 </form>
                             }
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
                         }
                         else if (Model.IsFleetManager)
                         {
@@ -205,52 +176,58 @@
                             {
                                 @if (item.Trip != null)
                                 {
-                                    <span class="btn btn-trip-created disabled">
+                                    <span class="btn btn-trip-created btn-sm disabled">
                                         <i class="fas fa-check-circle"></i> Trip Created
                                     </span>
                                 }
                                 else
                                 {
-                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-create-trip">
+                                    <a asp-controller="Trips" asp-action="Create" asp-route-id="@item.Id" asp-route-userId="@item.UserId" class="btn btn-create-trip btn-sm">
                                         <i class="fas fa-route"></i> Create Trip
                                     </a>
                                 }
                             }
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
                         }
                         else if (Model.IsSysSupport)
                         {
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete">
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-delete btn-sm">
                                 <i class="fas fa-trash-alt"></i> Delete
                             </a>
                             @if (item.Status == SmartFleet.Models.OrderState.Pending && item.UserId == Model.CurrentUserId)
                             {
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    <button type="submit" class="btn btn-cancel btn-sm" onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
                             }
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
                         }
-                        else
+                        else if (Model.IsNormalUser)
                         {
                             @if (item.Status == SmartFleet.Models.OrderState.Pending)
                             {
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit btn-sm">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
                                 <form asp-action="Cancel" asp-route-id="@item.Id" method="post" style="display: inline;">
-                                    <button type="submit" class="btn btn-cancel" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    <button type="submit" class="btn btn-cancel btn-sm" onclick="return confirm('Are you sure you want to cancel this order?')">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </form>
                             }
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
                         }
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-details btn-details-vehicle-style" title="Details">
-                            <i class="fas fa-info-circle"></i> Details
-                        </a>
                     </td>
                 </tr>
             }
@@ -268,10 +245,7 @@
                 <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
                     <a class="page-link" href="@Url.Action("Index", new {
                         pageNumber = i,
-                        searchUserId = ViewBag.SearchUserId,
-                        searchStartLocation = ViewBag.SearchStartLocation,
-                        searchDestination = ViewBag.SearchDestination,
-                        typeFilter = ViewBag.TypeFilter,
+                        searchKeyword = ViewBag.SearchKeyword,
                         stateFilter = ViewBag.StateFilter,
                         startDate = ViewBag.StartDate,
                         endDate = ViewBag.EndDate

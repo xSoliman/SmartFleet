@@ -88,7 +88,16 @@
                  
                     <td>@(item.TotalDistanceTraveled.ToString("F2")) km</td>
                      
-                    <td>@(item.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")</td>
+                    <td>
+                        @(item.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")
+                        @if (item.RegistrationExpiryDate.HasValue)
+                        {
+                            var isExpired = item.RegistrationExpiryDate.Value.Date < DateTime.Now.Date;
+                            var badgeClass = isExpired ? "badge-expired" : "badge-valid";
+                            var badgeText = isExpired ? "Expired" : "Valid";
+                            <span class="badge-status @badgeClass">@badgeText</span>
+                        }
+                    </td>
                    
                        <td>
                         <span class="badge-status badge-@item.Status.ToString().ToLower()">

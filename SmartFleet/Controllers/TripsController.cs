@@ -28,10 +28,11 @@ namespace SmartFleet.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
         public TripsController(SmartFleetContext context, ITripStateManagementService tripStateService, 
             IDriverStatusManagementService driverStatusService, IVehicleStateManagementService vehicleStateService,
-            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
+            UserManager<ApplicationUser> userManager, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _tripStateService = tripStateService;
@@ -42,6 +43,7 @@ namespace SmartFleet.Controllers
             _userRoleService = userRoleService;
             _paginationService = paginationService;
             _searchService = searchService;
+            _referenceCheckService = referenceCheckService;
         }
 
         /// <summary>
@@ -113,130 +115,89 @@ namespace SmartFleet.Controllers
             return await query.ToListAsync();
         }
 
-        public async Task<IActionResult> Index(
-            string destination, string searchDriverName, VehicleType? vehicleType, TripState? stateFilter, DateTime? startDate, DateTime? endDate,
-            string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, DateTime? assignedStartDate, DateTime? assignedEndDate,
-            int pageNumber = 1)
+        public async Task<IActionResult> Index(string searchKeyword, TripState? stateFilter, DateTime? startDate, DateTime? endDate, int pageNumber = 1)
         {
             var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isDriver = userRoles.Contains("Driver");
             var isFleetManager = userRoles.Contains("FleetManager");
-            var isSystemSupport = userRoles.Contains("SysSupport");
+            var isSysSupport = userRoles.Contains("SysSupport");
             var isNormalUser = userRoles.Contains("NormalUser");
-            var isCommissioner = userRoles.Contains("commissioner");
-            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
-            IQueryable<Trip> tripsQuery = _context.Trips
+
+            var tripsQuery = _context.Trips
                 .Include(t => t.Vehicle)
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
-                .Include(t => t.CreatedByUser);
-            List<Trip> assignedTrips = new List<Trip>();
-            
-            if (isFleetManager || isSystemSupport)
-            {
-                // Fleet Managers and System Support see all trips
-            }
-            else if (isDriver)
+                .Include(t => t.CreatedByUser)
+                .AsQueryable();
+
+            // Apply role-based filtering
+            if (isDriver)
             {
                 tripsQuery = tripsQuery.Where(t => t.DriverId == currentUser.Id);
-                
-                // Populate assigned trips for drivers
-                var assignedTripsQuery = _context.Trips
-                    .Include(t => t.Vehicle)
-                    .Include(t => t.Driver)
-                    .Include(t => t.Order)
-                    .Include(t => t.CreatedByUser)
-                    .Where(t => t.DriverId == currentUser.Id);
-                
-                // Apply assigned trips filters
-                var assignedFilters = new List<System.Linq.Expressions.Expression<Func<Trip, bool>>>();
-                if (!string.IsNullOrEmpty(assignedDestination))
-                    assignedFilters.Add(t => t.Order.Destination.Contains(assignedDestination));
-                if (!string.IsNullOrEmpty(assignedSearchDriverName))
-                    assignedFilters.Add(t => t.Driver.UserName.Contains(assignedSearchDriverName));
-                if (assignedVehicleType.HasValue)
-                    assignedFilters.Add(t => t.Vehicle.Type == assignedVehicleType.Value);
-                if (assignedStateFilter.HasValue)
-                    assignedFilters.Add(t => t.Status == assignedStateFilter.Value);
-                if (assignedStartDate.HasValue)
-                    assignedFilters.Add(t => t.Order.TripStartDate >= assignedStartDate.Value);
-                if (assignedEndDate.HasValue)
-                    assignedFilters.Add(t => t.Order.TripEndDate <= assignedEndDate.Value);
-                
-                assignedTripsQuery = _searchService.ApplyFilters(assignedTripsQuery, assignedFilters);
-                assignedTrips = await assignedTripsQuery
-                    .OrderBy(t => t.Status)
-                    .ThenBy(t => t.Order.TripStartDate)
-                    .ToListAsync();
             }
             else if (isNormalUser)
             {
-                tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
+                tripsQuery = tripsQuery.Where(t => t.CreatedBy == currentUser.Id);
             }
-            else if (isCommissioner)
+
+            // Apply unified search
+            if (!string.IsNullOrEmpty(searchKeyword))
             {
-                TempData["ErrorMessage"] = "You don't have access to trips.";
-                return RedirectToAction("Index", "Home");
+                var searchTerm = searchKeyword.ToLower();
+                tripsQuery = tripsQuery.Where(t =>
+                    t.Driver.UserName.ToLower().Contains(searchTerm) ||
+                    t.Vehicle.LicensePlate.ToLower().Contains(searchTerm) ||
+                    t.Vehicle.Model.ToLower().Contains(searchTerm) ||
+                    t.Order.StartLocation.ToLower().Contains(searchTerm) ||
+                    t.Order.Destination.ToLower().Contains(searchTerm) ||
+                    t.CreatedByUser.UserName.ToLower().Contains(searchTerm)
+                );
             }
-            else if (isMaintenanceManager)
-            {
-                TempData["ErrorMessage"] = "You don't have access to trips.";
-                return RedirectToAction("Index", "Home");
-            }
-            else
-            {
-                tripsQuery = tripsQuery.Where(t => t.Order.UserId == currentUser.Id);
-            }
-            var filters = new List<System.Linq.Expressions.Expression<Func<Trip, bool>>>();
-            if (!string.IsNullOrEmpty(destination))
-                filters.Add(t => t.Order.Destination.Contains(destination));
-            if (!string.IsNullOrEmpty(searchDriverName))
-                filters.Add(t => t.Driver.UserName.Contains(searchDriverName));
-            if (vehicleType.HasValue)
-                filters.Add(t => t.Vehicle.Type == vehicleType.Value);
+
+            // Apply filters
             if (stateFilter.HasValue)
-                filters.Add(t => t.Status == stateFilter.Value);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Status == stateFilter.Value);
+            }
             if (startDate.HasValue)
-                filters.Add(t => t.Order.TripStartDate >= startDate.Value);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Order.TripStartDate.Date >= startDate.Value.Date);
+            }
             if (endDate.HasValue)
-                filters.Add(t => t.Order.TripEndDate <= endDate.Value);
-            tripsQuery = _searchService.ApplyFilters(tripsQuery, filters);
+            {
+                tripsQuery = tripsQuery.Where(t => t.Order.TripEndDate.Date <= endDate.Value.Date);
+            }
+
+            // Apply pagination
             int pageSize = 10;
-            int totalCount = await tripsQuery.CountAsync();
-            var pagedTrips = await _paginationService.GetPaginatedAsync(tripsQuery.OrderBy(t => t.Status).ThenBy(t => t.Order.TripStartDate), pageNumber, pageSize);
+            var trips = await tripsQuery
+                .OrderByDescending(t => t.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalTrips = await tripsQuery.CountAsync();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalTrips / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
 
             var viewModel = new TripViewModel
             {
-                Trips = pagedTrips,
-                AssignedTrips = assignedTrips,
-                Destination = destination,
-                SearchDriverName = searchDriverName,
-                VehicleType = vehicleType,
+                Trips = trips,
+                IsDriver = isDriver,
+                IsNormalUser = isNormalUser,
+                IsFleetManager = isFleetManager,
+                IsSysSupport = isSysSupport,
+                SearchKeyword = searchKeyword,
                 StateFilter = stateFilter,
                 StartDate = startDate,
-                EndDate = endDate,
-                AssignedDestination = assignedDestination,
-                AssignedSearchDriverName = assignedSearchDriverName,
-                AssignedVehicleType = assignedVehicleType,
-                AssignedStateFilter = assignedStateFilter,
-                AssignedStartDate = assignedStartDate,
-                AssignedEndDate = assignedEndDate,
-                IsDriver = isDriver,
-                IsFleetManager = isFleetManager,
-                IsSysSupport = isSystemSupport,
-                IsNormalUser = isNormalUser,
-                CurrentUserId = currentUser.Id
+                EndDate = endDate
             };
-
-            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-            ViewBag.CurrentPage = pageNumber;
-            ViewBag.Destination = destination;
-            ViewBag.SearchDriverName = searchDriverName;
-            ViewBag.VehicleType = vehicleType;
-            ViewBag.StateFilter = stateFilter;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
 
             return View(viewModel);
         }
@@ -556,7 +517,6 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Check if user can edit trips
             if (!await _userRoleService.CanEditTrip(currentUser))
             {
                 TempData["ErrorMessage"] = "You don't have permission to edit trips.";
@@ -572,6 +532,12 @@ namespace SmartFleet.Controllers
             if (trip == null)
             {
                 return NotFound();
+            }
+
+            if (trip.Status == TripState.Completed || trip.Status == TripState.Cancelled)
+            {
+                TempData["ErrorMessage"] = "Completed or cancelled trips cannot be edited.";
+                return RedirectToAction(nameof(Details), new { id = trip.Id });
             }
 
             var drivers = await GetAvailableDriversAsync(trip.Order.TripStartDate, trip.Order.TripEndDate, trip.DriverId);
@@ -601,7 +567,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,DriverId,Status,CreatedAt,CreatedBy")] Trip trip)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,VehicleId,DriverId,Status,CreatedAt,CreatedBy,OrderId")] Trip trip)
         {
             if (id != trip.Id)
             {
@@ -614,18 +580,36 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Check if user can edit trips
             if (!await _userRoleService.CanEditTrip(currentUser))
             {
                 TempData["ErrorMessage"] = "You don't have permission to edit trips.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Before if (ModelState.IsValid) in Edit POST action:
+            var originalTrip = await _context.Trips
+                .Include(t => t.Order)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+            if (originalTrip == null)
+            {
+                return NotFound();
+            }
+
+            if (originalTrip.Status == TripState.Completed || originalTrip.Status == TripState.Cancelled)
+            {
+                TempData["ErrorMessage"] = "Completed or cancelled trips cannot be edited.";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
+
+            // Preserve the original OrderId
+            trip.OrderId = originalTrip.OrderId;
+
+            // Remove validation for navigation properties
             ModelState.Remove("Order");
             ModelState.Remove("Vehicle");
             ModelState.Remove("Driver");
             ModelState.Remove("CreatedByUser");
+            ModelState.Remove("User");
 
             // Validate that the vehicle exists
             var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == trip.VehicleId);
@@ -645,49 +629,31 @@ namespace SmartFleet.Controllers
             {
                 try
                 {
-                    var originalTrip = await _context.Trips
-                        .Include(t => t.Driver)
-                        .Include(t => t.Vehicle)
-                        .FirstOrDefaultAsync(t => t.Id == id);
-
-                    if (originalTrip == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Store original values for status updates
-                    var originalDriverId = originalTrip.DriverId;
-                    var originalVehicleId = originalTrip.VehicleId;
-                    var originalStatus = originalTrip.Status;
-
-                    // Update trip properties
-                    originalTrip.VehicleId = trip.VehicleId;
-                    originalTrip.DriverId = trip.DriverId;
-                    originalTrip.Status = trip.Status;
-
-                    _context.Update(originalTrip);
+                    // Use the CreatedAt from the original trip to prevent it from being updated
+                    trip.CreatedAt = originalTrip.CreatedAt;
+                    _context.Update(trip);
                     await _context.SaveChangesAsync();
 
                     // Update driver status if driver changed
-                    if (originalDriverId != trip.DriverId)
+                    if (originalTrip.DriverId != trip.DriverId)
                     {
                         // Reset original driver status
-                        await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(originalDriverId);
+                        await _driverStatusService.UpdateDriverStatusOnTripCompletionAsync(originalTrip.DriverId);
                         // Set new driver status
                         await _driverStatusService.UpdateDriverStatusOnTripAssignmentAsync(trip.DriverId);
                     }
 
                     // Update vehicle state if vehicle changed
-                    if (originalVehicleId != trip.VehicleId)
+                    if (originalTrip.VehicleId != trip.VehicleId)
                     {
                         // Reset original vehicle state
-                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(originalVehicleId);
+                        await _vehicleStateService.UpdateVehicleStateOnTripCompletionAsync(originalTrip.VehicleId);
                         // Set new vehicle state
                         await _vehicleStateService.UpdateVehicleStateOnTripAssignmentAsync(trip.VehicleId);
                     }
 
                     // Send notification to the new driver if driver changed
-                    if (originalDriverId != trip.DriverId)
+                    if (originalTrip.DriverId != trip.DriverId)
                     {
                         await _notificationService.CreateNotificationAsync(
                             trip.DriverId,
@@ -727,12 +693,14 @@ namespace SmartFleet.Controllers
                 }
             }
 
-            // Reload data for the form (in case of validation errors)
+            // If we got this far, something failed, so reload the view
+            // It's important to reload the original trip data to avoid losing context
             var reloadedTrip = await _context.Trips
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
                 .Include(t => t.Vehicle)
                 .Include(t => t.CreatedByUser)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (reloadedTrip == null)
@@ -814,6 +782,13 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var (canDelete, message) = await _referenceCheckService.CanDeleteTripAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
+            }
+
             var trip = await _context.Trips
                 .Include(t => t.Driver)
                 .Include(t => t.Order)
@@ -845,6 +820,8 @@ namespace SmartFleet.Controllers
                         id
                     );
                 }
+
+                TempData["SuccessMessage"] = "Trip deleted successfully.";
             }
 
             return RedirectToAction(nameof(Index));

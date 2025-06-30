@@ -9,158 +9,130 @@
     <link rel="stylesheet" href="~/css/pages/order/details.css" />
 </head>
 
-<div class="details-layout-container">
-    <div class="details-form-wrapper">
-
-        <!-- Back Navigation -->
-        <div class="details-navigation">
+<div class="details-container">
+    <div class="details-card">
+        <div class="details-header">
             <a asp-action="Index" class="details-back-link">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Orders
             </a>
+            <h1>Order Details</h1>
+            <div class="details-status-badge status-@Model.Status.ToString().ToLower()">
+                @Model.Status
+            </div>
         </div>
 
-        <!-- Heading -->
-        <h1 class="details-heading">Order Details</h1>
+        <div class="details-body">
+            @if (ViewBag.IsCommissioner == true || ViewBag.IsFleetManager == true)
+            {
+                <div class="details-section">
+                    <h5 class="details-section-title">Resource Availability</h5>
+                    <div class="resource-availability">
+                        @if (Model.Status == SmartFleet.Models.OrderState.Pending || (Model.Status == SmartFleet.Models.OrderState.Approved && Model.Trip == null))
+                        {
+                            if (ViewBag.ResourceAvailability == "Available")
+                            {
+                                <span class="badge available"><i class="fas fa-check-circle"></i> Available</span>
+                            }
+                            else if (ViewBag.ResourceAvailability == "Not Available")
+                            {
+                                <span class="badge not-available"><i class="fas fa-times-circle"></i> Not Available</span>
+                            }
+                            else
+                            {
+                                <span class="badge unknown">Unknown</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge not-applicable">N/A</span>
+                        }
+                    </div>
+                </div>
+            }
 
-        <!-- Resource Availability for Commissioner and Fleet Manager -->
-        @if (ViewBag.IsCommissioner == true || ViewBag.IsFleetManager == true)
-        {
-            <div class="details-resource-availability" style="margin-bottom: 1.5rem;">
-                <label class="details-display-label">Resources Availability</label>
-                @if (Model.Status == SmartFleet.Models.OrderState.Pending)
-                {
-                    if (ViewBag.ResourceAvailability == "Available")
-                    {
-                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
-                    }
-                    else if (ViewBag.ResourceAvailability == "Not Available")
-                    {
-                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Unknown</span>
-                    }
-                }
-                else if (Model.Status == SmartFleet.Models.OrderState.Approved && Model.Trip == null)
-                {
-                    if (ViewBag.ResourceAvailability == "Available")
-                    {
-                        <span class="badge" style="background:#eafaf1; color:#4e944f; border:1px solid #4e944f; font-weight:500;"><i class="fas fa-check-circle"></i> Available</span>
-                    }
-                    else if (ViewBag.ResourceAvailability == "Not Available")
-                    {
-                        <span class="badge" style="background:#fff4e5; color:#b26a00; border:1px solid #b26a00; font-weight:500;"><i class="fas fa-times-circle"></i> Not Available</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Unknown</span>
-                    }
-                }
-                else
-                {
-                    <span class="badge bg-secondary">N/A</span>
-                }
-            </div>
-        }
-
-        <!-- Details in two columns -->
-        <div class="details-two-cols">
-            <div>
-                <div class="details-display-group">
-                    <label class="details-display-label">User Name</label>
-                    <div class="details-display-value">@Model.User?.UserName</div>
-                </div>
-                <div class="details-display-group">
-                    <label class="details-display-label">User Email</label>
-                    <div class="details-display-value">@Model.User?.Email</div>
-                </div>
-            <div class="details-display-group">
-                <label class="details-display-label">Vehicle Type</label>
-                <div class="details-display-value">@Model.VehicleType</div>
-            </div>
-            <div class="details-display-group">
-                <label class="details-display-label">Passenger Count</label>
-                <div class="details-display-value">@Model.PassengerCount</div>
-            </div>
-                <!-- Trip Start/End Location Row -->
-                <div class="details-row-flex">
-                    <div class="details-display-group" style="flex:1;">
-                <label class="details-display-label">Trip Start Location</label>
-                <div class="details-display-value">@Model.StartLocation</div>
-            </div>
-                    <div class="details-display-group" style="flex:1;">
-                <label class="details-display-label">Trip End Location</label>
-                <div class="details-display-value">@Model.Destination</div>
-            </div>
-                </div>
-                <!-- Trip Start/End Date Row -->
-                <div class="details-row-flex">
-                    <div class="details-display-group" style="flex:1;">
-                <label class="details-display-label">Trip Start Date</label>
-                <div class="details-display-value">@Model.TripStartDate.ToShortDateString()</div>
-            </div>
-                    <div class="details-display-group" style="flex:1;">
-                <label class="details-display-label">Trip End Date</label>
-                <div class="details-display-value">@Model.TripEndDate.ToShortDateString()</div>
+            <div class="details-section">
+                <h5 class="details-section-title">User Information</h5>
+                <div class="details-grid">
+                    <div class="details-item">
+                        <label>User Name</label>
+                        <div>@Model.User?.UserName</div>
+                    </div>
+                    <div class="details-item">
+                        <label>User Email</label>
+                        <div>@Model.User?.Email</div>
                     </div>
                 </div>
             </div>
-            <div>
-            <div class="details-display-group">
-                <label class="details-display-label">Reason</label>
-                <div class="details-display-value">@Model.Reason</div>
+
+            <div class="details-section">
+                <h5 class="details-section-title">Order Specifications</h5>
+                <div class="details-grid">
+                    <div class="details-item">
+                        <label>Vehicle Type</label>
+                        <div>@Model.VehicleType</div>
+                    </div>
+                    <div class="details-item">
+                        <label>Passenger Count</label>
+                        <div>@Model.PassengerCount</div>
+                    </div>
+                    <div class="details-item full-width">
+                        <label>Reason for Trip</label>
+                        <div>@Model.Reason</div>
+                    </div>
+                </div>
             </div>
-            <div class="details-display-group">
-                <label class="details-display-label">Status</label>
-                <div class="details-display-value">@Model.Status</div>
-            </div>
-            <div class="details-display-group">
-                <label class="details-display-label">Created At</label>
-                <div class="details-display-value">@Model.CreatedAt.ToString("g")</div>
+
+            <div class="details-section">
+                <h5 class="details-section-title">Trip Details</h5>
+                <div class="details-grid">
+                    <div class="details-item">
+                        <label>Start Location</label>
+                        <div>@Model.StartLocation</div>
+                    </div>
+                    <div class="details-item">
+                        <label>Destination</label>
+                        <div>@Model.Destination</div>
+                    </div>
+                    <div class="details-item">
+                        <label>Start Date</label>
+                        <div>@Model.TripStartDate.ToShortDateString()</div>
+                    </div>
+                    <div class="details-item">
+                        <label>End Date</label>
+                        <div>@Model.TripEndDate.ToShortDateString()</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Buttons -->
-        <div class="details-button-group">
+        <div class="details-footer">
             @if (ViewBag.IsCommissioner)
             {
-                <!-- Commissioner can only approve/reject pending orders -->
                 @if (Model.Status == SmartFleet.Models.OrderState.Pending)
                 {
-                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-success text-white" 
-                                style="padding: 0.15rem 0.4rem;"
-                                onclick="return confirm('Are you sure you want to approve this order?')">
-                            <i class="fas fa-check"></i> Approve Order
+                    <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this order?')">
+                            <i class="fas fa-check"></i> Approve
                         </button>
                     </form>
-                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-sm btn-danger text-white" 
-                                style="padding: 0.15rem 0.4rem;"
-                                onclick="return confirm('Are you sure you want to reject this order?')">
-                            <i class="fas fa-times"></i> Reject Order
+                    <form asp-action="Reject" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject this order?')">
+                            <i class="fas fa-times"></i> Reject
                         </button>
                     </form>
                 }
             }
             else if (ViewBag.IsFleetManager)
             {
-                <!-- FleetManager can only create trips for approved orders -->
                 @if (Model.Status == SmartFleet.Models.OrderState.Approved)
                 {
                     @if (Model.Trip != null)
                     {
-                        <!-- Trip already exists -->
-                        <span class="btn btn-sm btn-secondary disabled" style="padding: 0.15rem 0.4rem;">
-                            <i class="fas fa-check-circle"></i> Trip Created
-                        </span>
+                        <span class="btn btn-secondary disabled"><i class="fas fa-check-circle"></i> Trip Created</span>
                     }
                     else
                     {
-                        <!-- No trip exists, can create one -->
-                        <a asp-controller="Trips" asp-action="Create" asp-route-id="@Model.Id" asp-route-userId="@Model.UserId" class="btn btn-sm btn-success text-white" style="padding: 0.15rem 0.4rem;">
+                        <a asp-controller="Trips" asp-action="Create" asp-route-id="@Model.Id" asp-route-userId="@Model.UserId" class="btn btn-success">
                             <i class="fas fa-route"></i> Create Trip
                         </a>
                     }
@@ -168,10 +140,11 @@
             }
             else
             {
-                <!-- Other roles can edit orders -->
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-primary text-white" style="padding: 0.15rem 0.4rem;">Edit</a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Order
+                </a>
             }
         </div>
-
     </div>
 </div>
+

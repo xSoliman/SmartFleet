@@ -136,6 +136,8 @@ namespace SmartFleet
             // Add SignalR services
             builder.Services.AddSignalR();
 
+            builder.Services.AddScoped<IReferenceCheckService, ReferenceCheckService>();
+
             var app = builder.Build();
 
             // initialize the database

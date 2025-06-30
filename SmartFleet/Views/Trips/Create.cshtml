@@ -38,23 +38,14 @@
                     <i class="fas fa-file-alt"></i> Order Information
                 </h3>
                 <div class="flex-row">
-                    <div class="flex-col-2">
-                        <div class="create-input-group">
-                            <label asp-for="OrderId" class="create-input-label">
-                                <i class="fas fa-hashtag"></i> Order ID
-                            </label>
-                            <input type="text" class="create-input-field" value="@ViewBag.OrderId" readonly />
-                            <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
-                            <small class="form-text text-muted">This is automatically assigned from the order</small>
-                        </div>
-                    </div>
-                    <div class="flex-col-2">
+                    <div class="flex-col-1">
                         <div class="create-input-group">
                             <label asp-for="CreatedBy" class="create-input-label">
                                 <i class="fas fa-user"></i> Ordered By
                             </label>
                             <input type="text" class="create-input-field" value="@ViewBag.CreatedByUserName" readonly />
                             <input type="hidden" asp-for="CreatedBy" value="@ViewBag.CreatedBy" />
+                            <input type="hidden" asp-for="OrderId" value="@ViewBag.OrderId" />
                             <small class="form-text text-muted">User who created this order</small>
                         </div>
                     </div>

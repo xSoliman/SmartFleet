@@ -22,8 +22,9 @@ namespace SmartFleet.Controllers
         private readonly ISearchService _searchService;
         private readonly INotificationService _notificationService;
         private readonly IUserRoleService _userRoleService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
-        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, INotificationService notificationService) 
+        public VehiclesController(SmartFleetContext context, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, INotificationService notificationService, IReferenceCheckService referenceCheckService) 
             : base(userManager, userRoleService)
         {
             _context = context;
@@ -31,6 +32,7 @@ namespace SmartFleet.Controllers
             _searchService = searchService;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
+            _referenceCheckService = referenceCheckService;
         }
 
         // GET: Vehicles + search & filter
@@ -367,13 +369,21 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("AccessDenied", "Account");
             }
 
+            var (canDelete, message) = await _referenceCheckService.CanDeleteVehicleAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
+            }
+
             var vehicle = await _context.Vehicles.FindAsync(id);
             if (vehicle != null)
             {
                 _context.Vehicles.Remove(vehicle);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Vehicle deleted successfully.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

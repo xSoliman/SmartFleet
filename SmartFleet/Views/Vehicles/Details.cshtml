@@ -109,7 +109,16 @@
                 </div>
                 <div class="vehicle-item">
                     <span class="vehicle-label">Registration Expiry Date:</span>
-                    <span>@(Model.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")</span>
+                    <span>
+                        @(Model.RegistrationExpiryDate?.ToString("dd/MM/yyyy") ?? "Not set")
+                        @if (Model.RegistrationExpiryDate.HasValue)
+                        {
+                            var isExpired = Model.RegistrationExpiryDate.Value.Date < DateTime.Now.Date;
+                            var badgeClass = isExpired ? "badge-expired" : "badge-valid";
+                            var badgeText = isExpired ? "Expired" : "Valid";
+                            <span class="badge-status @badgeClass">@badgeText</span>
+                        }
+                    </span>
                 </div>
                 <div class="vehicle-item">
                     <span class="vehicle-label">Created At:</span>

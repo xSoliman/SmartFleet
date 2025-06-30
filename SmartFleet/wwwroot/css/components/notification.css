@@ -289,4 +289,10 @@
 
 .nav-item.dropdown {
     position: relative;
-} 
+}
+#markAllAsReadButton{
+    color:black !important;
+}
+#markAllAsReadButton:hover{
+    color:white !important;
+}

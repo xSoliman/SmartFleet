@@ -27,6 +27,7 @@ namespace SmartFleet.Tests
         private readonly Mock<IPaginationService> _mockPaginationService;
         private readonly Mock<ISearchService> _mockSearchService;
         private readonly Mock<INotificationService> _mockNotificationService;
+        private readonly Mock<IReferenceCheckService> _mockReferenceCheckService;
         private readonly VehiclesController _controller;
         private readonly ApplicationUser _testUser;
 
@@ -42,6 +43,7 @@ namespace SmartFleet.Tests
             _mockPaginationService = new Mock<IPaginationService>();
             _mockSearchService = new Mock<ISearchService>();
             _mockNotificationService = new Mock<INotificationService>();
+            _mockReferenceCheckService = new Mock<IReferenceCheckService>();
 
             _testUser = new ApplicationUser
             {
@@ -56,7 +58,8 @@ namespace SmartFleet.Tests
                 _mockUserRoleService.Object,
                 _mockPaginationService.Object,
                 _mockSearchService.Object,
-                _mockNotificationService.Object
+                _mockNotificationService.Object,
+                _mockReferenceCheckService.Object
             );
 
             SetupDefaultAuthorization();
@@ -256,14 +259,34 @@ namespace SmartFleet.Tests
         public async Task DeleteConfirmed_WithValidId_RedirectsToIndex()
         {
             // Arrange
-            var vehicle = new Vehicle { Id = 502, Model = "Toyota Camry", LicensePlate = "ABC123", Status = VehicleState.available, Type = VehicleType.Car, Capacity = 4 };
+            var vehicle = new Vehicle { Id = 601, Model = "Toyota Camry", LicensePlate = "ABC123", Status = VehicleState.available, Type = VehicleType.Car, Capacity = 4 };
             _context.Vehicles.Add(vehicle);
             _context.SaveChanges();
             _mockUserRoleService.Setup(s => s.HasAccessToVehicles(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
             _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(_testUser);
+            _mockReferenceCheckService.Setup(s => s.CanDeleteVehicleAsync(601)).ReturnsAsync((true, "Vehicle can be deleted."));
 
             // Act
-            var result = await _controller.DeleteConfirmed(502);
+            var result = await _controller.DeleteConfirmed(601);
+
+            // Assert
+            var redirectResult = result.Should().BeOfType<RedirectToActionResult>().Subject;
+            redirectResult.ActionName.Should().Be(nameof(VehiclesController.Index));
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_WithReferences_ReturnsForbidden()
+        {
+            // Arrange
+            var vehicle = new Vehicle { Id = 602, Model = "Toyota Camry", LicensePlate = "ABC123", Status = VehicleState.available, Type = VehicleType.Car, Capacity = 4 };
+            _context.Vehicles.Add(vehicle);
+            _context.SaveChanges();
+            _mockUserRoleService.Setup(s => s.HasAccessToVehicles(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
+            _mockUserManager.Setup(u => u.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(_testUser);
+            _mockReferenceCheckService.Setup(s => s.CanDeleteVehicleAsync(602)).ReturnsAsync((false, "Cannot delete vehicle because it has associated trips."));
+
+            // Act
+            var result = await _controller.DeleteConfirmed(602);
 
             // Assert
             var redirectResult = result.Should().BeOfType<RedirectToActionResult>().Subject;

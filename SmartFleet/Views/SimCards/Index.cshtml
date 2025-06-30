@@ -7,6 +7,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/simcard/list.css">
+    <link rel="stylesheet" href="~/css/pages/trip/searchable-dropdowns.css">
 
        <style>
         button {
@@ -340,6 +341,20 @@ function loadAvailableVehicles() {
             });
             
             console.log('Total options in select:', select.options.length);
+            
+            // Initialize searchable dropdown after loading options
+            if (window.SimCardSearchableDropdown) {
+                // Remove existing searchable dropdown if any
+                const existingWrapper = select.parentNode.querySelector('.searchable-dropdown-wrapper');
+                if (existingWrapper) {
+                    existingWrapper.remove();
+                    select.style.display = '';
+                }
+                
+                // Initialize new searchable dropdown
+                new window.SimCardSearchableDropdown(select);
+                console.log('Searchable dropdown initialized for vehicle select');
+            }
         })
         .catch(error => {
             console.error('Error loading vehicles:', error);
@@ -420,3 +435,5 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('=== DOMContentLoaded END ===');
 });
 </script>
+
+<script src="~/js/simcard/searchable-dropdowns.js"></script>

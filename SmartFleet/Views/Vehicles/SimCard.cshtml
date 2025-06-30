@@ -7,6 +7,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+    <link rel="stylesheet" href="~/css/pages/trip/searchable-dropdowns.css">
 </head>
 
 <div class="main-container">
@@ -79,10 +80,10 @@
                     <!-- Change SimCard Button -->
                     <div class="simcard-action-buttons">
                         <button class="simcard-btn simcard-btn-warning" onclick="showAssignmentForm()">
-                            <i class="fas fa-exchange-alt"></i> Change SimCard
+                            <i class="fas fa-exchange-alt" style="color:white !important;"></i> <span style="color:white !important;">Change SimCard</span>
                         </button>
                         <button class="simcard-btn simcard-btn-danger" onclick="removeSimCard()">
-                            <i class="fas fa-unlink"></i> Remove SimCard
+                            <i class="fas fa-unlink" style="color:white !important;"></i> <span style="color:white !important;">Remove SimCard</span>
                         </button>
                     </div>
                 </div>
@@ -97,24 +98,14 @@
                         <p>This vehicle doesn't have a SimCard assigned.</p>
                         <p>GPS tracking will not work until a SimCard is assigned.</p>
                     </div>
-                    
-                    <!-- Assign SimCard Button -->
-                    <div class="simcard-action-buttons">
-                        <button class="simcard-btn simcard-btn-primary" onclick="showAssignmentForm()">
-                            <i class="fas fa-plus"></i> Assign SimCard
-                        </button>
-                    </div>
                 </div>
             }
-            
-            <!-- Assignment Form (Hidden by default) -->
-            <div id="assignment-form" style="display: none;">
+            <!-- Assignment Form: Always present, only hidden/shown -->
+            <div id="assignment-form" style="display:@(Model.SimCard == null ? "block" : "none")">
                 <h3>@(Model.SimCard != null ? "Change" : "Assign") SimCard</h3>
-                
                 <form asp-action="AssignSimCard" method="post" id="assignSimCardForm">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="vehicleId" value="@Model.Id" />
-                    
                     <div class="simcard-form-group">
                         <label for="simCardId">Select SimCard:</label>
                         <select name="simCardId" id="simCardId" class="simcard-form-control" required>
@@ -123,14 +114,16 @@
                         </select>
                         <small class="simcard-help-text">Choose an available SimCard for this vehicle</small>
                     </div>
-                    
                     <div class="simcard-form-actions">
                         <button type="submit" class="simcard-btn simcard-btn-success" id="submitBtn">
-                            <i class="fas fa-check"></i> @(Model.SimCard != null ? "Change" : "Assign") SimCard
+                            <i class="fas fa-check" style="color:white !important;"></i> <span style="color:white !important;">@(Model.SimCard != null ? "Change" : "Assign") SimCard</span>
                         </button>
+                        @if (Model.SimCard != null)
+                        {
                         <button type="button" class="simcard-btn simcard-btn-secondary" onclick="hideAssignmentForm()">
                             <i class="fas fa-times"></i> Cancel
                         </button>
+                        }
                     </div>
                 </form>
             </div>
@@ -154,8 +147,17 @@
 <script>
 function showAssignmentForm() {
     console.log('showAssignmentForm called');
-    document.getElementById('assignment-form').style.display = 'block';
-    loadAvailableSimCards();
+    var form = document.getElementById('assignSimCardForm');
+    if (form) {
+        form.reset(); // Reset form fields
+    }
+    var assignmentForm = document.getElementById('assignment-form');
+    if (assignmentForm) {
+        assignmentForm.style.display = 'block';
+        // Optionally scroll to the form for better UX
+        assignmentForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    loadAvailableSimCards(); // Always reload available SimCards
 }
 
 function hideAssignmentForm() {
@@ -165,7 +167,12 @@ function hideAssignmentForm() {
 
 function loadAvailableSimCards() {
     console.log('loadAvailableSimCards called');
-    fetch('/Vehicles/api/simcards/available')
+    const select = document.getElementById('simCardId');
+    if (!select) {
+        console.warn('SimCard select element not found!');
+        return;
+    }
+    fetch('/SimCards/GetAvailableSimCards')
         .then(response => {
             console.log('SimCards API response status:', response.status);
             if (!response.ok) {
@@ -175,7 +182,6 @@ function loadAvailableSimCards() {
         })
         .then(data => {
             console.log('SimCards data received:', data);
-            const select = document.getElementById('simCardId');
             select.innerHTML = '<option value="">-- Select a SimCard --</option>';
             
             data.forEach(simCard => {
@@ -184,10 +190,47 @@ function loadAvailableSimCards() {
                 option.textContent = `${simCard.simNumber} (${simCard.carrier})`;
                 select.appendChild(option);
             });
+            
+            // Remove any previous error message
+            const helpText = select.parentNode.querySelector('.simcard-error-text');
+            if (helpText) helpText.remove();
+            
+            // Initialize searchable dropdown after loading options
+            if (window.SimCardSearchableDropdown) {
+                // Remove existing searchable dropdown if any
+                const existingWrapper = select.parentNode.querySelector('.searchable-dropdown-wrapper');
+                if (existingWrapper) {
+                    existingWrapper.remove();
+                    select.style.display = '';
+                }
+                
+                // Initialize new searchable dropdown
+                new window.SimCardSearchableDropdown(select);
+                console.log('Searchable dropdown initialized for SimCard select');
+            }
         })
         .catch(error => {
             console.error('Error loading SimCards:', error);
-            alert('Error loading available SimCards. Please try again.');
+            select.innerHTML = '<option value="">-- Select a SimCard --</option>';
+            // Remove any previous error message
+            const oldMsg = select.parentNode.querySelector('.simcard-error-text');
+            if (oldMsg) oldMsg.remove();
+            // Show friendly error message below the dropdown
+            const msg = document.createElement('div');
+            msg.className = 'simcard-error-text';
+            msg.style.color = '#dc3545';
+            msg.style.marginTop = '4px';
+            msg.textContent = 'No SimCards found or failed to load.';
+            select.parentNode.appendChild(msg);
+            // Still initialize the searchable dropdown (empty)
+            if (window.SimCardSearchableDropdown) {
+                const existingWrapper = select.parentNode.querySelector('.searchable-dropdown-wrapper');
+                if (existingWrapper) {
+                    existingWrapper.remove();
+                    select.style.display = '';
+                }
+                new window.SimCardSearchableDropdown(select);
+            }
         });
 }
 
@@ -241,5 +284,14 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('Form not found');
     }
+    
+    // Auto-load SimCards if no SimCard is assigned (form is visible)
+    const assignmentForm = document.getElementById('assignment-form');
+    if (assignmentForm && assignmentForm.style.display !== 'none') {
+        console.log('No SimCard assigned, auto-loading available SimCards');
+        loadAvailableSimCards();
+    }
 });
-</script> 
+</script>
+
+<script src="~/js/simcard/searchable-dropdowns.js"></script> 

@@ -23,8 +23,9 @@ namespace SmartFleet.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly ISearchService _searchService;
         private readonly INotificationService _notificationService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
-        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, ISearchService searchService, INotificationService notificationService)
+        public MaintenancesController(SmartFleetContext context, IPaginationService paginationService, UserManager<ApplicationUser> userManager, IUserRoleService userRoleService, ISearchService searchService, INotificationService notificationService, IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _paginationService = paginationService;
@@ -32,6 +33,7 @@ namespace SmartFleet.Controllers
             _userRoleService = userRoleService;
             _searchService = searchService;
             _notificationService = notificationService;
+            _referenceCheckService = referenceCheckService;
         }
 
         public async Task<IActionResult> Index(string searchPlate, RepairState? statusFilter, PriorityDegree? priorityFilter, int pageNumber = 1)
@@ -555,6 +557,13 @@ namespace SmartFleet.Controllers
             {
                 TempData["ErrorMessage"] = "Only System Support can delete maintenance records.";
                 return RedirectToAction("Index");
+            }
+
+            var (canDelete, message) = await _referenceCheckService.CanDeleteMaintenanceAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
             }
 
             var maintenance = await _context.Maintenances

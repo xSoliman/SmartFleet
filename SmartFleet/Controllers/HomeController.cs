@@ -159,21 +159,21 @@ namespace SmartFleet.Controllers
             }
             else
             {
-                // Default statistics for non-authenticated users
-                ViewBag.Stat1 = _context.Users.Count();
-                ViewBag.Stat2 = _context.Vehicles.Count();
-                ViewBag.Stat3 = _context.Trips.Count();
-                ViewBag.Stat4 = _context.Orders.Count();
+                // Statistics for non-authenticated users (same as normal user but with zeros)
+                ViewBag.Stat1 = 0;  // My Orders
+                ViewBag.Stat2 = 0;  // Completed Trips
+                ViewBag.Stat3 = 0;  // Scheduled Trips
+                ViewBag.Stat4 = 0;  // Pending Orders
                 
-                ViewBag.Icon1 = "fas fa-users";
-                ViewBag.Icon2 = "fas fa-car";
-                ViewBag.Icon3 = "fas fa-route";
-                ViewBag.Icon4 = "fas fa-file-alt";
+                ViewBag.Icon1 = "fas fa-file-alt";
+                ViewBag.Icon2 = "fas fa-check-circle";
+                ViewBag.Icon3 = "fas fa-calendar";
+                ViewBag.Icon4 = "fas fa-clock";
                 
-                ViewBag.Label1 = "Total Users";
-                ViewBag.Label2 = "Total Vehicles";
-                ViewBag.Label3 = "Total Trips";
-                ViewBag.Label4 = "Total Orders";
+                ViewBag.Label1 = "My Orders";
+                ViewBag.Label2 = "Completed Trips";
+                ViewBag.Label3 = "Scheduled Trips";
+                ViewBag.Label4 = "Pending Orders";
             }
 
             return View();

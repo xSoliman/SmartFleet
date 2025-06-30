@@ -16,10 +16,12 @@ namespace SmartFleet.Controllers
     {
         private readonly SmartFleetContext _context;
         private readonly IPaginationService _paginationService;
-        public GeofencesController(SmartFleetContext context, IPaginationService paginationService)
+        private readonly IReferenceCheckService _referenceCheckService;
+        public GeofencesController(SmartFleetContext context, IPaginationService paginationService, IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _paginationService = paginationService;
+            _referenceCheckService = referenceCheckService;
         }
 
         // GET: Geofences
@@ -113,11 +115,19 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var (canDelete, message) = await _referenceCheckService.CanDeleteGeofenceAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
+            }
+
             var geofence = await _context.Geofences.FindAsync(id);
             if (geofence != null)
             {
                 _context.Geofences.Remove(geofence);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Geofence deleted successfully.";
             }
             return RedirectToAction(nameof(Index));
         }

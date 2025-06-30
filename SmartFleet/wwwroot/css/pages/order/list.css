@@ -40,6 +40,12 @@
     display: inline-block;
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    border-radius: 4px;
+}
+
 .btn-edit, .btn-details, .btn-delete, .btn-approve, .btn-cancel, .btn-reject {
     font-size: 0.85em;
     padding: 2px 7px;
@@ -51,14 +57,14 @@
     transition: background 0.2s, color 0.2s;
 }
 
-.btn-edit { background-color: #007bff; }
-.btn-edit:hover { background-color: #0056b3; }
+.btn-edit { background-color: rgb(235, 235, 235); color: black !important; }
+.btn-edit:hover { background-color: #d1d1d1; }
 
-.btn-details { background-color: #6c757d; }
-.btn-details:hover { background-color: #495057; }
+.btn-details { background-color: rgb(235, 235, 235); color: black !important; }
+.btn-details:hover { background-color: #d1d1d1; }
 
-.btn-delete { background-color: #e63946; }
-.btn-delete:hover { background-color: #b71c1c; }
+.btn-delete { background-color: rgb(235, 235, 235); color: black !important; }
+.btn-delete:hover { background-color: #d1d1d1; }
 
 .btn-approve { background-color: #16b416; }
 .btn-approve:hover { background-color: #128a12; }

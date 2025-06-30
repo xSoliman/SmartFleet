@@ -28,6 +28,14 @@ namespace SmartFleet.Tests
             return new SmartFleetContext(options);
         }
 
+        private Mock<IReferenceCheckService> GetMockReferenceCheckService()
+        {
+            var mockService = new Mock<IReferenceCheckService>();
+            mockService.Setup(s => s.CanDeleteOrderAsync(It.IsAny<int>()))
+                .ReturnsAsync((true, "Order can be deleted."));
+            return mockService;
+        }
+
         [Fact]
         public async Task Details_ReturnsViewResult_WhenOrderExists()
         {
@@ -40,7 +48,8 @@ namespace SmartFleet.Tests
             var userRoleService = new Mock<IUserRoleService>();
             userRoleService.Setup(s => s.HasAccessToOrders(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
 
             var result = await controller.Details(2);
             var viewResult = Assert.IsType<ViewResult>(result);
@@ -58,7 +67,8 @@ namespace SmartFleet.Tests
             var userRoleService = new Mock<IUserRoleService>();
             userRoleService.Setup(s => s.HasAccessToOrders(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             var result = await controller.Details(999);
             Assert.IsType<NotFoundResult>(result);
         }
@@ -73,7 +83,8 @@ namespace SmartFleet.Tests
             var userRoleService = new Mock<IUserRoleService>();
             userRoleService.Setup(s => s.CanCreateOrder(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             var result = await controller.Create();
             Assert.IsType<ViewResult>(result);
         }
@@ -91,7 +102,8 @@ namespace SmartFleet.Tests
             notificationService.Setup(n => n.CreateNotificationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RelatedTable>(), It.IsAny<int?>())).Returns(Task.CompletedTask);
             userRoleService.Setup(s => s.GetUsersByRole(It.IsAny<string>())).ReturnsAsync(new List<ApplicationUser> { new ApplicationUser { Id = "manager-id", UserName = "manager" } });
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, notificationService.Object, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, notificationService.Object, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             // Mock HttpContext and Response for cookies
             var httpContext = new Mock<HttpContext>();
             var responseMock = new Mock<HttpResponse>();
@@ -114,12 +126,12 @@ namespace SmartFleet.Tests
             var userManager = MockUserManager("test-user", "testuser", "NormalUser");
             var userRoleService = new Mock<IUserRoleService>();
             userRoleService.Setup(s => s.CanCreateOrder(It.IsAny<ApplicationUser>())).ReturnsAsync(true);
-            // إعداد mock لخدمة الإشعارات
             var notificationService = new Mock<INotificationService>();
             notificationService.Setup(n => n.CreateNotificationAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<RelatedTable>(), It.IsAny<int?>())).Returns(Task.CompletedTask);
             userRoleService.Setup(s => s.GetUsersByRole(It.IsAny<string>())).ReturnsAsync(new List<ApplicationUser> { new ApplicationUser { Id = "manager-id", UserName = "manager" } });
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, notificationService.Object, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, notificationService.Object, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             // Mock HttpContext and Response for cookies
             var httpContext = new Mock<HttpContext>();
             var responseMock = new Mock<HttpResponse>();
@@ -129,10 +141,8 @@ namespace SmartFleet.Tests
             controller.ControllerContext = new ControllerContext { HttpContext = httpContext.Object };
             var order = new Order { VehicleType = VehicleType.Car, PassengerCount = 1, StartLocation = "A", Destination = "B", TripStartDate = System.DateTime.Now, TripEndDate = System.DateTime.Now.AddHours(1), Reason = "Test" };
             var result = await controller.Create(order);
-            // تحقق من إعادة التوجيه
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirect.ActionName);
-            // تحقق من أنه تم استدعاء CreateNotificationAsync مرة واحدة على الأقل
             notificationService.Verify(n => n.CreateNotificationAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -154,7 +164,8 @@ namespace SmartFleet.Tests
             userRoleService.Setup(s => s.CanEditOrder(It.IsAny<ApplicationUser>(), It.IsAny<OrderState>())).ReturnsAsync(true);
             userRoleService.Setup(s => s.GetUserRoles(It.IsAny<ApplicationUser>())).ReturnsAsync(new List<string> { "NormalUser" });
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             var result = await controller.Edit(3);
             var viewResult = Assert.IsType<ViewResult>(result);
             var model = Assert.IsType<Order>(viewResult.Model);
@@ -172,9 +183,52 @@ namespace SmartFleet.Tests
             userRoleService.Setup(s => s.CanEditOrder(It.IsAny<ApplicationUser>(), It.IsAny<OrderState>())).ReturnsAsync(true);
             userRoleService.Setup(s => s.GetUserRoles(It.IsAny<ApplicationUser>())).ReturnsAsync(new List<string> { "NormalUser" });
             var searchService = new Mock<ISearchService>();
-            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object);
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
             var result = await controller.Edit(999);
             Assert.IsType<NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_WithValidId_RedirectsToIndex()
+        {
+            var dbContext = GetInMemoryDbContext();
+            dbContext.Users.Add(new ApplicationUser { Id = "test-user", UserName = "testuser" });
+            var order = new Order { Id = 4, Destination = "Test", Status = OrderState.Pending, Reason = "Test Reason", StartLocation = "Test Start", UserId = "test-user" };
+            dbContext.Orders.Add(order);
+            dbContext.SaveChanges();
+
+            var userManager = MockUserManager("test-user", "testuser", "NormalUser");
+            var userRoleService = new Mock<IUserRoleService>();
+            var searchService = new Mock<ISearchService>();
+            var mockReferenceCheckService = GetMockReferenceCheckService();
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
+
+            var result = await controller.DeleteConfirmed(4);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
+        }
+
+        [Fact]
+        public async Task DeleteConfirmed_WithReferences_ReturnsForbidden()
+        {
+            var dbContext = GetInMemoryDbContext();
+            dbContext.Users.Add(new ApplicationUser { Id = "test-user", UserName = "testuser" });
+            var order = new Order { Id = 5, Destination = "Test", Status = OrderState.Pending, Reason = "Test Reason", StartLocation = "Test Start", UserId = "test-user" };
+            dbContext.Orders.Add(order);
+            dbContext.SaveChanges();
+
+            var userManager = MockUserManager("test-user", "testuser", "NormalUser");
+            var userRoleService = new Mock<IUserRoleService>();
+            var searchService = new Mock<ISearchService>();
+            var mockReferenceCheckService = new Mock<IReferenceCheckService>();
+            mockReferenceCheckService.Setup(s => s.CanDeleteOrderAsync(5))
+                .ReturnsAsync((false, "Cannot delete order because it has associated trips."));
+            var controller = new OrdersController(dbContext, userManager.Object, null, userRoleService.Object, null, searchService.Object, mockReferenceCheckService.Object);
+
+            var result = await controller.DeleteConfirmed(5);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
         }
 
         // Helper to mock UserManager

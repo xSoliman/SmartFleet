@@ -6,14 +6,19 @@ namespace SmartFleet.ViewModel
 {
     public class TripViewModel
     {
-        public List<Trip>? Trips { get; set; }
-        public List<Trip>? AssignedTrips { get; set; }
-        public string? Destination { get; set; }
-        public string? SearchDriverName { get; set; }
-        public VehicleType? VehicleType { get; set; }
+        public IEnumerable<Trip> Trips { get; set; }
+        public IEnumerable<Trip> AssignedTrips { get; set; }
+        public bool IsDriver { get; set; }
+        public bool IsNormalUser { get; set; }
+        public bool IsFleetManager { get; set; }
+        public bool IsSysSupport { get; set; }
+        public string? SearchKeyword { get; set; }
         public TripState? StateFilter { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public string? Destination { get; set; }
+        public string? SearchDriverName { get; set; }
+        public string? VehicleType { get; set; }
         
         // Filters for assigned trips (for drivers)
         public string? AssignedDestination { get; set; }
@@ -24,10 +29,6 @@ namespace SmartFleet.ViewModel
         public DateTime? AssignedEndDate { get; set; }
         
         // Role-based properties
-        public bool IsDriver { get; set; }
-        public bool IsFleetManager { get; set; }
-        public bool IsSysSupport { get; set; }
-        public bool IsNormalUser { get; set; }
         public string? CurrentUserId { get; set; }
     }
 } 

@@ -25,9 +25,10 @@ namespace SmartFleet.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
         public OrdersController(SmartFleetContext context, UserManager<ApplicationUser> userManager, 
-            INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
+            INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _userManager = userManager;
@@ -35,11 +36,11 @@ namespace SmartFleet.Controllers
             _userRoleService = userRoleService;
             _paginationService = paginationService;
             _searchService = searchService;
+            _referenceCheckService = referenceCheckService;
         }
 
         // GET: Orders
-        public async Task<IActionResult> Index(string searchUserId, string searchStartLocation, string searchDestination, 
-            VehicleType? typeFilter, OrderState? stateFilter, DateTime? startDate, DateTime? endDate, int pageNumber = 1)
+        public async Task<IActionResult> Index(string searchKeyword, OrderState? stateFilter, DateTime? startDate, DateTime? endDate, int pageNumber = 1)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -48,141 +49,93 @@ namespace SmartFleet.Controllers
             }
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isAdminUser = userRoles.Contains("SysSupport") || userRoles.Contains("FleetManager");
             var isCommissioner = userRoles.Contains("commissioner");
             var isFleetManager = userRoles.Contains("FleetManager");
             var isSysSupport = userRoles.Contains("SysSupport");
-            var isDriver = userRoles.Contains("Driver");
-            var isMaintenanceManager = userRoles.Contains("MaintenanceManager");
             var isNormalUser = userRoles.Contains("NormalUser");
 
-            // Check access permissions
-            if (!await _userRoleService.HasAccessToOrders(currentUser))
-            {
-                TempData["ErrorMessage"] = "You don't have access to orders.";
-                return RedirectToAction("Index", "Home");
-            }
+            var ordersQuery = _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Trip)
+                .AsQueryable();
 
-            // Get orders based on user role
-            IQueryable<Order> ordersQuery = _context.Orders.Include(o => o.User);
-
-            // Include Trip for FleetManager and Commissioner to check if trip exists
-            if (isFleetManager || isCommissioner)
+            // Apply role-based filtering
+            if (isNormalUser)
             {
-                ordersQuery = ordersQuery.Include(o => o.Trip);
-            }
-
-            // Role-based filtering
-            if (isFleetManager)
-            {
-                // FleetManager can only see pending and approved orders
-                ordersQuery = ordersQuery.Where(o => o.Status == OrderState.Pending || o.Status == OrderState.Approved);
-            }
-            else if (isCommissioner)
-            {
-                // Commissioner can see all orders (for approval/rejection)
-                // Include Trips for Commissioner to see trip status
-                ordersQuery = ordersQuery.AsQueryable();
-            }
-            else if (isDriver)
-            {
-                // Driver has no access to orders
-                TempData["ErrorMessage"] = "Drivers don't have access to orders.";
-                return RedirectToAction("Index", "Home");
-            }
-            else if (isMaintenanceManager)
-            {
-                // Maintenance Manager has no access to orders
-                TempData["ErrorMessage"] = "Maintenance managers don't have access to orders.";
-                return RedirectToAction("Index", "Home");
-            }
-            else if (isNormalUser)
-            {
-                // NormalUser sees only their own orders
                 ordersQuery = ordersQuery.Where(o => o.UserId == currentUser.Id);
             }
-            else if (isSysSupport)
+            // Commissioner can see all orders (no filtering)
+
+            // Apply unified search
+            if (!string.IsNullOrEmpty(searchKeyword))
             {
-                // SysSupport sees all orders
-                ordersQuery = ordersQuery.AsQueryable();
-            }
-            else
-            {
-                ordersQuery = ordersQuery.AsQueryable();
+                var searchTerm = searchKeyword.ToLower();
+                ordersQuery = ordersQuery.Where(o =>
+                    o.User.UserName.ToLower().Contains(searchTerm) ||
+                    o.StartLocation.ToLower().Contains(searchTerm) ||
+                    o.Destination.ToLower().Contains(searchTerm) ||
+                    o.Reason.ToLower().Contains(searchTerm)
+                );
             }
 
-            // Original filters (only for admin users)
-            var filters = new List<System.Linq.Expressions.Expression<Func<Order, bool>>>();
-            if ((isFleetManager || isSysSupport || isCommissioner) && !string.IsNullOrEmpty(searchUserId))
-                filters.Add(o => o.User != null && o.User.UserName.Contains(searchUserId));
-            if (!string.IsNullOrEmpty(searchStartLocation))
-                filters.Add(o => o.StartLocation.Contains(searchStartLocation));
-            if (!string.IsNullOrEmpty(searchDestination))
-                filters.Add(o => o.Destination.Contains(searchDestination));
-            if ((isFleetManager || isSysSupport || isCommissioner) && typeFilter.HasValue)
-                filters.Add(o => o.VehicleType == typeFilter.Value);
+            // Apply filters
             if (stateFilter.HasValue)
-                filters.Add(o => o.Status == stateFilter.Value);
+            {
+                ordersQuery = ordersQuery.Where(o => o.Status == stateFilter.Value);
+            }
             if (startDate.HasValue)
-                filters.Add(o => o.CreatedAt.Date >= startDate.Value.Date);
+            {
+                ordersQuery = ordersQuery.Where(o => o.TripStartDate.Date >= startDate.Value.Date);
+            }
             if (endDate.HasValue)
-                filters.Add(o => o.CreatedAt.Date <= endDate.Value.Date);
-            ordersQuery = _searchService.ApplyFilters(ordersQuery, filters);
-
-            // Sort by priority: For FleetManager, show 'Create Trip' (approved, no trip) first, then pending, then others. For Commissioner/others, pending first, then 'Create Trip', then others
-            if (isFleetManager)
             {
-                ordersQuery = ordersQuery.OrderBy(o => o.Status == OrderState.Approved && o.Trip == null ? 0 :
-                                            o.Status == OrderState.Pending ? 1 : 2)
-                               .ThenBy(o => o.CreatedAt);
-            }
-            else
-            {
-                ordersQuery = ordersQuery.OrderBy(o => o.Status == OrderState.Pending ? 0 :
-                                            o.Status == OrderState.Approved && o.Trip == null ? 1 : 2)
-                               .ThenBy(o => o.CreatedAt);
+                ordersQuery = ordersQuery.Where(o => o.TripEndDate.Date <= endDate.Value.Date);
             }
 
+            // Calculate resource availability for pending orders
+            var resourceAvailability = new Dictionary<int, string>();
+            if (isFleetManager || isCommissioner)
+            {
+                var pendingOrders = await ordersQuery
+                    .Where(o => o.Status == OrderState.Pending)
+                    .ToListAsync();
+
+                foreach (var order in pendingOrders)
+                {
+                    var hasResources = await CheckResourceAvailabilityAsync(order);
+                    resourceAvailability[order.Id] = hasResources ? "Available" : "Not Available";
+            }
+            }
+
+            // Apply pagination
             int pageSize = 10;
-            int totalCount = await ordersQuery.CountAsync();
-            var pagedOrders = await _paginationService.GetPaginatedAsync(ordersQuery, pageNumber, pageSize);
+            var orders = await ordersQuery
+                .OrderByDescending(o => o.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalOrders = await ordersQuery.CountAsync();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalOrders / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
 
             var viewModel = new OrderViewModel
             {
-                Orders = pagedOrders,
-                SearchUserId = searchUserId,
-                SearchStartLocation = searchStartLocation,
-                SearchDestination = searchDestination,
-                TypeFilter = typeFilter,
-                StateFilter = stateFilter,
-                StartDate = startDate,
-                EndDate = endDate,
-                IsAdminUser = isFleetManager || isSysSupport || isCommissioner,
+                Orders = orders,
+                IsAdminUser = isAdminUser,
                 IsCommissioner = isCommissioner,
                 IsFleetManager = isFleetManager,
                 IsSysSupport = isSysSupport,
-                CurrentUserId = currentUser.Id,
-                CanCreateOrder = await _userRoleService.CanCreateOrder(currentUser)
+                IsNormalUser = isNormalUser,
+                SearchKeyword = searchKeyword,
+                StateFilter = stateFilter,
+                StartDate = startDate,
+                EndDate = endDate,
+                ResourceAvailability = resourceAvailability,
+                CanCreateOrder = await _userRoleService.CanCreateOrder(currentUser),
+                CurrentUserId = currentUser.Id
             };
-
-            // Populate resource availability for commissioner and fleet manager
-            if ((isCommissioner || isFleetManager) && viewModel.Orders != null)
-            {
-                viewModel.ResourceAvailability = new Dictionary<int, string>();
-                foreach (var order in viewModel.Orders)
-                {
-                    viewModel.ResourceAvailability[order.Id] = await GetOrderResourceAvailabilityAsync(order);
-                }
-            }
-
-            ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-            ViewBag.CurrentPage = pageNumber;
-            ViewBag.SearchUserId = searchUserId;
-            ViewBag.SearchStartLocation = searchStartLocation;
-            ViewBag.SearchDestination = searchDestination;
-            ViewBag.TypeFilter = typeFilter;
-            ViewBag.StateFilter = stateFilter;
-            ViewBag.StartDate = startDate;
-            ViewBag.EndDate = endDate;
 
             return View(viewModel);
         }
@@ -249,6 +202,7 @@ namespace SmartFleet.Controllers
                 TempData["ErrorMessage"] = "You can only view your own orders.";
                 return RedirectToAction(nameof(Index));
             }
+            // Commissioner can view details for all orders (no additional check needed)
 
             ViewBag.IsCommissioner = isCommissioner;
             ViewBag.IsFleetManager = isFleetManager;
@@ -391,7 +345,9 @@ namespace SmartFleet.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (order == null)
             {
                 return NotFound();
@@ -413,7 +369,17 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", order.UserId);
+            ViewBag.VehicleTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = VehicleType.Car.ToString(), Text = "Car" },
+                new SelectListItem { Value = VehicleType.Truck.ToString(), Text = "Truck" },
+                new SelectListItem { Value = VehicleType.Bus.ToString(), Text = "Bus" },
+                new SelectListItem { Value = VehicleType.Van.ToString(), Text = "Van" },
+                new SelectListItem { Value = VehicleType.Motorcycle.ToString(), Text = "Motorcycle" },
+                new SelectListItem { Value = VehicleType.Other.ToString(), Text = "Other" }
+            };
+            ViewBag.UserName = order.User?.UserName;
             return View(order);
         }
 
@@ -422,7 +388,7 @@ namespace SmartFleet.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,VehicleType,PassengerCount,TripStartLocation,TripEndLocation,TripStartDate,TripEndDate,Reason,Status,CreatedAt")] Order order)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,VehicleType,PassengerCount,StartLocation,Destination,TripStartDate,TripEndDate,Reason,Status,CreatedAt")] Order order)
         {
             if (id != order.Id)
             {
@@ -451,11 +417,33 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Remove validation errors for navigation properties
+            ModelState.Remove("User");
+            ModelState.Remove("Trip");
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(order);
+                    var existingOrder = await _context.Orders
+                        .Include(o => o.User)
+                        .Include(o => o.Trip)
+                        .FirstOrDefaultAsync(o => o.Id == id);
+
+                    if (existingOrder == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Update only the editable fields
+                    existingOrder.VehicleType = order.VehicleType;
+                    existingOrder.PassengerCount = order.PassengerCount;
+                    existingOrder.StartLocation = order.StartLocation;
+                    existingOrder.Destination = order.Destination;
+                    existingOrder.TripStartDate = order.TripStartDate;
+                    existingOrder.TripEndDate = order.TripEndDate;
+                    existingOrder.Reason = order.Reason;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -471,7 +459,21 @@ namespace SmartFleet.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", order.UserId);
+
+            // If we got this far, something failed, redisplay form
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", order.UserId);
+            ViewBag.VehicleTypes = new List<SelectListItem>
+            {
+                new SelectListItem { Value = VehicleType.Car.ToString(), Text = "Car" },
+                new SelectListItem { Value = VehicleType.Truck.ToString(), Text = "Truck" },
+                new SelectListItem { Value = VehicleType.Bus.ToString(), Text = "Bus" },
+                new SelectListItem { Value = VehicleType.Van.ToString(), Text = "Van" },
+                new SelectListItem { Value = VehicleType.Motorcycle.ToString(), Text = "Motorcycle" },
+                new SelectListItem { Value = VehicleType.Other.ToString(), Text = "Other" }
+            };
+
+            var user = await _context.Users.FindAsync(order.UserId);
+            ViewBag.UserName = user?.UserName;
             return View(order);
         }
 
@@ -532,8 +534,6 @@ namespace SmartFleet.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
             var isNormalUser = userRoles.Contains("NormalUser");
-            var isFleetManager = userRoles.Contains("FleetManager");
-            var isSysSupport = userRoles.Contains("SysSupport");
 
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -555,12 +555,17 @@ namespace SmartFleet.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            if (order != null)
+            var (canDelete, message) = await _referenceCheckService.CanDeleteOrderAsync(id);
+            if (!canDelete)
             {
-                _context.Orders.Remove(order);
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
             }
 
+            _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Order deleted successfully.";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -769,6 +774,30 @@ namespace SmartFleet.Controllers
                 return "Available";
             else
                 return "Not Available";
+        }
+
+        private async Task<bool> CheckResourceAvailabilityAsync(Order order)
+        {
+            // Check if there are available vehicles of the requested type
+            var availableVehicles = await _context.Vehicles
+                .Where(v => v.Type == order.VehicleType && v.Status == VehicleState.available)
+                .AnyAsync();
+            if (!availableVehicles) return false;
+
+            // Check if there are available drivers
+            var availableDrivers = await _context.Drivers
+                .Where(d => d.DriverStatus == DriverState.Available)
+                .AnyAsync();
+            if (!availableDrivers) return false;
+
+            // Check for schedule conflicts
+            var hasScheduleConflict = await _context.Orders
+                .Where(o => o.Status == OrderState.Approved && o.Trip != null)
+                .Where(o => (order.TripStartDate >= o.TripStartDate && order.TripStartDate <= o.TripEndDate) ||
+                            (order.TripEndDate >= o.TripStartDate && order.TripEndDate <= o.TripEndDate))
+                .AnyAsync();
+            
+            return !hasScheduleConflict;
         }
 
         private bool OrderExists(int id)

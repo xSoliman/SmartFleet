@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Services.BackgroundServices
 {
@@ -48,6 +49,8 @@ namespace SmartFleet.Services.BackgroundServices
             using var scope = _serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<SmartFleetContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<DriverStatusBackgroundService>>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            var userRoleService = scope.ServiceProvider.GetRequiredService<IUserRoleService>();
 
             try
             {
@@ -76,6 +79,41 @@ namespace SmartFleet.Services.BackgroundServices
                     await context.SaveChangesAsync();
                     logger.LogInformation($"Updated statuses for {updatedCount} drivers");
                 }
+
+                // --- License Expiry Notification Logic ---
+                var now = DateTime.UtcNow;
+                var fleetManagers = await userRoleService.GetUsersByRole("FleetManager");
+                foreach (var driver in drivers)
+                {
+                    if (driver.LicenseExpiryDate.Date < now.Date)
+                    {
+                        // Avoid duplicate notifications: check if an unread notification for this driver/license expiry already exists
+                        bool alreadyNotified = await context.Notifications.AnyAsync(n =>
+                            n.UserId != null &&
+                            fleetManagers.Select(fm => fm.Id).Contains(n.UserId) &&
+                            n.Title.Contains("Driver License Expired") &&
+                            n.RelatedTable == RelatedTable.Driver &&
+                            n.RelatedId == null &&
+                            !n.IsRead
+                        );
+                        if (!alreadyNotified)
+                        {
+                            string title = $"Driver License Expired";
+                            string message = $"The license for driver {driver.UserName} (License: {driver.LicenseNumber}) expired on {driver.LicenseExpiryDate:yyyy-MM-dd}. Please renew it.";
+                            foreach (var manager in fleetManagers)
+                            {
+                                await notificationService.CreateNotificationAsync(
+                                    manager.Id,
+                                    title,
+                                    message,
+                                    RelatedTable.Driver,
+                                    null
+                                );
+                            }
+                        }
+                    }
+                }
+                // --- End License Expiry Notification Logic ---
             }
             catch (Exception ex)
             {

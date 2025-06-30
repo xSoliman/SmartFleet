@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.Services.Implemenations;
+using SmartFleet.Services.Interfaces;
 using System;
 using System.Linq;
 using System.Threading;
@@ -52,11 +53,50 @@ namespace SmartFleet.Services.BackgroundServices
             using var scope = _serviceProvider.CreateScope();
             var vehicleStateService = scope.ServiceProvider.GetRequiredService<IVehicleStateManagementService>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<VehicleStateBackgroundService>>();
+            var context = scope.ServiceProvider.GetRequiredService<SmartFleetContext>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            var userRoleService = scope.ServiceProvider.GetRequiredService<IUserRoleService>();
 
             try
             {
                 await vehicleStateService.UpdateVehicleStatesAsync();
                 logger.LogDebug("Vehicle states updated successfully");
+
+                // --- License Expiry Notification Logic ---
+                var now = DateTime.UtcNow;
+                var vehicles = await context.Vehicles.ToListAsync();
+                var fleetManagers = await userRoleService.GetUsersByRole("FleetManager");
+                foreach (var vehicle in vehicles)
+                {
+                    if (vehicle.RegistrationExpiryDate.HasValue && vehicle.RegistrationExpiryDate.Value.Date < now.Date)
+                    {
+                        // Avoid duplicate notifications: check if an unread notification for this vehicle/license expiry already exists
+                        bool alreadyNotified = await context.Notifications.AnyAsync(n =>
+                            n.UserId != null &&
+                            fleetManagers.Select(fm => fm.Id).Contains(n.UserId) &&
+                            n.Title.Contains("Vehicle License Expired") &&
+                            n.RelatedTable == RelatedTable.Vehicle &&
+                            n.RelatedId == vehicle.Id &&
+                            !n.IsRead
+                        );
+                        if (!alreadyNotified)
+                        {
+                            string title = $"Vehicle License Expired";
+                            string message = $"The license for vehicle {vehicle.Model} ({vehicle.LicensePlate}) expired on {vehicle.RegistrationExpiryDate:yyyy-MM-dd}. Please renew it.";
+                            foreach (var manager in fleetManagers)
+                            {
+                                await notificationService.CreateNotificationAsync(
+                                    manager.Id,
+                                    title,
+                                    message,
+                                    RelatedTable.Vehicle,
+                                    vehicle.Id
+                                );
+                            }
+                        }
+                    }
+                }
+                // --- End License Expiry Notification Logic ---
             }
             catch (Exception ex)
             {

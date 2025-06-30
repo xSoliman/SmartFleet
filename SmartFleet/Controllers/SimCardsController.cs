@@ -19,14 +19,16 @@ namespace SmartFleet.Controllers
         private readonly IUserRoleService _userRoleService;
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
+        private readonly IReferenceCheckService _referenceCheckService;
 
-        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService)
+        public SimCardsController(SmartFleetContext context, INotificationService notificationService, IUserRoleService userRoleService, IPaginationService paginationService, ISearchService searchService, IReferenceCheckService referenceCheckService)
         {
             _context = context;
             _notificationService = notificationService;
             _userRoleService = userRoleService;
             _paginationService = paginationService;
             _searchService = searchService;
+            _referenceCheckService = referenceCheckService;
         }
 
         // GET: SimCards
@@ -194,13 +196,21 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var (canDelete, message) = await _referenceCheckService.CanDeleteSimCardAsync(id);
+            if (!canDelete)
+            {
+                TempData["ErrorMessage"] = message;
+                return RedirectToAction(nameof(Index));
+            }
+
             var simCard = await _context.SimCards.FindAsync(id);
             if (simCard != null)
             {
                 _context.SimCards.Remove(simCard);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "SIM card deleted successfully.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
@@ -321,6 +331,21 @@ namespace SmartFleet.Controllers
                 TempData["ErrorMessage"] = $"Error removing assignment: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        // GET: SimCards/GetAvailableSimCards
+        [HttpGet]
+        public IActionResult GetAvailableSimCards()
+        {
+            var availableSimCards = _context.SimCards
+                .Where(s => s.Status == SimCardStatus.Active && !_context.Vehicles.Any(v => v.SimCardId == s.Id))
+                .Select(s => new {
+                    id = s.Id,
+                    simNumber = s.SimNumber,
+                    carrier = s.Carrier
+                })
+                .ToList();
+            return Json(availableSimCards);
         }
     }
 }
