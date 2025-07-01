@@ -98,6 +98,46 @@ namespace SmartFleet.Controllers
             return View(vehicle);
         }
 
+        // GET: Vehicles/Timeline/5
+        public async Task<IActionResult> Timeline(int? id)
+        {
+            ViewData["PageTitle"] = "Vehicles";
+            
+            // Check if user has access to vehicles
+            if (!await HasAccessToVehiclesAsync())
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vehicle = await _context.Vehicles
+                .Include(v => v.SimCard)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (vehicle == null)
+            {
+                return NotFound();
+            }
+
+            // Load all trips for this vehicle with related data
+            var trips = await _context.Trips
+                .Where(t => t.VehicleId == id)
+                .Include(t => t.Driver)
+                .Include(t => t.Order)
+                .Include(t => t.CreatedByUser)
+                .ToListAsync();
+
+            // Assign trips to vehicle
+            vehicle.Trips = trips;
+
+            ViewData["PageTitle"] = "Vehicle Timeline";
+            return View(vehicle);
+        }
+
         // GET: Vehicles/Create
         public async Task<IActionResult> Create()
         {

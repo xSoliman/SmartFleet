@@ -1,0 +1,260 @@
+@model SmartFleet.Models.Vehicle
+
+@{
+    ViewData["Title"] = "Vehicle Timeline";
+}
+
+<link rel="stylesheet" href="~/css/pages/vehicle/details.css">
+<link rel="stylesheet" href="~/css/pages/vehicle/timeline.css">
+
+<div class="main-container">
+    <!-- Left Section: Timeline Content -->
+    <div class="left-container">
+        <!-- Back Button -->
+        <div class="details-navigation">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="details-back-link">
+                <i class="fas fa-arrow-left"></i> Back to Vehicle Details
+            </a>
+        </div>
+
+        <!-- Vehicle Info Header -->
+        <div class="vehicle-container">
+            <h1 class="vehicle-title">Vehicle Timeline - @Model.LicensePlate</h1>
+            <p class="vehicle-subtitle">@Model.Model (@Model.Type)</p>
+        </div>
+
+        <!-- Timeline Container -->
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <h2><i class="fas fa-timeline"></i> Trip History</h2>
+                <div class="timeline-stats">
+                    <span><strong>Total Trips:</strong> @Model.Trips.Count</span>
+                </div>
+            </div>
+
+            @if (Model.Trips.Any())
+            {
+                <div class="timeline-list">
+                    @{
+                        // Smart ordering: upcoming trips first (closest date first), then completed (newest first)
+                        var upcomingTrips = Model.Trips
+                            .Where(t => t.Status == TripState.Scheduled || t.Status == TripState.InProgress)
+                            .OrderBy(t => t.Order.TripStartDate).ToList(); // Closest first
+                        
+                        var completedTrips = Model.Trips
+                            .Where(t => t.Status == TripState.Completed || t.Status == TripState.Cancelled)
+                            .OrderByDescending(t => t.Order.TripStartDate).ToList(); // Newest first
+                    }
+                    
+                    @* Display upcoming trips first *@
+                    @if (upcomingTrips.Any())
+                    {
+                        <div class="timeline-section-header">
+                            <h3 style="color: #3498db; margin: 20px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #3498db;">
+                                <i class="fas fa-clock"></i> Upcoming Trips (@upcomingTrips.Count)
+                            </h3>
+                        </div>
+                        
+                        @foreach (var trip in upcomingTrips)
+                        {
+                            <div class="timeline-item upcoming-trip">
+                                <div class="timeline-item-header">
+                                    <div class="timeline-item-title">
+                                        <h3>Trip #@trip.Id</h3>
+                                        <small class="timeline-date">@trip.Order.TripStartDate.ToString("MM/dd/yyyy - HH:mm")</small>
+                                    </div>
+                                    <div class="timeline-item-status">
+                                        @{
+                                            string statusClass = "badge-scheduled";
+                                            string statusText = trip.Status.ToString();
+                                            
+                                            if (trip.Status.ToString() == "InProgress")
+                                            {
+                                                statusClass = "badge-inprogress";
+                                                statusText = "In Progress";
+                                            }
+                                            else if (trip.Status.ToString() == "Completed")
+                                            {
+                                                statusClass = "badge-completed";
+                                            }
+                                            else if (trip.Status.ToString() == "Cancelled")
+                                            {
+                                                statusClass = "badge-cancelled";
+                                            }
+                                        }
+                                        <span class="badge-status @statusClass">@statusText</span>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-user"></i> Driver:</span>
+                                        <span class="detail-value">
+                                            @if (trip.Driver != null)
+                                            {
+                                                @trip.Driver.UserName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not Assigned</span>
+                                            }
+                                        </span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-route"></i> Distance:</span>
+                                        <span class="detail-value">@trip.Distance.ToString("F2") km</span>
+                                    </div>
+
+                                    @if (trip.Order != null)
+                                    {
+                                        <div class="detail-row">
+                                            <span class="detail-label"><i class="fas fa-box"></i> Order:</span>
+                                            <span class="detail-value">#@trip.Order.Id</span>
+                                        </div>
+                                    }
+
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-user-plus"></i> Created By:</span>
+                                        <span class="detail-value">
+                                            @if (trip.CreatedByUser != null)
+                                            {
+                                                @trip.CreatedByUser.UserName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">System</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item-actions">
+                                    <a asp-controller="Trips" asp-action="Details" asp-route-id="@trip.Id" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                    
+                    @* Display completed trips *@
+                    @if (completedTrips.Any())
+                    {
+                        <div class="timeline-section-header">
+                            <h3 style="color: #6c757d; margin: 30px 0 15px 0; padding-bottom: 8px; border-bottom: 2px solid #6c757d;">
+                                <i class="fas fa-history"></i> Completed Trips (@completedTrips.Count)
+                            </h3>
+                        </div>
+                        
+                        @foreach (var trip in completedTrips)
+                        {
+                            <div class="timeline-item completed-trip">
+                                <div class="timeline-item-header">
+                                    <div class="timeline-item-title">
+                                        <h3>Trip #@trip.Id</h3>
+                                        <small class="timeline-date">@trip.Order.TripStartDate.ToString("MM/dd/yyyy - HH:mm")</small>
+                                    </div>
+                                    <div class="timeline-item-status">
+                                        @{
+                                            string statusClass = "badge-scheduled";
+                                            string statusText = trip.Status.ToString();
+                                            
+                                            if (trip.Status.ToString() == "InProgress")
+                                            {
+                                                statusClass = "badge-inprogress";
+                                                statusText = "In Progress";
+                                            }
+                                            else if (trip.Status.ToString() == "Completed")
+                                            {
+                                                statusClass = "badge-completed";
+                                            }
+                                            else if (trip.Status.ToString() == "Cancelled")
+                                            {
+                                                statusClass = "badge-cancelled";
+                                            }
+                                        }
+                                        <span class="badge-status @statusClass">@statusText</span>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-user"></i> Driver:</span>
+                                        <span class="detail-value">
+                                            @if (trip.Driver != null)
+                                            {
+                                                @trip.Driver.UserName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not Assigned</span>
+                                            }
+                                        </span>
+                                    </div>
+
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-route"></i> Distance:</span>
+                                        <span class="detail-value">@trip.Distance.ToString("F2") km</span>
+                                    </div>
+
+                                    @if (trip.Order != null)
+                                    {
+                                        <div class="detail-row">
+                                            <span class="detail-label"><i class="fas fa-box"></i> Order:</span>
+                                            <span class="detail-value">#@trip.Order.Id</span>
+                                        </div>
+                                    }
+
+                                    <div class="detail-row">
+                                        <span class="detail-label"><i class="fas fa-user-plus"></i> Created By:</span>
+                                        <span class="detail-value">
+                                            @if (trip.CreatedByUser != null)
+                                            {
+                                                @trip.CreatedByUser.UserName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">System</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item-actions">
+                                    <a asp-controller="Trips" asp-action="Details" asp-route-id="@trip.Id" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-trips-message">
+                    <div class="no-trips-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>No Trips Found</h3>
+                    <p>This vehicle hasn't been assigned to any trips yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Right Section: Actions -->
+    <div class="right-container">
+        <h2 class="mt-4">Actions</h2>
+        <ul>
+            <li><a asp-action="Details" asp-route-id="@Model.Id"><i class="fa-solid fa-info"></i> Information</a></li>
+            <li><a asp-action="Maintenance" asp-route-id="@Model.Id"><i class="fa-solid fa-wrench"></i> Maintenance</a></li>
+            <li><a asp-action="SimCard" asp-route-id="@Model.Id"><i class="fa-solid fa-sim-card"></i> SimCard</a></li>
+            <li><a asp-action="Geofence" asp-route-id="@Model.Id"><i class="fa-solid fa-draw-polygon"></i> Geofence</a></li>
+            <li><a asp-action="Tracking" asp-route-id="@Model.Id"><i class="fa-solid fa-location-dot"></i> Tracking</a></li>
+            <li><a asp-action="Timeline" asp-route-id="@Model.Id" class="current-view"><i class="fa-solid fa-timeline"></i> Vehicle Timeline</a></li>
+            <li><a asp-action="Edit" asp-route-id="@Model.Id"><i class="fa-solid fa-edit"></i> Edit</a></li>
+        </ul>
+    </div>
+</div> 

@@ -104,6 +104,9 @@
                         <a asp-action="Details" asp-route-id="@driver.Id" class="btn details">
                             <i class="fas fa-info-circle"></i> Details
                         </a>
+                        <a asp-action="Timeline" asp-route-id="@driver.Id" class="btn timeline">
+                            <i class="fas fa-timeline"></i> Timeline
+                        </a>
                         <button type="button" class="btn delete" onclick="deleteDriver('@driver.Id', '@driver.UserName')">
                             <i class="fas fa-trash-alt deleted_icon"></i>
                         </button>
