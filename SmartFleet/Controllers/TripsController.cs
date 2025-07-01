@@ -115,7 +115,9 @@ namespace SmartFleet.Controllers
             return await query.ToListAsync();
         }
 
-        public async Task<IActionResult> Index(string searchKeyword, TripState? stateFilter, DateTime? startDate, DateTime? endDate, int pageNumber = 1)
+        public async Task<IActionResult> Index(string searchKeyword, TripState? stateFilter, DateTime? startDate, DateTime? endDate, 
+            string assignedDestination, string assignedSearchDriverName, VehicleType? assignedVehicleType, TripState? assignedStateFilter, 
+            DateTime? assignedStartDate, DateTime? assignedEndDate, int pageNumber = 1)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
@@ -186,9 +188,52 @@ namespace SmartFleet.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling(totalTrips / (double)pageSize);
             ViewBag.CurrentPage = pageNumber;
 
+            // Load assigned trips for drivers
+            IEnumerable<Trip> assignedTrips = null;
+            if (isDriver)
+            {
+                var assignedTripsQuery = _context.Trips
+                    .Include(t => t.Vehicle)
+                    .Include(t => t.Driver)
+                    .Include(t => t.Order)
+                    .Include(t => t.CreatedByUser)
+                    .Where(t => t.DriverId == currentUser.Id);
+
+                // Apply assigned trip filters
+                if (!string.IsNullOrEmpty(assignedDestination))
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.Destination.ToLower().Contains(assignedDestination.ToLower()));
+                }
+                if (!string.IsNullOrEmpty(assignedSearchDriverName))
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Driver.UserName.ToLower().Contains(assignedSearchDriverName.ToLower()));
+                }
+                if (assignedVehicleType.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Vehicle.Type == assignedVehicleType.Value);
+                }
+                if (assignedStateFilter.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Status == assignedStateFilter.Value);
+                }
+                if (assignedStartDate.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripStartDate.Date >= assignedStartDate.Value.Date);
+                }
+                if (assignedEndDate.HasValue)
+                {
+                    assignedTripsQuery = assignedTripsQuery.Where(t => t.Order.TripEndDate.Date <= assignedEndDate.Value.Date);
+                }
+
+                assignedTrips = await assignedTripsQuery
+                    .OrderByDescending(t => t.CreatedAt)
+                    .ToListAsync();
+            }
+
             var viewModel = new TripViewModel
             {
                 Trips = trips,
+                AssignedTrips = assignedTrips,
                 IsDriver = isDriver,
                 IsNormalUser = isNormalUser,
                 IsFleetManager = isFleetManager,
@@ -196,7 +241,13 @@ namespace SmartFleet.Controllers
                 SearchKeyword = searchKeyword,
                 StateFilter = stateFilter,
                 StartDate = startDate,
-                EndDate = endDate
+                EndDate = endDate,
+                AssignedDestination = assignedDestination,
+                AssignedSearchDriverName = assignedSearchDriverName,
+                AssignedVehicleType = assignedVehicleType,
+                AssignedStateFilter = assignedStateFilter,
+                AssignedStartDate = assignedStartDate,
+                AssignedEndDate = assignedEndDate
             };
 
             return View(viewModel);
