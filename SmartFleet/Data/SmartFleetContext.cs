@@ -158,6 +158,37 @@ namespace SmartFleet.Data
                 .HasConversion(
                     new EnumToStringConverter<GeofenceType>()
                 );
+
+            // Unique constraints
+            // Make email unique (remove username uniqueness, allow username repetition)
+            modelBuilder.Entity<ApplicationUser>()
+                .HasIndex(u => u.Email)
+                .IsUnique()
+                .HasFilter("[Email] IS NOT NULL");
+
+            // Remove username uniqueness (allow repetition)
+            modelBuilder.Entity<ApplicationUser>()
+                .HasIndex(u => u.NormalizedUserName)
+                .HasDatabaseName("UserNameIndex")
+                .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+            // Make driver license numbers unique
+            modelBuilder.Entity<Driver>()
+                .HasIndex(d => d.LicenseNumber)
+                .IsUnique()
+                .HasFilter("[LicenseNumber] IS NOT NULL");
+
+            // Make vehicle license plates unique
+            modelBuilder.Entity<Vehicle>()
+                .HasIndex(v => v.LicensePlate)
+                .IsUnique()
+                .HasFilter("[LicensePlate] IS NOT NULL");
+
+            // Make SIM card numbers unique
+            modelBuilder.Entity<SimCard>()
+                .HasIndex(s => s.SimNumber)
+                .IsUnique()
+                .HasFilter("[SimNumber] IS NOT NULL");
         }
     }
 }

@@ -28,9 +28,36 @@ namespace SmartFleet.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 var currentUser = await _userManager.GetUserAsync(User);
+                
+                // Check if currentUser is null before proceeding
+                if (currentUser == null)
+                {
+                    // User is authenticated but not found in database - redirect to login
+                    return RedirectToAction("Login", "Account");
+                }
+                
                 var userRoles = await _userManager.GetRolesAsync(currentUser);
 
-                if (userRoles.Contains("NormalUser"))
+                // Ensure userRoles is not null and has at least one role
+                if (userRoles == null || !userRoles.Any())
+                {
+                    // User has no roles - show default statistics
+                    ViewBag.Stat1 = _context.Users.Count();
+                    ViewBag.Stat2 = _context.Vehicles.Count();
+                    ViewBag.Stat3 = _context.Trips.Count();
+                    ViewBag.Stat4 = _context.Orders.Count();
+                    
+                    ViewBag.Icon1 = "fas fa-users";
+                    ViewBag.Icon2 = "fas fa-car";
+                    ViewBag.Icon3 = "fas fa-route";
+                    ViewBag.Icon4 = "fas fa-file-alt";
+                    
+                    ViewBag.Label1 = "Total Users";
+                    ViewBag.Label2 = "Total Vehicles";
+                    ViewBag.Label3 = "Total Trips";
+                    ViewBag.Label4 = "Total Orders";
+                }
+                else if (userRoles.Contains("NormalUser"))
                 {
                     // Normal User Statistics
                     ViewBag.Stat1 = _context.Orders.Count(o => o.UserId == currentUser.Id);

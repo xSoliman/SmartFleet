@@ -14,16 +14,19 @@ namespace SmartFleet.Models
     {
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(20)]
+        [Required(ErrorMessage = "SIM number is required")]
+        [StringLength(20, MinimumLength = 10, ErrorMessage = "SIM number must be between 10 and 20 characters")]
         [Display(Name = "SIM Number")]
-        public string SimNumber { get; set; }
+        [RegularExpression(@"^[0-9]+$", ErrorMessage = "SIM number can only contain numbers")]
+        public string SimNumber { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(50)]
+        [Required(ErrorMessage = "Carrier is required")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Carrier must be between 2 and 50 characters")]
         [Display(Name = "Carrier")]
-        public string Carrier { get; set; }
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Carrier can only contain letters and spaces")]
+        public string Carrier { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Status is required")]
         [Display(Name = "Status")]
         public SimCardStatus Status { get; set; } = SimCardStatus.Inactive;
 

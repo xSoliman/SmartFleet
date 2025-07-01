@@ -10,6 +10,7 @@ using NuGet.Common;
 using SmartFleet.Data;
 using SmartFleet.Models;
 using SmartFleet.ViewModel;
+using SmartFleet.Services.Interfaces;
 
 namespace SmartFleet.Controllers
 {
@@ -18,14 +19,16 @@ namespace SmartFleet.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly SmartFleetContext _context;
+        private readonly IValidationService _validationService;
 
 
         public AccountController(SmartFleetContext context, UserManager<ApplicationUser> userManager,
-       SignInManager<ApplicationUser> signInManager)
+       SignInManager<ApplicationUser> signInManager, IValidationService validationService)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             _context = context;
+            _validationService = validationService;
         }
 
 
@@ -41,6 +44,13 @@ namespace SmartFleet.Controllers
         {
             try
             {
+                // Validate email uniqueness
+                if (!await _validationService.IsEmailUniqueAsync(User.Email))
+                {
+                    ModelState.AddModelError("Email", "This email address is already registered.");
+                    return View("Register", User);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return View("Register", User);
@@ -275,8 +285,16 @@ namespace SmartFleet.Controllers
                 return View(model);
             }
 
+            // Validate email uniqueness (excluding current user)
+            if (model.Email != user.Email && !await _validationService.IsEmailUniqueAsync(model.Email, user.Id))
+            {
+                ModelState.AddModelError("Email", "This email address is already registered.");
+                return View(model);
+            }
+
             // Update user fields
             user.UserName = model.UserName;
+            user.Email = model.Email; // Allow email changes
             user.PhoneNumber = model.PhoneNumber;
 
             // Handle image update (if uploaded)

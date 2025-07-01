@@ -137,6 +137,9 @@ namespace SmartFleet
             builder.Services.AddSignalR();
 
             builder.Services.AddScoped<IReferenceCheckService, ReferenceCheckService>();
+            
+            // Validation Service
+            builder.Services.AddScoped<IValidationService, ValidationService>();
 
             var app = builder.Build();
 

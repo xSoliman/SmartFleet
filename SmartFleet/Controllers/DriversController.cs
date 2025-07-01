@@ -26,6 +26,7 @@ namespace SmartFleet.Controllers
         private readonly IPaginationService _paginationService;
         private readonly ISearchService _searchService;
         private readonly IReferenceCheckService _referenceCheckService;
+        private readonly IValidationService _validationService;
 
         public DriversController(SmartFleetContext context,
                                  UserManager<ApplicationUser> userManager,
@@ -34,7 +35,8 @@ namespace SmartFleet.Controllers
                                  IUserRoleService userRoleService,
                                  IPaginationService paginationService,
                                  ISearchService searchService,
-                                 IReferenceCheckService referenceCheckService)
+                                 IReferenceCheckService referenceCheckService,
+                                 IValidationService validationService)
         {
             _context = context;
             _userManager = userManager;
@@ -44,6 +46,7 @@ namespace SmartFleet.Controllers
             _paginationService = paginationService;
             _searchService = searchService;
             _referenceCheckService = referenceCheckService;
+            _validationService = validationService;
         }
 
         [Authorize(Roles = "Driver")]
@@ -136,6 +139,17 @@ namespace SmartFleet.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(DriverViewModel model)
         {
+            // Validate uniqueness
+            if (!await _validationService.IsEmailUniqueAsync(model.Email))
+            {
+                ModelState.AddModelError("Email", "This email address is already registered.");
+            }
+
+            if (!await _validationService.IsDriverLicenseUniqueAsync(model.LicenseNumber))
+            {
+                ModelState.AddModelError("LicenseNumber", "This license number is already registered.");
+            }
+
             if (ModelState.IsValid)
             {
                 // Create a new Driver instance and set Identity fields.
@@ -245,6 +259,17 @@ namespace SmartFleet.Controllers
             if (driver == null)
             {
                 return NotFound();
+            }
+
+            // Validate uniqueness (excluding current driver)
+            if (!await _validationService.IsEmailUniqueAsync(model.Email, driver.Id))
+            {
+                ModelState.AddModelError("Email", "This email address is already registered.");
+            }
+
+            if (!await _validationService.IsDriverLicenseUniqueAsync(model.LicenseNumber, driver.Id))
+            {
+                ModelState.AddModelError("LicenseNumber", "This license number is already registered.");
             }
 
             if (ModelState.IsValid)
